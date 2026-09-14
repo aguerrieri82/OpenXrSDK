@@ -61,11 +61,11 @@ namespace OpenXr.Framework
                 await xrOculus.SetSpaceComponentStatusAsync(space, SpaceComponentTypeFB.LocatableFB, true);
         }
 
-        public static async Task<List<XrAnchor>> GetAnchorsAsync(this XrOculusPlugin xrOculus, XrAnchorFilter filter)
+        public static async Task<List<XrSpace>> GetSpacesAsync(this XrOculusPlugin xrOculus, XrSpaceFilter filter)
         {
-            var result = new List<XrAnchor>();
+            var result = new List<XrSpace>();
 
-            var anchors = await xrOculus.QueryAllAnchorsAsync(filter.Ids?.ToArray());
+            var anchors = await xrOculus.QueryAllSpacesAsync(filter.Ids?.ToArray());
 
             foreach (var space in anchors)
             {
@@ -84,7 +84,7 @@ namespace OpenXr.Framework
 
                 var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
 
-                var item = new XrAnchor
+                var item = new XrSpace
                 {
                     Id = space.Uuid.ToGuid(),
                     Space = space.Space.Handle,

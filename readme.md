@@ -182,8 +182,12 @@ Core OpenXR integration includes actions, spaces, swapchains, projection/quad la
 | `XR_EXT_hand_tracking` | Hand joints and tracking |
 | `XR_EXT_hand_interaction` | Standard hand interaction profile |
 | `XR_EXT_debug_utils` | Runtime debug messages |
+| `XR_EXT_future` | Asynchronous operation polling |
 | `XR_KHR_visibility_mask` | Per-eye hidden/visible area mesh |
 | `XR_KHR_composition_layer_depth` | Projection depth submission |
+| `XR_KHR_composition_layer_cylinder` | Cylindrical composition layers |
+| `XR_KHR_composition_layer_equirect` | Equirectangular composition layers |
+| `XR_KHR_composition_layer_equirect2` | Equirectangular composition layers with angular bounds |
 | `XR_KHR_locate_spaces` | Batched space location |
 | `XR_KHR_convert_timespec_time` | XR/system time conversion |
 | `XR_KHR_win32_convert_performance_counter_time` | XR/Win32 time conversion |
@@ -226,10 +230,19 @@ ANGLE uses the Vulkan OpenXR graphics binding while exposing the engine's OpenGL
 | `XR_META_hand_tracking_wide_motion_mode` | Wide-motion hand tracking |
 | `XR_META_hand_tracking_frequency_hint` | Hand tracking frequency hint |
 | `XR_META_hand_tracking_unextrapolated_poses` | Unextrapolated hand poses |
+| `XR_META_hand_tracking_microgestures` | Hand microgesture input |
 | `XR_META_simultaneous_hands_and_controllers` | Hands + controllers together |
+| `XR_FB_body_tracking` | Body joints, skeleton and tracking confidence |
+| `XR_META_body_tracking_full_body` | Full-body joint tracking |
+| `XR_META_body_tracking_fidelity` | Body tracking fidelity requests and status |
+| `XR_META_body_tracking_calibration` | Body-height override, calibration reset and status |
+| `XR_FB_face_tracking2` | Facial expression weights and confidence |
 | `XR_META_touch_controller_plus` | Touch Plus interaction profile |
+| `XR_META_virtual_keyboard` | Virtual keyboard input, model and textures |
+| `XR_FB_render_model` | Runtime render-model loading |
 | `XR_FB_haptic_pcm` | PCM haptics |
 | `XR_FB_display_refresh_rate` | Refresh-rate control |
+| `XR_META_performance_metrics` | Runtime performance counters |
 | `XR_FB_foveation` | Foveated rendering |
 | `XR_FB_foveation_configuration` | Foveation configuration |
 | `XR_FB_swapchain_update_state` | Swapchain state updates |
@@ -238,9 +251,13 @@ ANGLE uses the Vulkan OpenXR graphics binding while exposing the engine's OpenGL
 | `XR_FB_composition_layer_depth_test` | Compositor depth testing |
 | `XR_FB_color_space` | Headset color-space control |
 | `XR_FB_passthrough` | Passthrough composition |
+| `XR_META_passthrough_color_lut` | Passthrough color lookup tables and blending |
 | `XR_FB_passthrough_keyboard_hands` | Passthrough keyboard/hand support |
 | `XR_META_environment_depth` | Environment depth |
+| `XR_META_environment_raycast` | Raycasts against the real-world environment |
 | `XR_META_recommended_layer_resolution` | Runtime resolution recommendation |
+
+Body tracking extensions are requested when `OculusOptions.UseBodyTrack` is enabled. The plugin rejects combining this option with `UseBothHandAndControllers`, which requests `XR_META_simultaneous_hands_and_controllers`. Feature availability depends on the runtime and device capabilities.
 
 ### Assets
 
@@ -312,4 +329,3 @@ glTF import covers scene hierarchy, meshes, cameras, punctual lights, metallic/r
 OpenXrSDK is under active development and is not yet intended as a stable public SDK. APIs may change significantly as the architecture evolves. Backward compatibility and migration guarantees are not currently design goals.
 
 Contributions, bug reports and alternative approaches are welcome. The project is open to substantial changes when they improve the engine, while overall technical direction and final integration decisions remain maintainer-led to preserve architectural coherence.
-

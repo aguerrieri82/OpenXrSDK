@@ -15,6 +15,8 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
+            scene.AddComponent<KeyboardTracker>();
+
             var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "Bed 1";
             mesh.AddComponent<PyMeshCollider>();
@@ -31,7 +33,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
-                .EnableEnvRayCollider()
+               // .EnableEnvRayCollider()
                 .AddFloorShadow(4, false)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp(showHit: true);

@@ -1,4 +1,5 @@
 ﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Oculus.Structs;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -173,7 +174,6 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_META_passthrough_color_lut");
 
-
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);
 
@@ -186,6 +186,9 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(MetaPerformanceMetrics.ExtensionName);
 
             extensions.Add(METAEnvironmentRaycast.ExtensionName);
+
+            extensions.Add(METADynamicObjectTracker.ExtensionName);
+            extensions.Add(METADynamicObjectKeyboard.ExtensionName);
 
             if (_options.UseBothHandAndControllers)
                 extensions.Add(METASimultaneousHandsAndControllers.ExtensionName);
@@ -465,20 +468,6 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-        protected Task<T> SubmitQuery<T>(string hash, ulong reqId)
-        {
-            var cs = new TaskCompletionSource<T>();
-
-            _queries[hash] = new ActiveQuery
-            {
-                ReqId = reqId,
-                Completion = cs,
-                Hash = hash
-            };
-
-            return cs.Task;
-        }
-
         protected TaskCompletionSource<T>? QueryCompletion<T>(ulong reqId)
         {
             lock (_queries)
@@ -487,7 +476,10 @@ namespace OpenXr.Framework.Oculus
                     .FirstOrDefault(a => a.ReqId == reqId && a.ResultType == typeof(T));
 
                 if (query == null)
+                {
+                    _app!.Logger.LogWarning("Query reqId {reqId} not found", reqId);
                     return null;
+                }
 
                 _queries.Remove(query.Hash!);
 
@@ -637,42 +629,69 @@ namespace OpenXr.Framework.Oculus
             return SubmitQuery<Result>($"{space.Handle}:{componentType}", Request);
         }
 
-        public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync(Guid[]? ids = null)
+        public Task<SpaceQueryResultFB[]> QueryAllSpacesAsync(Guid[]? ids = null, SpaceComponentTypeFB? component = null, SpaceStorageLocationFB? storageLocation = null)
         {
             unsafe ulong Request()
             {
                 var hasIds = ids != null && ids.Length > 0;
 
+                if (hasIds && component.HasValue)
+                    throw new NotSupportedException("UUID and component filters cannot be combined.");
+
                 ids ??= new Guid[1];
 
                 fixed (Guid* uuids = &ids[0])
                 {
-                    var filter = new SpaceUuidFilterInfoFB();
+                    var uuidFilter = new SpaceUuidFilterInfoFB();
+                    var componentFilter = new SpaceComponentFilterInfoFB();
+                    var storageFilter = new SpaceStorageLocationFilterInfoFB();
+
+                    SpaceFilterInfoBaseHeaderFB* filter = null;
 
                     if (hasIds)
                     {
-                        filter.Uuids = (UuidEXT*)uuids;
-                        filter.UuidCount = (uint)ids.Length;
-                        filter.Type = StructureType.SpaceUuidFilterInfoFB;
+                        uuidFilter.Type = StructureType.SpaceUuidFilterInfoFB;
+                        uuidFilter.Uuids = (UuidEXT*)uuids;
+                        uuidFilter.UuidCount = (uint)ids.Length;
+
+                        filter = (SpaceFilterInfoBaseHeaderFB*)&uuidFilter;
+                    }
+                    else if (component != null)
+                    {
+                        componentFilter.Type = StructureType.SpaceComponentFilterInfoFB;
+                        componentFilter.ComponentType = component.Value;
+
+                        filter = (SpaceFilterInfoBaseHeaderFB*)&componentFilter;
                     }
 
-                    var query = new SpaceQueryInfoFB()
+                    if (storageLocation != null)
+                    {
+                        storageFilter.Type = StructureType.SpaceStorageLocationFilterInfoFB;
+                        storageFilter.Location = storageLocation.Value;
+
+                        if (filter == null)
+                            filter = (SpaceFilterInfoBaseHeaderFB*)&storageFilter;
+                        else
+                            filter->Next = &storageFilter;
+                    }
+
+                    var query = new SpaceQueryInfoFB
                     {
                         Type = StructureType.SpaceQueryInfoFB,
                         QueryAction = SpaceQueryActionFB.LoadFB,
-                        Filter = hasIds ? (SpaceFilterInfoBaseHeaderFB*)&filter : null,
-                        MaxResultCount = 100,
+                        Filter = filter,
+                        MaxResultCount = 100
                     };
 
-                    var reqId = GenerateReqId();
+                    ulong reqId = 0;
 
-                    _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+                    _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
 
                     return reqId;
                 }
             }
 
-            return SubmitQuery<SpaceQueryResultFB[]>("QuerySpacesFB", Request);
+            return SubmitQuery<SpaceQueryResultFB[]>($"QuerySpacesFB:{component}", Request);
         }
 
         public override void HandleEvent(ref EventDataBuffer buffer)
@@ -684,18 +703,9 @@ namespace OpenXr.Framework.Oculus
             {
                 var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
 
-                var query = QueryCompletion<Result>(data.RequestId);
+                var query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
 
-                query?.ScheduleCancel(TimeSpan.FromSeconds(5));
-            }
-
-            else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
-            {
-                var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
-
-                var query = QueryCompletion<Result>(data.RequestId);
-
-                query?.SetResult(data.Result);
+                query?.SetResult([]);
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
@@ -713,6 +723,16 @@ namespace OpenXr.Framework.Oculus
                 {
                     query?.SetException(ex);
                 }
+            }
+
+
+            else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
+            {
+                var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
+
+                var query = QueryCompletion<Result>(data.RequestId);
+
+                query?.SetResult(data.Result);
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceDiscoveryCompleteMeta)
@@ -1164,6 +1184,8 @@ namespace OpenXr.Framework.Oculus
                 return _performance;
             }
         }
+
+
 
         public OculusOptions Options => _options;
     }

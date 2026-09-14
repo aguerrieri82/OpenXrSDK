@@ -120,7 +120,7 @@ namespace XrSamples
                 {
                     var oculus = e.XrApp.Plugin<XrOculusPlugin>();
                     var isLoading = false;
-                    XrAnchor? window = null;
+                    XrSpace? window = null;
 
                     mesh.AddBehavior((_, _) =>
                     {
@@ -159,7 +159,7 @@ namespace XrSamples
                         isLoading = true;
                         try
                         {
-                            var anchors = await e.XrApp.Plugin<XrOculusPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            var anchors = await e.XrApp.Plugin<XrOculusPlugin>().GetSpacesAsync(new XrSpaceFilter
                             {
                                 Components = XrAnchorComponent.Label | XrAnchorComponent.Bounds
                             });

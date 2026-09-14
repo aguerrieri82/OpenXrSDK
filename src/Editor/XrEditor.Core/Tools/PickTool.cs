@@ -105,6 +105,7 @@ namespace XrEditor
                         LocalPoint = result.Object!.ToLocal(result.Pos),
                     };
                 }
+                
             }
             else
             {

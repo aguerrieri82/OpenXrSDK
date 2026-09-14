@@ -42,7 +42,7 @@ namespace XrEngine.OpenXr
                 {
                     _ = Task.Run(async () =>
                     {
-                        var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
+                        var anchors = await oculus.GetSpacesAsync(new XrSpaceFilter
                         {
                             Components = XrAnchorComponent.All,
                             Labels = ["FLOOR"]

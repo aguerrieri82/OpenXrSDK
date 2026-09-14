@@ -52,7 +52,7 @@ namespace XrEngine.OpenXr
 
             try
             {
-                var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter()
+                var anchors = await oculus.GetSpacesAsync(new XrSpaceFilter()
                 {
                     Components = XrAnchorComponent.Label | XrAnchorComponent.Bounds
                 });

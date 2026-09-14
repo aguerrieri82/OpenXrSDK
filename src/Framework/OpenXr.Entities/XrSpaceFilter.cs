@@ -10,7 +10,7 @@
         All = Label | Bounds | Pose | Mesh
     }
 
-    public class XrAnchorFilter
+    public class XrSpaceFilter
     {
         public IList<Guid>? Ids { get; set; }
 

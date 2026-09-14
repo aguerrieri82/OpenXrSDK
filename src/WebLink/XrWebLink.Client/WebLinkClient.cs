@@ -94,11 +94,11 @@ namespace XrWebLink.Client
             await _connection!.InvokeAsync("StopSession");
         }
 
-        public async Task<IList<XrAnchor>?> GetAnchorsAsync(XrAnchorFilter filter)
+        public async Task<IList<XrSpace>?> GetAnchorsAsync(XrSpaceFilter filter)
         {
             if (!await EnsureConnectedAsync())
                 return null;
-            return await _connection!.InvokeAsync<IList<XrAnchor>>("GetAnchors", filter);
+            return await _connection!.InvokeAsync<IList<XrSpace>>("GetAnchors", filter);
         }
 
         public async Task TrackObjectAsync(TrackObjectType type, Guid? anchorId, bool enabled)

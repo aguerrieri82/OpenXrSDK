@@ -133,15 +133,17 @@ namespace OpenXr.Framework
 
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
+            _extensions.Add(KhrVisibilityMask.ExtensionName);
+            _extensions.Add(ExtDebugUtils.ExtensionName);
+            _extensions.Add(ExtFuture.ExtensionName);
+
             _extensions.Add("XR_KHR_locate_spaces");
             _extensions.Add("XR_KHR_convert_timespec_time");
             _extensions.Add("XR_KHR_composition_layer_depth");
-            _extensions.Add(KhrVisibilityMask.ExtensionName);
-            _extensions.Add(ExtDebugUtils.ExtensionName);
             _extensions.Add("XR_EXT_hand_interaction");
             _extensions.Add("XR_KHR_composition_layer_equirect2");
             _extensions.Add("XR_KHR_composition_layer_equirect");
-            _extensions.Add(ExtFuture.ExtensionName);
+            _extensions.Add("XR_EXT_user_presence");
 
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
 
@@ -491,7 +493,7 @@ namespace OpenXr.Framework
 
             PluginInvoke(p => p.OnSessionEnd());
 
-            SessionChanged?.Invoke(this, EventArgs.Empty);
+            SessionChanged?.Invoke();
 
             _logger.LogInformation("Stopped");
         }
@@ -942,7 +944,7 @@ namespace OpenXr.Framework
                     break;
             }
 
-            SessionChanged?.Invoke(this, EventArgs.Empty);
+            SessionChanged?.Invoke();
         }
 
         #endregion
@@ -1688,6 +1690,11 @@ namespace OpenXr.Framework
                             var maskChanged = buffer.Convert().To<EventDataVisibilityMaskChangedKHR>();
                             GetVisibilityMask(maskChanged.ViewIndex);
                             break;
+
+                        case StructureType.EventDataUserPresenceChangedExt:
+                            var presence = buffer.Convert().To<EventDataUserPresenceChangedEXT>();
+                            OnPresenceChanged(presence.IsUserPresent != 0);
+                            break;
                     }
 
                     PluginInvoke(p => p.HandleEvent(ref buffer));
@@ -1702,6 +1709,11 @@ namespace OpenXr.Framework
             }
 
             return true;
+        }
+
+        protected virtual void OnPresenceChanged(bool isPresent)
+        {
+            IsUserPresent = isPresent;
         }
 
         public async Task WaitAsyncRequest<T>(ulong reqId)
@@ -1841,8 +1853,6 @@ namespace OpenXr.Framework
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;
 
-        public event XrEventHandler XrEvent;
-
         public XrAppState State => _state;
 
         public bool IsStarted => _state == XrAppState.Started;
@@ -1881,19 +1891,12 @@ namespace OpenXr.Framework
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 
-        public event EventHandler? SessionChanged;
-
-        public static XrApp? Current { get; internal set; }
-
         public long FramePredictedDisplayTime { get; internal set; }
 
         public TimeSpan FramePredictedDisplayPeriod { get; internal set; }
 
-        public Pose3 ReferenceFrame { get; set; }
+        public bool IsUserPresent { get; protected set; }
 
-        public bool UseLocalSpace { get; set; }
-
-        public ITextInputProvider? TextInput { get; set; }
 
         public string? RuntimeName => _runtimeName;
 
@@ -1901,14 +1904,24 @@ namespace OpenXr.Framework
 
         public string? RightIntProfile => _rightIntProfile;
 
-        public bool IsMetaSimulator => _runtimeName == "Meta XR Simulator";
 
-        public bool IsMetaLink => _runtimeName == "Oculus" && OperatingSystem.IsWindows();
+        public Pose3 ReferenceFrame { get; set; }
+
+        public bool UseLocalSpace { get; set; }
+
+        public ITextInputProvider? TextInput { get; set; }
+
 
         public event System.Action? BeginFrameEvent;
 
         public event System.Action? EndFrameEvent;
 
-    
+        public event XrEventHandler XrEvent;
+
+        public event System.Action? SessionChanged;
+
+
+        public static XrApp? Current { get; internal set; }
+
     }
 }

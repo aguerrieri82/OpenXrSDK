@@ -6,6 +6,7 @@ using Silk.NET.OpenXR.Extensions.FB;
 using System.Diagnostics;
 using XrMath;
 
+
 namespace OpenXr.Framework.Oculus
 {
     public class XrPassthroughMesh
@@ -26,7 +27,11 @@ namespace OpenXr.Framework.Oculus
         private readonly XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
         private METAPassthroughColorLut? _colorLut;
+
+        private METAPassthroughPreferences? _preferences;
         private readonly List<XrColorLut> _colorLuts = [];
+
+
 
         private bool _isStarted;
         private bool _removeHand;
@@ -44,8 +49,29 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBPassthrough.ExtensionName);
             extensions.Add(METAEnvironmentDepth.ExtensionName);
             extensions.Add(METAPassthroughColorLut.ExtensionName);
+            extensions.Add(METAPassthroughPreferences.ExtensionName);
+            extensions.Add("XR_META_passthrough_layer_resumed_event");
 
             base.Initialize(app, extensions);
+        }
+
+        private void OnEvent(ref EventDataBuffer buffer)
+        {
+            switch (buffer.Type)
+            {
+                case StructureType.EventDataPassthroughLayerResumedMeta:
+
+                    var layerResumed = buffer.Convert().To<EventDataPassthroughLayerResumedMETA>();
+                    
+                    if (layerResumed.Layer.Handle == _ptLayer.Handle)
+                        OnResume();
+
+                    break;
+            }
+        }
+
+        protected virtual void OnResume()
+        {
         }
 
         public override void OnBeginFrame(Space space, long displayTime)
@@ -63,8 +89,23 @@ namespace OpenXr.Framework.Oculus
             };
 
             _xrApp!.GetSystemProperties(ref props);
+            
 
             return props;
+        }
+
+        protected PassthroughPreferenceFlagsMETA GetPreferences()
+        {
+            _preferences ??= new (_xrApp!.Xr, _xrApp.Instance);
+
+            var result = new PassthroughPreferencesMETA
+            {
+                Type = StructureType.PassthroughPreferencesMeta
+            };
+
+            _xrApp!.CheckResult(_preferences.GetPassthroughPreferencesMETA(_xrApp!.Session, ref result), "GetPassthroughPreferencesMETA");
+
+            return result.Flags;
         }
 
         protected PassthroughFB CreatePt(PassthroughFlagsFB flags)
@@ -143,6 +184,8 @@ namespace OpenXr.Framework.Oculus
 
             _meshes.Clear();
 
+            _xrApp?.XrEvent -= OnEvent;
+
             base.Destroy();
         }
 
@@ -176,6 +219,8 @@ namespace OpenXr.Framework.Oculus
             }
 
             _isStarted = true;
+
+            _xrApp.XrEvent += OnEvent;
 
             base.Create();
         }

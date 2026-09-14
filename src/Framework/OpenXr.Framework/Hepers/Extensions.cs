@@ -12,6 +12,15 @@ namespace OpenXr.Framework
 {
     public static class Extensions
     {
+
+        extension (XrApp self)
+        {
+            public bool IsMetaSimulator => self.RuntimeName == "Meta XR Simulator";
+
+            public bool IsMetaLink => self.RuntimeName == "Oculus" && OperatingSystem.IsWindows();
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVector3(this in Vector3f value)
         {
@@ -28,6 +37,18 @@ namespace OpenXr.Framework
         public static Vector4 ToVector4(this in Vector4f value)
         {
             return new Vector4(value.X, value.Y, value.Z, value.W);
+        }
+
+        public static Bounds3 ToBounds3(this Rect3DfFB rect)
+        {
+            var min = new Vector3(rect.Offset.X, rect.Offset.Y, rect.Offset.Z);
+            var size = new Vector3(rect.Extent.Width, rect.Extent.Height, rect.Extent.Depth);
+
+            return new Bounds3
+            {
+                Min = min,
+                Max = min + size
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

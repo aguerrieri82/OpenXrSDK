@@ -2,6 +2,7 @@
 using Silk.NET.OpenXR.Extensions.FB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -15,17 +16,38 @@ namespace OpenXr.Framework.Oculus.Structs
             
         }
 
-        public CreateVirtualKeyboardMETADelegate? CreateVirtualKeyboardMETA;
-        public DestroyVirtualKeyboardMETADelegate? DestroyVirtualKeyboardMETA;
-        public CreateVirtualKeyboardSpaceMETADelegate? CreateVirtualKeyboardSpaceMETA;
-        public SuggestVirtualKeyboardLocationMETADelegate? SuggestVirtualKeyboardLocationMETA;
-        public GetVirtualKeyboardScaleMETADelegate? GetVirtualKeyboardScaleMETA;
-        public SetVirtualKeyboardModelVisibilityMETADelegate? SetVirtualKeyboardModelVisibilityMETA;
-        public GetVirtualKeyboardModelAnimationStatesMETADelegate? GetVirtualKeyboardModelAnimationStatesMETA;
-        public GetVirtualKeyboardDirtyTexturesMETADelegate? GetVirtualKeyboardDirtyTexturesMETA;
-        public GetVirtualKeyboardTextureDataMETADelegate? GetVirtualKeyboardTextureDataMETA;
-        public SendVirtualKeyboardInputMETADelegate? SendVirtualKeyboardInputMETA;
-        public ChangeVirtualKeyboardTextContextMETADelegate? ChangeVirtualKeyboardTextContextMETA;
+        [AllowNull]
+        public CreateVirtualKeyboardMETADelegate CreateVirtualKeyboardMETA;
+
+        [AllowNull]
+        public DestroyVirtualKeyboardMETADelegate DestroyVirtualKeyboardMETA;
+
+        [AllowNull]
+        public CreateVirtualKeyboardSpaceMETADelegate CreateVirtualKeyboardSpaceMETA;
+
+        [AllowNull]
+        public SuggestVirtualKeyboardLocationMETADelegate SuggestVirtualKeyboardLocationMETA;
+
+        [AllowNull]
+        public GetVirtualKeyboardScaleMETADelegate GetVirtualKeyboardScaleMETA;
+
+        [AllowNull]
+        public SetVirtualKeyboardModelVisibilityMETADelegate SetVirtualKeyboardModelVisibilityMETA;
+
+        [AllowNull]
+        public GetVirtualKeyboardModelAnimationStatesMETADelegate GetVirtualKeyboardModelAnimationStatesMETA;
+
+        [AllowNull]
+        public GetVirtualKeyboardDirtyTexturesMETADelegate GetVirtualKeyboardDirtyTexturesMETA;
+
+        [AllowNull]
+        public GetVirtualKeyboardTextureDataMETADelegate GetVirtualKeyboardTextureDataMETA;
+
+        [AllowNull]
+        public SendVirtualKeyboardInputMETADelegate SendVirtualKeyboardInputMETA;
+
+        [AllowNull]
+        public ChangeVirtualKeyboardTextContextMETADelegate ChangeVirtualKeyboardTextContextMETA;
 
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]

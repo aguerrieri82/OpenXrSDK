@@ -19,6 +19,14 @@ namespace XrEngine.OpenXr
         public Vector2 Size { get; set; }
 
         public Geometry3D? Geometry { get; set; }
+
+        public SceneObjectClass Class { get; set; }
+    }
+
+    public enum SceneObjectClass
+    {
+        None = 0,
+        Keyboard = 1000587000,
     }
 
     public enum SceneModelType

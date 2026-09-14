@@ -23,7 +23,7 @@ namespace XrSamples
 
             await client.StartSessionAsync();
 
-            var anchors = await client.GetAnchorsAsync(new XrAnchorFilter
+            var anchors = await client.GetAnchorsAsync(new XrSpaceFilter
             {
                 Components = XrAnchorComponent.All
             });

@@ -48,7 +48,7 @@ namespace XrEngine.OpenXr
             CreateProjectionLayer();
         }
 
-        protected virtual void OnSessionChanged(object? sender, EventArgs e)
+        protected virtual void OnSessionChanged()
         {
             if (_xrApp.State == XrAppState.Stopped)
                 _targetPool?.Clear();

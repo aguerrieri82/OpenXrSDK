@@ -32,7 +32,7 @@ namespace OpenXr.Framework.Oculus
         readonly MetaPerformanceMetrics _metrics;
         readonly Dictionary<string, ulong> _counters = [];
 
-        public XrPerformance(XrApp app)
+        internal XrPerformance(XrApp app)
         {
             _app = app;
 

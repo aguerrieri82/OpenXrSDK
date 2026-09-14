@@ -24,7 +24,7 @@ namespace XrSamples
 
                 app.Start(XrAppStartMode.Query);
 
-                var res = await xrOculus.GetAnchorsAsync(new XrAnchorFilter
+                var res = await xrOculus.GetSpacesAsync(new XrSpaceFilter
                 {
                     Components = XrAnchorComponent.All
                 });

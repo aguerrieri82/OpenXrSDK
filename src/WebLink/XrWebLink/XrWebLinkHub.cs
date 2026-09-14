@@ -55,9 +55,9 @@ namespace XrWebLink
             _logger.LogInformation("Join {connection} '{anchorId}' {on}", Context.ConnectionId, groupId, enabled ? "on" : "off");
         }
 
-        public Task<List<XrAnchor>> GetAnchors(XrAnchorFilter filter)
+        public Task<List<XrSpace>> GetAnchors(XrSpaceFilter filter)
         {
-            return _app.Plugin<XrOculusPlugin>().GetAnchorsAsync(filter);
+            return _app.Plugin<XrOculusPlugin>().GetSpacesAsync(filter);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework.Oculus.Structs;
+﻿using Common.Interop;
+using OpenXr.Framework.Oculus.Structs;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using System;
@@ -64,18 +65,15 @@ namespace OpenXr.Framework.Oculus
             switch (buffer.Type)
             {
                 case StructureType.EventDataVirtualKeyboardCommitTextMeta:
-                    {
-                        fixed (EventDataBuffer* pBuffer = &buffer)
-                        {
-                            var evt = (EventDataVirtualKeyboardCommitTextMETA*)pBuffer;
-                            var text = Marshal.PtrToStringUTF8((nint)evt->Text);
 
-                            if (text != null)
-                                EventDispatcher?.OnCommitText(text);
-                        }
-                        break;
-                    }
+                    var evt = buffer.Convert().To<EventDataVirtualKeyboardCommitTextMETA>();
 
+                    var text = Marshal.PtrToStringUTF8((nint)evt.Text);
+
+                    if (text != null)
+                        EventDispatcher?.OnCommitText(text);
+
+                    break;
                 case StructureType.EventDataVirtualKeyboardBackspaceMeta:
                     EventDispatcher?.OnBackspace();
                     break;
