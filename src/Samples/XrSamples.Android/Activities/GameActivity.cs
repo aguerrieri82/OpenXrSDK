@@ -17,12 +17,8 @@ using XrEngine.OpenXr.Android;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter(["android.intent.action.MAIN"],
-        Categories =
-        [
-            "android.intent.category.DEFAULT",
-            "com.oculus.intent.category.VR"
-        ])]
+    [IntentFilter([Intent.ActionMain],
+        Categories = [Intent.CategoryDefault,OculusIntentCategory.Vr])]
     [Activity(
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
         LaunchMode = LaunchMode.SingleTask,

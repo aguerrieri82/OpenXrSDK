@@ -16,53 +16,6 @@ using Action = Silk.NET.OpenXR.Action;
 namespace OpenXr.Framework.Oculus
 {
 
-    public class FoavetionInfo
-    {
-        public bool Use { get; set; }
-
-        public bool IsDynamic { get; set; }
-
-        public FoveationLevelFB Level { get; set; }
-
-        public float Offset { get; set; }
-    }
-
-    public class OculusXrPluginOptions
-    {
-        public OculusXrPluginOptions()
-        {
-            Foavetion = new FoavetionInfo()
-            {
-                Use = true,
-                IsDynamic = true,
-                Level = FoveationLevelFB.HighFB,
-                Offset = 0,
-            };
-            UseHandsWideMotion = true;
-            UseBothHandAndControllers = true;
-            HandTrackingFrequency = HandTrackingFrequencyHintMETA.HighMeta;
-            ColorSpace = ColorSpaceFB.Rec709FB;
-        }
-
-        public bool UseHandsWideMotion { get; set; }
-
-        public FoavetionInfo? Foavetion { get; set; }
-
-        public ColorSpaceFB ColorSpace { get; set; }
-
-        public HandTrackingDataSourceEXT[]? HandDataSources { get; set; }
-
-        public bool HandTrackingUnextrapolated { get; set; }
-
-        public bool UseDynamicResolution { get; set; }
-
-        public bool UseBothHandAndControllers { get; set; }
-
-        public bool UseBodyTrack { get; set; }
-
-        public HandTrackingFrequencyHintMETA HandTrackingFrequency { get; set; }
-
-    }
 
     public partial class XrOculusPlugin : XrBasePlugin, IDisposable
     {
@@ -173,15 +126,15 @@ namespace OpenXr.Framework.Oculus
         protected XrPerformance? _performance;
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
-        protected readonly OculusXrPluginOptions _options;
+        protected readonly OculusOptions _options;
 
         public XrOculusPlugin()
-            : this(new OculusXrPluginOptions())
+            : this(new OculusOptions())
         {
 
         }
 
-        public XrOculusPlugin(OculusXrPluginOptions options)
+        public XrOculusPlugin(OculusOptions options)
         {
             _options = options;
         }
@@ -217,6 +170,8 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_hand_tracking_microgestures");
             extensions.Add("XR_FB_composition_layer_image_layout");
             extensions.Add("XR_FB_composition_layer_depth_test");
+            extensions.Add("XR_META_passthrough_color_lut");
+
 
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);
@@ -1207,6 +1162,6 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-        public OculusXrPluginOptions Options => _options;
+        public OculusOptions Options => _options;
     }
 }

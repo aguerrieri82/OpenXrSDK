@@ -6,7 +6,6 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-
     public class OculusSceneView : Group3D
     {
         protected bool _isSceneLoaded;

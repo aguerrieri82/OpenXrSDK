@@ -33,10 +33,7 @@ namespace OpenXr.Framework.Android
 
         public XrActivity()
         {
-            _permissions = [
-              Manifest.Permission.ManageExternalStorage
-            ];
-
+            _permissions = [];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)

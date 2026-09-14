@@ -1,6 +1,7 @@
 using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
+using OpenXr.Framework.Oculus;
 using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenGL;
@@ -9,12 +10,9 @@ using XrEngine.OpenXr;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter(["android.intent.action.MAIN"],
-        Categories =
-        [
-            "android.intent.category.DEFAULT",
-            "com.oculus.intent.category.2D"
-        ])]
+
+    [IntentFilter([Intent.ActionMain],
+        Categories = [Intent.CategoryDefault, OculusIntentCategory.TwoD])]
     [Activity(
         Label = "@string/app_name",
         ScreenOrientation = ScreenOrientation.Landscape,

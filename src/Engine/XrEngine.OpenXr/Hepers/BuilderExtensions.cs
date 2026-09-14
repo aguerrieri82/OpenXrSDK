@@ -456,7 +456,7 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder UseOculus(this XrEngineAppBuilder self, Action<OculusXrPluginOptions>? configure = null)
+        public static XrEngineAppBuilder UseOculus(this XrEngineAppBuilder self, Action<OculusOptions>? configure = null)
         {
             if (!XrDevice.IsMetaQuest)
                 return self;
@@ -465,7 +465,7 @@ namespace XrEngine.OpenXr
 
             if (plugin == null)
             {
-                var options = new OculusXrPluginOptions();
+                var options = new OculusOptions();
                 configure?.Invoke(options);
                 self.Options.XrPlugins.Add(new XrOculusPlugin(options));
             }

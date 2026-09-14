@@ -47,18 +47,6 @@ namespace XrEngine.OpenXr
 
                     var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
 
-                    /*
-                    _ptLayer.UpdateMesh(
-                        ptMesh, new Posef
-                        {
-                            Orientation = meshObj.Transform.Orientation.ToQuaternionf(),
-                            Position = meshObj.Transform.Position.ToVector3f(),  
-                        },
-                        meshObj.Transform.Scale.ToVector3f(),
-                        xrApp.Stage,
-                        xrApp.LastFrameTime);
-                    */
-
                     _ptLayer.UpdateMesh(
                         ptMesh, new Posef
                         {

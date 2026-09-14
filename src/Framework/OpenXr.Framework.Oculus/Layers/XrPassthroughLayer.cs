@@ -26,6 +26,9 @@ namespace OpenXr.Framework.Oculus
         private readonly List<XrPassthroughMesh> _meshes = [];
         private readonly XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
+        private METAPassthroughColorLut? _colorLut;
+        private readonly List<XrColorLut> _colorLuts = [];
+
         private bool _removeHand;
 
         public XrPassthroughLayer()
@@ -37,9 +40,11 @@ namespace OpenXr.Framework.Oculus
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {
+
             extensions.Add(FBPassthrough.ExtensionName);
             extensions.Add(FBPassthroughKeyboardHands.ExtensionName);
             extensions.Add(METAEnvironmentDepth.ExtensionName);
+            extensions.Add(METAPassthroughColorLut.ExtensionName);
 
             base.Initialize(app, extensions);
         }
@@ -129,6 +134,10 @@ namespace OpenXr.Framework.Oculus
                 _ptInstance.Handle = 0;
                 _ptLayer.Handle = 0;
 
+                foreach (var lut in _colorLuts)
+                    lut.Dispose();
+
+                _colorLuts.Clear();
             }
 
             _envDepth.Dispose();
@@ -138,10 +147,12 @@ namespace OpenXr.Framework.Oculus
             base.Destroy();
         }
 
+
         public override void Create()
         {
             if (!IsEnabled)
                 return;
+
 
             var caps = GetPtCapabilities();
 
@@ -249,7 +260,98 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public bool UseEnvironmentDepth { get; set; }
+
+        public XrColorLut CreateColorLut(uint resolution, PassthroughColorLutChannelsMETA channels, byte[] data)
+        {
+            Debug.Assert(_xrApp != null);
+
+           _colorLut ??= new METAPassthroughColorLut(_xrApp.Xr, _xrApp.Instance);
+
+            var result = new XrColorLut(_xrApp, _colorLut, _ptInstance, resolution, channels, data);
+            _colorLuts.Add(result);
+            return result;
+        }
+
+        public unsafe void SetStyle(XrPassthroughStyle value)
+        {
+            PassthroughBrightnessContrastSaturationFB bcs = default;
+            PassthroughColorMapLutMETA lut = default;
+            PassthroughColorMapInterpolatedLutMETA interpolatedLut = default;
+            PassthroughColorMapMonoToMonoFB monoMap = default;
+            PassthroughColorMapMonoToRgbaFB colorMap = default;
+
+            var style = new PassthroughStyleFB
+            {
+                Type = StructureType.PassthroughStyleFB,
+                TextureOpacityFactor = value.Opacity,
+                EdgeColor = new Color4f(value.EdgeColor.R, value.EdgeColor.G, value.EdgeColor.B, value.EdgeColor.A)
+            };
+
+
+            if (value.MonoMap != null)
+            {
+                if (value.MonoMap.Length != 256)
+                    throw new ArgumentException("MonoMap must contain 256 elements", nameof(value));
+
+                monoMap.Type = StructureType.PassthroughColorMapMonoToMonoFB;
+
+                value.MonoMap.CopyTo(new Span<byte>(monoMap.TextureColorMap, 256));
+
+                StructChain.AddNextStruct(ref style, &monoMap);
+            }
+
+            if (value.ColorMap != null)
+            {
+                if (value.ColorMap.Length != 256)
+                    throw new ArgumentException("ColorMap must contain 256 elements", nameof(value));
+
+                colorMap.Type = StructureType.PassthroughColorMapMonoToRgbaFB;
+
+                value.ColorMap.CopyTo(colorMap.TextureColorMap.AsSpan());
+
+                StructChain.AddNextStruct(ref style, &colorMap);
+            }
+
+            if (value.Bcs is { } bcsValue)
+            {
+                bcs = new PassthroughBrightnessContrastSaturationFB
+                {
+                    Type = StructureType.PassthroughBrightnessContrastSaturationFB,
+                    Brightness = bcsValue.Brightness,
+                    Contrast = bcsValue.Contrast,
+                    Saturation = bcsValue.Saturation
+                };
+
+                StructChain.AddNextStruct(ref style, &bcs);
+            }
+
+            if (value.Lut is { } lutValue)
+            {
+                lut = new PassthroughColorMapLutMETA
+                {
+                    Type = StructureType.PassthroughColorMapLutMeta,
+                    ColorLut = lutValue,
+                    Weight = value.LutWeight
+                };
+
+                StructChain.AddNextStruct(ref style, &lut);
+            }
+
+            if (value.InterpolatedLut is { } interpolatedValue)
+            {
+                interpolatedLut = new PassthroughColorMapInterpolatedLutMETA
+                {
+                    Type = StructureType.PassthroughColorMapInterpolatedLutMeta,
+                    SourceColorLut = interpolatedValue.Source,
+                    TargetColorLut = interpolatedValue.Target,
+                    Weight = interpolatedValue.Weight
+                };
+
+                StructChain.AddNextStruct(ref style, &interpolatedLut);
+            }
+
+            _xrApp!.CheckResult(_passthrough!.PassthroughLayerSetStyleFB(_ptLayer, ref style), "PassthroughLayerSetStyleFB");
+        }
 
         public bool RemoveHand
         {
@@ -264,6 +366,7 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+
         public XrEnvironmentDepth EnvironmentDepth => _envDepth;
 
         public EnvironmentDepthImageMETA? DepthImage => _depthImage;
@@ -271,6 +374,8 @@ namespace OpenXr.Framework.Oculus
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
 
         public PassthroughLayerPurposeFB Purpose { get; set; }
+
+        public bool UseEnvironmentDepth { get; set; }
 
         public bool IsStarted => _isStarted;
 
