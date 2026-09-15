@@ -82,7 +82,7 @@ namespace Oculus.Platform
             return context;
         }
 
-        private int code;
-        private string context;
+        private readonly int code;
+        private readonly string context;
     }
 }

@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 namespace Oculus.Platform
 {
     /// <summary>
@@ -29,7 +28,7 @@ namespace Oculus.Platform
             Request request,
             string methodName)
         {
-            bool completed = false;
+            var completed = false;
             Exception exception = null;
 
             request.OnComplete((Message msg) =>
@@ -88,7 +87,7 @@ namespace Oculus.Platform
             string methodName)
         {
             T result = default;
-            bool completed = false;
+            var completed = false;
             Exception exception = null;
 
             request.OnComplete((Message<T> msg) =>

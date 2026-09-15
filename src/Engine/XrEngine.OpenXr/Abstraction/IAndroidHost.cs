@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.OpenXr
+﻿namespace XrEngine.OpenXr
 {
     public interface IAndroidHost
     {

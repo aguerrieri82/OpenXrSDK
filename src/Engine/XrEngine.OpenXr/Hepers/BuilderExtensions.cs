@@ -38,7 +38,7 @@ namespace XrEngine.OpenXr
             return self.ConfigureApp(e =>
             {
                 var factory = Context.Require<IWebBrowserFactory>();
-                
+
                 var scene = e.App.ActiveScene;
 
                 if (options.DestMesh == null)
@@ -75,7 +75,6 @@ namespace XrEngine.OpenXr
                 scene!.AddVirtualKeyboard(options.DestMesh);
             });
         }
-            
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self, bool asLayer = false) => self.ConfigureApp(e =>
         {
@@ -93,7 +92,6 @@ namespace XrEngine.OpenXr
 
             e.XrApp.RenderOptions.BlendMode = EnvironmentBlendMode.AlphaBlend;
         });
-
 
         public static XrEngineAppBuilder When(this XrEngineAppBuilder self, bool condition, Action<XrEngineAppBuilder> action)
         {
@@ -382,13 +380,11 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-
         public static XrEngineAppBuilder EnableEnvRayCollider(this XrEngineAppBuilder self)
         {
             Context.Require<IEnvRayCollider>().IsEnabled = true;
             return self;
         }
-
 
         public static XrEngineAppBuilder UseFilamentVulkan(this XrEngineAppBuilder self)
         {
@@ -411,7 +407,7 @@ namespace XrEngine.OpenXr
             return self
                 .SetGlOptions(opt =>
                  {
-                    opt.MotionVectorMode = mode;
+                     opt.MotionVectorMode = mode;
                  })
                 .UseProjDepth(XrProjDepthMode.DepthCopyImage);
         }

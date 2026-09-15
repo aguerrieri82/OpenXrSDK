@@ -19,24 +19,16 @@
  */
 // Native declarations ported from Meta Avatars SDK 40.0.1. Unity helpers omitted.
 #nullable enable
-using System;
 using System.Runtime.InteropServices;
 
 namespace Oculus.Avatar2.Experimental
 {
-    using EntityPtr = IntPtr;
+    using ovrAvatar2EntityId = Avatar2.CAPI.ovrAvatar2EntityId;
     /* Pointer to pinned float[] */
-    using FloatArrayPtr = IntPtr;
-    using MixerLayerPtr = IntPtr;
     /* Pointer to pinned string[], [In] string[] is used instead */
     // using StringArrayPtr = IntPtr;
-    using OvrAnimClipPtr = IntPtr;
-    using OvrAnimHierarchyPtr = IntPtr;
     /* Pointer to pinned ovrAvatar2AnimationParameterId[]*/
-    using ParameterIdArrayPtr = IntPtr;
-    using ovrAvatar2Id = Avatar2.CAPI.ovrAvatar2Id;
     using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
-    using ovrAvatar2EntityId = Avatar2.CAPI.ovrAvatar2EntityId;
 
     public static partial class CAPI
     {

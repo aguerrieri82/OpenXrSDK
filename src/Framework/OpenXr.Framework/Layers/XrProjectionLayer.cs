@@ -229,7 +229,6 @@ namespace OpenXr.Framework
                 layer.Views = _projViews.ItemPointer(0);
                 layer.ViewCount = (uint)views.Length;
 
-
                 for (var i = 0; i < views.Length; i++)
                 {
                     ref var projView = ref layer.Views[i];
@@ -355,7 +354,6 @@ namespace OpenXr.Framework
                 if (info.RenderedSize != null)
                     renderSize = info.RenderedSize.Value;
 
-
                 for (var i = 0; i < _projViews.Length; i++)
                 {
                     ref var view = ref _projViews[i];
@@ -456,7 +454,6 @@ namespace OpenXr.Framework
         public uint ColorBaseIndex { get; set; }
 
         public bool UseDepth { get; protected set; }
-
 
     }
 }

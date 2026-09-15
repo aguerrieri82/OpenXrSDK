@@ -502,7 +502,7 @@ namespace XrEngine
             }
 
             result.Content = newData;
-            
+
             if (data.Format.IsSrgb())
                 result.Format = TextureFormat.SRgba8;
             else

@@ -142,7 +142,6 @@ namespace XrEngine.OpenGL
         public override IGlVertexArray VertexArray => throw new NotSupportedException();
     }
 
-
     public class GlVertexSourceHandler<TVert, TInd, TBufferVert, TBufferInd> : GlVertexSourceHandle
         where TVert : unmanaged
         where TInd : unmanaged
@@ -317,7 +316,6 @@ namespace XrEngine.OpenGL
 
             return true;
         }
-
 
         public override void Bind()
         {

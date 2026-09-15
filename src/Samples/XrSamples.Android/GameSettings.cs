@@ -51,7 +51,7 @@ namespace XrSamples
 
         public bool UseAsyncShaderCompile { get; set; }
 
-        public bool IsBenchmark { get;  set; }
+        public bool IsBenchmark { get; set; }
 
         public bool ViewPlaneGrid { get; set; }
 

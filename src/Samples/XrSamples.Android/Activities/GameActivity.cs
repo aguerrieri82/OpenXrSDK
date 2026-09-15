@@ -18,7 +18,7 @@ namespace XrSamples.Android.Activities
 {
 
     [IntentFilter([Intent.ActionMain],
-        Categories = [Intent.CategoryDefault,OculusIntentCategory.Vr])]
+        Categories = [Intent.CategoryDefault, OculusIntentCategory.Vr])]
     [Activity(
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
         LaunchMode = LaunchMode.SingleTask,
@@ -43,7 +43,7 @@ namespace XrSamples.Android.Activities
             _permissions.Add(OculusPermissions.FaceTracking);
             _permissions.Add(OculusPermissions.UseScene);
             _permissions.Add(HorizonPermissions.HeadsetCamera);
-            
+
         }
 
         protected override void OnLoad()
@@ -192,7 +192,7 @@ namespace XrSamples.Android.Activities
             if (!_settings.ViewPlaneGrid)
                 builder.RemovePlaneGrid();
 
-            if (_settings.UseProfileOverlay) 
+            if (_settings.UseProfileOverlay)
                 builder.AddProfileOverlay();
 
             if (XrDevice.IsMetaQuest && _settings.ProjDepthMode != XrProjDepthMode.None)

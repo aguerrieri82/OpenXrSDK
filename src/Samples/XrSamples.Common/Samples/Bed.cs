@@ -33,7 +33,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
-               // .EnableEnvRayCollider()
+                // .EnableEnvRayCollider()
                 .AddFloorShadow(4, false)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp(showHit: true);

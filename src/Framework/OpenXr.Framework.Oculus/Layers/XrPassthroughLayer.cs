@@ -6,7 +6,6 @@ using Silk.NET.OpenXR.Extensions.FB;
 using System.Diagnostics;
 using XrMath;
 
-
 namespace OpenXr.Framework.Oculus
 {
     public class XrPassthroughMesh
@@ -30,8 +29,6 @@ namespace OpenXr.Framework.Oculus
 
         private METAPassthroughPreferences? _preferences;
         private readonly List<XrColorLut> _colorLuts = [];
-
-
 
         private bool _isStarted;
         private bool _removeHand;
@@ -62,7 +59,7 @@ namespace OpenXr.Framework.Oculus
                 case StructureType.EventDataPassthroughLayerResumedMeta:
 
                     var layerResumed = buffer.Convert().To<EventDataPassthroughLayerResumedMETA>();
-                    
+
                     if (layerResumed.Layer.Handle == _ptLayer.Handle)
                         OnResume();
 
@@ -89,14 +86,13 @@ namespace OpenXr.Framework.Oculus
             };
 
             _xrApp!.GetSystemProperties(ref props);
-            
 
             return props;
         }
 
         protected PassthroughPreferenceFlagsMETA GetPreferences()
         {
-            _preferences ??= new (_xrApp!.Xr, _xrApp.Instance);
+            _preferences ??= new(_xrApp!.Xr, _xrApp.Instance);
 
             var result = new PassthroughPreferencesMETA
             {
@@ -302,12 +298,11 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-
         public XrColorLut CreateColorLut(uint resolution, PassthroughColorLutChannelsMETA channels, byte[] data)
         {
             Debug.Assert(_xrApp != null);
 
-           _colorLut ??= new METAPassthroughColorLut(_xrApp.Xr, _xrApp.Instance);
+            _colorLut ??= new METAPassthroughColorLut(_xrApp.Xr, _xrApp.Instance);
 
             var result = new XrColorLut(_xrApp, _colorLut, _ptInstance, resolution, channels, data);
             _colorLuts.Add(result);
@@ -328,7 +323,6 @@ namespace OpenXr.Framework.Oculus
                 TextureOpacityFactor = value.Opacity,
                 EdgeColor = new Color4f(value.EdgeColor.R, value.EdgeColor.G, value.EdgeColor.B, value.EdgeColor.A)
             };
-
 
             if (value.MonoMap != null)
             {
@@ -412,7 +406,6 @@ namespace OpenXr.Framework.Oculus
                     _envDepth.RemoveHand(value);
             }
         }
-
 
         public XrEnvironmentDepth EnvironmentDepth => _envDepth;
 

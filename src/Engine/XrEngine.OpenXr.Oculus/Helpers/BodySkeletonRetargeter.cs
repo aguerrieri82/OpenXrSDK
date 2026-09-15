@@ -1,7 +1,6 @@
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using XrMath;
 
 namespace XrEngine.OpenXr.Oculus
 {
@@ -36,7 +35,6 @@ namespace XrEngine.OpenXr.Oculus
         private readonly Quaternion[] _orientations;
 
         private int[] _order = [];
-
 
         public BodySkeletonRetargeter(BodySkeletonJointFB[] sourceRest,
             Joint3D?[] targetJoints, int rootIndex, MeshSkin[] skins,
@@ -82,10 +80,8 @@ namespace XrEngine.OpenXr.Oculus
             Rebind(sourceRest);
         }
 
-
         public bool IsBoundTo(BodySkeletonJointFB[] skeleton)
             => ReferenceEquals(_sourceRest, skeleton);
-
 
         public void SetSkinCorrections(IReadOnlyDictionary<FullBodyJointMETA, SkinBindingCorrection>? corrections)
         {
@@ -101,7 +97,6 @@ namespace XrEngine.OpenXr.Oculus
 
             _skinCorrections = copy;
         }
-
 
         public void Rebind(BodySkeletonJointFB[] sourceRest)
         {
@@ -126,7 +121,6 @@ namespace XrEngine.OpenXr.Oculus
             _trackingBind = trackingRest;
         }
 
-
         public void Update(BodyJointLocationFB[] locations, in Matrix4x4 baseTransform)
         {
             if (locations.Length != _joints.Length)
@@ -147,7 +141,6 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-
         private void ValidateAvatarHierarchy(Joint3D root)
         {
             foreach (var joint in _originalOrder)
@@ -161,7 +154,6 @@ namespace XrEngine.OpenXr.Oculus
                     throw new ArgumentException("Avatar bones must form a joint hierarchy without intermediate non-joint groups.");
             }
         }
-
 
         private Dictionary<Joint3D, int> CreateJointIndices()
         {
@@ -183,7 +175,6 @@ namespace XrEngine.OpenXr.Oculus
 
             return result;
         }
-
 
         private int[] ValidateSkeleton(BodySkeletonJointFB[] sourceRest)
         {
@@ -221,7 +212,6 @@ namespace XrEngine.OpenXr.Oculus
             return order.ToArray();
         }
 
-
         private static Matrix4x4[] CreateTrackingRest(BodySkeletonJointFB[] sourceRest)
         {
             var result = new Matrix4x4[sourceRest.Length];
@@ -238,7 +228,6 @@ namespace XrEngine.OpenXr.Oculus
 
             return result;
         }
-
 
         private Dictionary<Joint3D, Matrix4x4> CreateJointBind(
             Dictionary<Joint3D, Matrix4x4> fittedBind,
@@ -268,7 +257,6 @@ namespace XrEngine.OpenXr.Oculus
 
             return result;
         }
-
 
         private void RebuildHierarchy(BodySkeletonJointFB[] sourceRest, int[] order,
             Matrix4x4[] trackingRest, Dictionary<Joint3D, Matrix4x4> jointBind)
@@ -300,7 +288,6 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-
         private Dictionary<FullBodyJointMETA, SkinBindingCorrection> ValidateCorrections(
             IReadOnlyDictionary<FullBodyJointMETA, SkinBindingCorrection>? corrections)
         {
@@ -321,7 +308,6 @@ namespace XrEngine.OpenXr.Oculus
             return result;
         }
 
-
         private void ValidateCorrectionTarget(FullBodyJointMETA id)
         {
             var index = (int)id;
@@ -330,7 +316,6 @@ namespace XrEngine.OpenXr.Oculus
                 throw new ArgumentException("Correction target must be a mapped joint.");
         }
 
-
         private void ValidateCorrectionReference(FullBodyJointMETA id)
         {
             var index = (int)id;
@@ -338,7 +323,6 @@ namespace XrEngine.OpenXr.Oculus
             if (index < 0 || index >= _mapped.Length)
                 throw new ArgumentException("Correction reference joint is invalid.");
         }
-
 
         private static void ValidateCorrectionTransform(Matrix4x4 transform)
         {
@@ -351,7 +335,6 @@ namespace XrEngine.OpenXr.Oculus
             if (!Matrix4x4.Invert(transform, out _))
                 throw new ArgumentException("Skin correction must be invertible.");
         }
-
 
         private Matrix4x4[][] CreateSkinBinds(
             Dictionary<Joint3D, Matrix4x4> fittedBind,
@@ -395,7 +378,6 @@ namespace XrEngine.OpenXr.Oculus
             return result;
         }
 
-
         private Dictionary<Joint3D, Matrix4x4> Fit(Matrix4x4[] trackingRest)
         {
             var facing = CreateFacingTransform(trackingRest);
@@ -427,7 +409,6 @@ namespace XrEngine.OpenXr.Oculus
             return fitted;
         }
 
-
         private Matrix4x4 CreateFacingTransform(Matrix4x4[] trackingRest)
         {
             var leftIndex = (int)FullBodyJointMETA.LeftUpperLegMeta;
@@ -456,7 +437,6 @@ namespace XrEngine.OpenXr.Oculus
             return Matrix4x4.CreateRotationY(angle);
         }
 
-
         private bool TryFitFootBall(FullBodyJointMETA id, Joint3D joint,
             Dictionary<Joint3D, Matrix4x4> fitted,
             Dictionary<Joint3D, Matrix4x4> rotations)
@@ -483,7 +463,6 @@ namespace XrEngine.OpenXr.Oculus
 
             return true;
         }
-
 
         private void FitMappedJoint(Joint3D joint, int index, FullBodyJointMETA id, Joint3D? parent,
             Matrix4x4[] trackingRest, Matrix4x4 facing,
@@ -536,7 +515,6 @@ namespace XrEngine.OpenXr.Oculus
                 * Matrix4x4.CreateTranslation(trackingRest[index].Translation);
         }
 
-
         private int FindDirectionChild(Joint3D joint, int index)
         {
             var middle = index == (int)FullBodyJointMETA.LeftHandWristMeta
@@ -571,14 +549,12 @@ namespace XrEngine.OpenXr.Oculus
             return bestIndex;
         }
 
-
         private void FitBodyRegions(Matrix4x4[] trackingRest, Matrix4x4 facing,
             Dictionary<Joint3D, Matrix4x4> fitted)
         {
             FitTorso(trackingRest, facing, fitted);
             FitNeck(fitted);
         }
-
 
         private void FitTorso(Matrix4x4[] trackingRest, Matrix4x4 facing,
             Dictionary<Joint3D, Matrix4x4> fitted)
@@ -621,7 +597,6 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-
         private void FitNeck(Dictionary<Joint3D, Matrix4x4> fitted)
         {
             var headIndex = (int)FullBodyJointMETA.HeadMeta;
@@ -641,7 +616,6 @@ namespace XrEngine.OpenXr.Oculus
             fitted[neck] = _originalWorld[neck] * headDeformation;
         }
 
-
         private void RefitHelperJoints(Dictionary<Joint3D, Matrix4x4> fitted)
         {
             foreach (var joint in _originalOrder)
@@ -653,12 +627,11 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-
         private int DistanceTo(Joint3D child, Joint3D ancestor)
         {
             var depth = 0;
 
-            for (Joint3D? current = child; current != null; current = _originalParents[current])
+            for (var current = child; current != null; current = _originalParents[current])
             {
                 if (current == ancestor)
                     return depth;
@@ -668,7 +641,6 @@ namespace XrEngine.OpenXr.Oculus
 
             return int.MaxValue;
         }
-
 
         private static Matrix4x4 CreateDirectionalScale(Vector3 direction, float scale)
         {
@@ -683,7 +655,6 @@ namespace XrEngine.OpenXr.Oculus
                 k * z * x, k * z * y, 1 + k * z * z, 0,
                 0, 0, 0, 1);
         }
-
 
         private static Quaternion FromTo(Vector3 from, Vector3 to)
         {
@@ -700,17 +671,14 @@ namespace XrEngine.OpenXr.Oculus
             return Quaternion.Normalize(new Quaternion(Vector3.Cross(from, to), 1 + dot));
         }
 
-
         private static bool IsTorso(FullBodyJointMETA id) => id is
             FullBodyJointMETA.HipsMeta or FullBodyJointMETA.SpineLowerMeta or
             FullBodyJointMETA.SpineMiddleMeta or FullBodyJointMETA.SpineUpperMeta or
             FullBodyJointMETA.ChestMeta;
 
-
         private static bool IsFoot(FullBodyJointMETA id) => id is
             FullBodyJointMETA.LeftFootAnkleMeta or FullBodyJointMETA.RightFootAnkleMeta or
             FullBodyJointMETA.LeftFootBallMeta or FullBodyJointMETA.RightFootBallMeta;
-
 
         private static bool IsFinite(Matrix4x4 m)
         {
@@ -720,7 +688,6 @@ namespace XrEngine.OpenXr.Oculus
                    Valid(m.Translation);
         }
 
-
         private static bool IsAffine(Matrix4x4 m)
         {
             return m.M14 == 0 &&
@@ -729,10 +696,8 @@ namespace XrEngine.OpenXr.Oculus
                    m.M44 == 1;
         }
 
-
         private static Matrix4x4 Pose(Vector3 position, Quaternion orientation)
             => Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(position);
-
 
         private static Matrix4x4 Inverse(Matrix4x4 value)
         {
@@ -742,10 +707,8 @@ namespace XrEngine.OpenXr.Oculus
             return inverse;
         }
 
-
         private static bool Valid(Vector3 value)
             => float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
-
 
         private static bool Valid(Quaternion value)
             => float.IsFinite(value.LengthSquared()) && value.LengthSquared() > 1e-12f;

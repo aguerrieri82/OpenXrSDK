@@ -11,7 +11,6 @@ using XrMath;
 using XrEngine.OpenGL;
 using Common.Interop;
 
-
 namespace XrEngine.OpenXr
 {
     public unsafe class XrGlRenderBinding
@@ -19,7 +18,7 @@ namespace XrEngine.OpenXr
         private readonly XrApp _xrApp;
         private readonly EngineApp _app;
         private readonly bool _useAngle;
-        private OpenGLRender _renderer;
+        private readonly OpenGLRender _renderer;
 
         private readonly XrProjDepthMode _depthMode;
         private readonly GlRenderTargetPool? _targetPool;
@@ -27,7 +26,6 @@ namespace XrEngine.OpenXr
         private AngleVulkanContext? _vulkanCtx;
         private GlDepthExportPass? _depthExportPass;
         private GlDepthCopyPass? _depthCopyPass;
-
 
         public XrGlRenderBinding(XrApp xrApp, EngineApp app, XrProjDepthMode depthMode, bool useAngle)
         {
@@ -75,7 +73,7 @@ namespace XrEngine.OpenXr
 
                 projLayer = _xrApp.Layers.AddProjectionSpaceWarp(RenderView, provider);
             }
-            
+
             else
                 projLayer = _xrApp.Layers.AddProjection(RenderView, _xrApp.RenderOptions.UseProjectionDepth);
 
@@ -175,7 +173,7 @@ namespace XrEngine.OpenXr
 
                     _depthExportPass.Configure(depthTex);
                 }
-                
+
                 else if (_depthMode == XrProjDepthMode.DepthCopy)
                 {
                     _depthCopyPass ??= _renderer.EnsurePass(() => new GlDepthCopyPass(_renderer, isMultiView, imageMode: false));
@@ -223,7 +221,6 @@ namespace XrEngine.OpenXr
 
             var eyes = camera.Eyes;
             var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
-
 
             for (var i = 0; i < info.ProjViews.Length; i++)
             {
@@ -311,8 +308,6 @@ namespace XrEngine.OpenXr
             {
                 var renderTarget = SetupRenderTarget(ref info, camera, 0);
 
-
-
                 UpdateClipRegion(ref info, renderTarget, 0);
                 UpdateClipRegion(ref info, renderTarget, 1);
 
@@ -320,6 +315,6 @@ namespace XrEngine.OpenXr
             }
         }
 
-        public OpenGLRender Renderer => _renderer;  
+        public OpenGLRender Renderer => _renderer;
     }
 }

@@ -19,9 +19,7 @@
  */
 // Native declarations ported from Meta Avatars SDK 40.0.1. Unity helpers omitted.
 #nullable enable
-using System;
 using System.Runtime.InteropServices;
-using static Oculus.Avatar2.CAPI;
 
 namespace Oculus.Avatar2
 {

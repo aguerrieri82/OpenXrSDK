@@ -1,7 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus

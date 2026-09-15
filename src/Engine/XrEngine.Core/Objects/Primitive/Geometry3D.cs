@@ -110,7 +110,6 @@ namespace XrEngine
                     host.InvalidateLocalBounds();
             }
 
-
             base.OnChanged(change);
         }
 

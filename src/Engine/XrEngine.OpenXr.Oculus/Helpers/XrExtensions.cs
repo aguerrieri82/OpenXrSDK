@@ -1,8 +1,5 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace XrEngine.OpenXr.Oculus
 {

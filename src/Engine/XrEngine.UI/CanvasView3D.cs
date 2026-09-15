@@ -51,12 +51,12 @@ namespace XrEngine.UI
             if (!_targets.TryGetValue(imageId, out var texture))
             {
                 texture = _scene!.App!.Renderer.AttachTexture(imageId);
-                
+
                 CreateSurface(texture);
 
                 _targets[imageId] = texture;
             }
-            
+
             _activeTexture = texture;
             _activeEye = activeEye;
         }

@@ -60,7 +60,7 @@ namespace XrEngine
                     WorldMatrix = worldMatrix,
                 };
 
-                return true;    
+                return true;
 
             }, UniformsSlots.Model, BufferStore.Model,
                bld.Context.UseSharedSsbo ? BufferUsage.SharedSsbo : BufferUsage.Uniforms, "uModelIndex");
@@ -100,7 +100,7 @@ namespace XrEngine
 
             var shadowMode = shadowOpt?.Mode ?? ShadowMapMode.None;
 
-            if (bld.Context.ClipRegions != null && bld.Context.ClipMode == ShaderClipMode.VertexClipCull )
+            if (bld.Context.ClipRegions != null && bld.Context.ClipMode == ShaderClipMode.VertexClipCull)
             {
                 bld.AddExtension("GL_EXT_clip_cull_distance");
 

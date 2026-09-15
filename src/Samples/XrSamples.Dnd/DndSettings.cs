@@ -66,7 +66,7 @@ namespace XrSamples.Dnd
 
         public Matrix4x4 MapTransform { get; set; }
 
-        public bool UseFxAA { get; set; }   
+        public bool UseFxAA { get; set; }
     }
 
     public class DndSettingsPanel : UIRoot

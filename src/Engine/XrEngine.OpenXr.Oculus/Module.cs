@@ -1,7 +1,6 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr.Oculus;
 
-
 [assembly: Module(typeof(XrEngine.OpenXr.Oculus.Module))]
 
 namespace XrEngine.OpenXr.Oculus

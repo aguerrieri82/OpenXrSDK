@@ -49,7 +49,7 @@ namespace OpenXr.Framework
 
         [Obsolete]
         public bool UseQuodDepthCull { get; set; }
-        
+
         public bool UseSimmetricFov { get; set; }
     }
 }

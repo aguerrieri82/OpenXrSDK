@@ -2,7 +2,6 @@
 using System.Numerics;
 using XrMath;
 
-
 namespace OpenXr.Framework.Oculus
 {
     public struct XrEnvironmentRaycastHit

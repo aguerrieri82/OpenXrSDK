@@ -152,7 +152,7 @@ namespace XrEngine
             _position = other.Position;
             _orientation = other.Orientation;
             _rotation = _orientation.ToEuler();
-            
+
             NotifyChanged();
 
             Version++;

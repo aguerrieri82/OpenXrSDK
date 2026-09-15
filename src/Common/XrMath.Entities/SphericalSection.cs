@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrMath.Entities
+﻿namespace XrMath.Entities
 {
     public struct SphericalSection
     {

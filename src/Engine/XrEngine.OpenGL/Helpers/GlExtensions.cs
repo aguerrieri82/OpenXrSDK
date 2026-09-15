@@ -14,7 +14,6 @@ using XrEngine.Compression;
 using Common.Interop;
 using XrMath;
 
-
 namespace XrEngine.OpenGL
 {
     public static class GlExtensions
@@ -264,7 +263,6 @@ namespace XrEngine.OpenGL
 
         #region GlTexture
 
-
         extension(GlTexture glTexture)
         {
             public async Task CompressAsync(Texture2D source, TextureCompressionInfo info)
@@ -291,7 +289,7 @@ namespace XrEngine.OpenGL
                         var groups = curData.GroupBy(a => a.Layer);
 
                         foreach (var dataGrp in groups)
-                        {   
+                        {
                             var mipLevels = 0;
 
                             if (glTexture.MaxLevel > 0 && dataGrp.Count() == 1)
@@ -329,7 +327,7 @@ namespace XrEngine.OpenGL
                         newData[0].Compression,
                         newData,
                         newData[0].BlockSize);
-            
+
                     source.Invalidate(InvalidateMode.Object);
                     glTexture.Version = source.Version;
 
@@ -394,7 +392,6 @@ namespace XrEngine.OpenGL
                     {
                         texture2D.UpdateTask = Task.Run(() => glTexture.CompressAsync(texture2D, compInfo.Value));
                     }
-               
 
                     glTexture.UploadFull(
                         texture2D.Width,

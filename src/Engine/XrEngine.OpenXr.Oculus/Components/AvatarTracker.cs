@@ -89,7 +89,6 @@ namespace XrEngine.OpenXr.Oculus
             [FullBodyJointMETA.RightFootBallMeta] = "footBall_right_joint",
         };
 
-
         protected XrBodyTrack? _bodyTrack;
         protected XrApp? _xrApp;
         protected BodySkeletonRetargeter? _bodyRetargeter;
@@ -129,7 +128,7 @@ namespace XrEngine.OpenXr.Oculus
 
                 if (_bodyTrack.IsActive && _bodyTrack.Skeleton != null)
                 {
-                    bool updateScheleton = false;
+                    var updateScheleton = false;
 
                     if (_bodyRetargeter == null)
                     {
@@ -194,7 +193,6 @@ namespace XrEngine.OpenXr.Oculus
                 (int)FullBodyJointMETA.RootMeta,
                 _host.DescendantsOrSelfComponents<MeshSkin>().ToArray());
         }
-
 
         public void Mirror(float distance)
         {

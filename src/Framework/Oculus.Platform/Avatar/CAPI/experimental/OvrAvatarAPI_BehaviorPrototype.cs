@@ -20,18 +20,16 @@
 // Native declarations ported from Meta Avatars SDK 40.0.1. Unity helpers omitted.
 #nullable enable
 using System.Runtime.InteropServices;
-using System;
-using System.Collections.Generic;
 
 namespace Oculus.Avatar2.Experimental
 {
-    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
-    using ovrAvatar2Space = Avatar2.CAPI.ovrAvatar2Space;
-    using ovrAvatar2Transform = Avatar2.CAPI.ovrAvatar2Transform;
+    using ovrAvatar2DataBuffer = Avatar2.CAPI.ovrAvatar2DataBuffer;
     using ovrAvatar2EntityId = Avatar2.CAPI.ovrAvatar2EntityId;
     using ovrAvatar2LogLevel = Avatar2.CAPI.ovrAvatar2LogLevel;
-    using ovrAvatar2DataBuffer = Avatar2.CAPI.ovrAvatar2DataBuffer;
+    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
     using ovrAvatar2SizeType = UIntPtr;
+    using ovrAvatar2Space = Avatar2.CAPI.ovrAvatar2Space;
+    using ovrAvatar2Transform = Avatar2.CAPI.ovrAvatar2Transform;
 
     public static partial class CAPI
     {

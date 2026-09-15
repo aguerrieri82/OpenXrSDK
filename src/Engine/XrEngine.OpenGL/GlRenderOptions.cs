@@ -150,7 +150,7 @@ namespace XrEngine.OpenGL
 
         public MotionVectorMode MotionVectorMode { get; set; }
 
-        public ShaderClipMode ClipMode { get; set; }    
+        public ShaderClipMode ClipMode { get; set; }
 
         public bool RequireTextureCompression { get; set; }
 
@@ -206,7 +206,6 @@ namespace XrEngine.OpenGL
         public PostProcessSourceMode PostProcessSourceMode { get; set; }
 
         public bool NeedPostProcess => UseFxAA;
-
 
     }
 }

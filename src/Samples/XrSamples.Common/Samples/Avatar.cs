@@ -3,7 +3,6 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Oculus;
 
-
 namespace XrSamples
 {
     public static partial class SampleScenes
@@ -34,7 +33,7 @@ namespace XrSamples
                 await avatarManager.LoginAsync(platform.AccessToken ?? throw new InvalidOperationException());
 
                 var avatar = await avatarManager.LoadAsync("8672967276120323");
-                
+
                 var tracker = avatar.AddComponent<AvatarTracker>();
                 tracker.Height = 1.72f;
                 tracker.Fidelity = BodyTrackingFidelityMETA.HighMeta;

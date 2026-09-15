@@ -8,8 +8,8 @@
 
 namespace Oculus.Platform
 {
-    using System;
     using Oculus.Platform.Models;
+    using System;
 
     /// <summary>
     /// Partial class containing backward compatibility getter methods for Message&lt;T&gt;.

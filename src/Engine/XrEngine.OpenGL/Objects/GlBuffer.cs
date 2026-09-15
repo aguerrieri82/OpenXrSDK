@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
         public static GlBufferUpdateTracker? Tracker;
     }
 
-    public unsafe class GlBufferMap<T> : IBufferLock 
+    public unsafe class GlBufferMap<T> : IBufferLock
         where T : unmanaged
     {
         readonly GlBuffer<T> _buffer;
@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
         void* IBufferLock.Data => _data;
     }
 
-    public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T> 
+    public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
         where T : unmanaged
     {
         protected readonly BufferTargetARB _target;

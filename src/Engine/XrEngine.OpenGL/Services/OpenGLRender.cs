@@ -68,7 +68,6 @@ namespace XrEngine.OpenGL
 
             public static readonly DynamicProp BufferRangeSlot = new(nameof(BufferRangeSlot));
 
-
         }
 
         #region CONSTRUCTORS

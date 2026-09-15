@@ -145,7 +145,7 @@ namespace XrEngine.OpenXr
                         else
                             _hitView.Forward = result.Normal.Value;
                     }
-                      
+
                 }
             }
             else

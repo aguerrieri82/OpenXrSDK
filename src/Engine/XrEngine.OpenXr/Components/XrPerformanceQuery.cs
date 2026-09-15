@@ -1,9 +1,5 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
 
 namespace XrEngine.OpenXr
 {
@@ -36,7 +32,6 @@ namespace XrEngine.OpenXr
             else
                 _oculus.Performance.ReadAll(_performances);
         }
-
 
         public Dictionary<string, float> Performances => _performances;
     }

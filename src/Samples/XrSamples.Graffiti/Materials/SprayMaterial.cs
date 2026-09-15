@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using XrEngine;
+﻿using XrEngine;
 using XrMath;
 
 namespace XrSamples.Graffiti

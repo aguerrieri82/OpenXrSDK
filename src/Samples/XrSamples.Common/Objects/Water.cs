@@ -11,13 +11,13 @@ namespace XrSamples
             var grid = new Grid3D(new Size2I(gridSize, gridSize));
             grid.ComputeTangents();
             Geometry = grid;
-            
+
             CompressionMode = MeshCompressionMode.Never;
             Flags |= EngineObjectFlags.NoFrustumCulling;
-            
+
             Material = new WaterMaterial(simulationSize) { WaterSize = Vector2.One };
             Materials.Add(Material);
-            
+
             Interaction = this.AddComponent<WaterInteraction>();
             this.AddComponent<WaterStepAudio>();
 

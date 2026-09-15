@@ -4,7 +4,6 @@ using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using XrEngine.OpenGL;
 using XrMath;
 using XrMath.Entities;
@@ -233,7 +232,6 @@ namespace XrEngine.OpenXr
         protected bool SupportNativeFlip => !OperatingSystem.IsWindows();
 
         public IXrLayer? Layer => _layer;
-
 
         public bool FlipY { get; set; }
     }

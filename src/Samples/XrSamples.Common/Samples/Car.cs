@@ -52,7 +52,7 @@ namespace XrSamples
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), new GltfLoaderOptions
             {
                 ConvertColorTextureSRgb = true,
-                DisableSpecualar = true,    
+                DisableSpecualar = true,
             }, GetAssetPath);
             car.Name = "car";
             car.WorldPosition = new Vector3(0, 0.01f, 0);
@@ -104,7 +104,7 @@ namespace XrSamples
             var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
 
             //Simulation
-            var model = new CarModelV2  
+            var model = new CarModelV2
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
                 WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
@@ -230,7 +230,7 @@ namespace XrSamples
                 MaterialInfo = staticMat,
                 Configure = rb =>
                 {
-        
+
                 }
             });
 

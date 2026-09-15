@@ -43,7 +43,6 @@ namespace OpenXr.Framework.Oculus
             _velocities = new HandJointVelocityEXT[XR_HAND_JOINT_COUNT_EXT];
         }
 
-
         protected override void Configure(ref HandTrackerCreateInfoEXT info)
         {
             _dataSources = (HandTrackingDataSourceEXT*)NativeMemory.Alloc(2, sizeof(int));

@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public enum DrawPrimitive
     {
@@ -26,7 +24,6 @@ namespace XrEngine
 
         int InstanceCount => 1;
     }
-
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource
         where TVertices : unmanaged

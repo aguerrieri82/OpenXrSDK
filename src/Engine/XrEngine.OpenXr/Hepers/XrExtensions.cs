@@ -185,7 +185,6 @@ namespace XrEngine.OpenXr
 
             var projLayer = xrApp.Layers.AddProjection(RenderView, xrApp.RenderOptions.UseProjectionDepth);
 
-
             return renderer;
         }
 

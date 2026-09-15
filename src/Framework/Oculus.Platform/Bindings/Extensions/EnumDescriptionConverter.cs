@@ -1,10 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 using Newtonsoft.Json;
-using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 public class EnumDescriptionConverter<T> : JsonConverter<T> where T : struct, Enum
 {
     public EnumDescriptionConverter() { }
@@ -36,7 +33,7 @@ public class EnumDescriptionConverter<T> : JsonConverter<T> where T : struct, En
 
     private string GetDescription(T value)
     {
-        FieldInfo fi = value.GetType().GetField(value.ToString());
+        var fi = value.GetType().GetField(value.ToString());
         if (fi != null)
         {
             var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);

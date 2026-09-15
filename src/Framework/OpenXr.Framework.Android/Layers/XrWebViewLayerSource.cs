@@ -7,7 +7,6 @@ using Android.Views.InputMethods;
 using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using System.Runtime.Versioning;
 using XrInteraction;
 using static Android.Views.MotionEvent;
 using static Android.Webkit.WebSettings;
@@ -230,7 +229,6 @@ namespace OpenXr.Framework.Android
             _ = _mainThread.ExecuteAsync(CreateWebView);
         }
 
-
         public static int AlignToMultiple(int number, int bitSize)
         {
             var mask = (1 << bitSize) - 1; // Create a mask with the bit size
@@ -385,7 +383,7 @@ namespace OpenXr.Framework.Android
 
                 }
             });
-   
+
         }
 
         private string? GetWebViewVersion()

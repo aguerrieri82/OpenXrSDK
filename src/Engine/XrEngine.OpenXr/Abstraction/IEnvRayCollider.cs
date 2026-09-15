@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -9,6 +6,6 @@ namespace XrEngine.OpenXr
     {
         bool CastRay(Ray3 ray, float maxDistance, out Pose3 result);
 
-        bool IsEnabled { get; set; } 
+        bool IsEnabled { get; set; }
     }
 }

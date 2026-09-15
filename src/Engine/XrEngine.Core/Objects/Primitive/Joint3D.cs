@@ -82,7 +82,6 @@ namespace XrEngine
             canvas.Restore();
         }
 
-
         [Action]
         public void PrintPose()
         {

@@ -58,7 +58,7 @@ namespace XrEditor
 
         public static void Load<T>()
         {
-            
+
         }
     }
 }

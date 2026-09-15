@@ -237,7 +237,6 @@ namespace XrEngine
                 DrawLine(circlePoints[i], circlePoints[(i + 1) % segments]);
         }
 
-
         public bool UseDepth
         {
             get => _lineMesh.Material.UseDepth;

@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace Oculus.Platform

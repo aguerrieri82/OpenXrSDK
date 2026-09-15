@@ -1,11 +1,9 @@
 ﻿using Common.Interop;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrEngine.Animation;
 using XrEngine.Gltf;
-using XrInteraction;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -80,7 +78,7 @@ namespace XrEngine.OpenXr
 
             _model.Name = "Keyboard";
             _model.IsVisible = false;
-      
+
             foreach (var mesh in _model.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 mesh.CompressionMode = MeshCompressionMode.Never;
@@ -226,7 +224,7 @@ namespace XrEngine.OpenXr
         {
             _ = EngineApp.Current.Dispatcher.ExecuteAsync(() =>
             {
-                Debug.Assert( _model != null);
+                Debug.Assert(_model != null);
 
                 _model.IsVisible = false;
             });
@@ -260,7 +258,6 @@ namespace XrEngine.OpenXr
         }
 
         #endregion
-
 
         public float Scale { get; set; }
     }

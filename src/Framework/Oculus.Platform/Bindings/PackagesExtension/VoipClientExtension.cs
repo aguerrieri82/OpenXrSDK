@@ -1,7 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
-using Oculus.Platform.Models;
 namespace Oculus.Platform
 {
     public static partial class Voip

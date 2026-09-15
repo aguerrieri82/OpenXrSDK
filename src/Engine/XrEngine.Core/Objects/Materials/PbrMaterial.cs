@@ -659,7 +659,6 @@ namespace XrEngine
                 });
             }
 
-
             if (HeightMap != null)
             {
                 bld.AddFeature("USE_HEIGHT_MAP");
@@ -1234,7 +1233,7 @@ namespace XrEngine
             set
             {
                 _transmissionMode = value;
-                Alpha = value == TransmissionMode.Texture || 
+                Alpha = value == TransmissionMode.Texture ||
                         value == TransmissionMode.TextureBackground ? AlphaMode.Opaque : AlphaMode.TransmissionBlend;
             }
         }
@@ -1317,7 +1316,7 @@ namespace XrEngine
         [Category(Textures)]
         public Texture2D? AnisotropyMap { get; set; }
 
-        public override bool IsSingleDraw => UseMorph || (HasTransmission && 
+        public override bool IsSingleDraw => UseMorph || (HasTransmission &&
             (TransmissionMode == TransmissionMode.Texture || TransmissionMode == TransmissionMode.TextureBackground));
 
         public bool HasAnisotropy => Anisotropy > 0;

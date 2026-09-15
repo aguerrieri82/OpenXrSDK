@@ -1,6 +1,4 @@
-﻿using Silk.NET.Core;
-using Silk.NET.OpenXR;
-using System.Reflection;
+﻿using Silk.NET.OpenXR;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CS8618 

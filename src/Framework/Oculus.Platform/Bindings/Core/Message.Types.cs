@@ -1,7 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
-
 namespace Oculus.Platform
 {
     public partial class Message

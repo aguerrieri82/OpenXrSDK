@@ -246,7 +246,7 @@ namespace XrSamples.Dnd
                                 return;
 
                             var name = impTex.name.ToLower();
-                            
+
                             var isDif = name.EndsWith("dif") ||
                                         name.EndsWith("diff") ||
                                         name.Contains("albedo") ||
@@ -271,7 +271,6 @@ namespace XrSamples.Dnd
                                           name.EndsWith("-r") ||
                                           name.EndsWith("_rgh");
 
-
                             var isHeight = name.Contains("height") ||
                                            name.EndsWith("-hgt");
 
@@ -295,7 +294,6 @@ namespace XrSamples.Dnd
                             {
                                 pbr.Roughness = 0.1f;
                             }
-                            
 
                             if (isDif)
                                 pbr.ColorMap = (Texture2D)tex;
@@ -325,7 +323,6 @@ namespace XrSamples.Dnd
 
                                     return;
                                 }
-                          
 
                                 pbr.NormalMap = (Texture2D)tex;
                                 pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
@@ -360,7 +357,7 @@ namespace XrSamples.Dnd
                                 {
                                     pbr.OcclusionStrength = impMat.cbs[0].values[6][0];
                                 }
-                                else   if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                                else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
                                 {
                                     pbr.OcclusionStrength = impMat.cbs[0].values[4][3];
                                 }
@@ -575,7 +572,6 @@ namespace XrSamples.Dnd
                                 }
                             }
                         }
-
 
                         tex.WrapS = WrapMode.Repeat;
                         tex.WrapT = WrapMode.Repeat;

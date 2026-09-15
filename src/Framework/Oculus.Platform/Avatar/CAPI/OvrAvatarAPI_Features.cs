@@ -19,9 +19,6 @@
  */
 // Native declarations ported from Meta Avatars SDK 40.0.1. Unity helpers omitted.
 #nullable enable
-using System;
-using ovrAvatar2EntityFeatures = Oculus.Avatar2.CAPI.ovrAvatar2EntityFeatures;
-
 namespace Oculus.Avatar2.Experimental
 {
     [Flags]

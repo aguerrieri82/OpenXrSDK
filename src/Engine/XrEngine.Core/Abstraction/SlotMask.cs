@@ -15,7 +15,6 @@ namespace XrEngine
             return (Value & (1UL << slot)) != 0;
         }
 
-
         public int Allocate(int count, SlotMask reserved)
         {
             var max = Max == 0 ? 64 : Max;

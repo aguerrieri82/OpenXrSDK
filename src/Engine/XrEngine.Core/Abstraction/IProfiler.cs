@@ -27,7 +27,7 @@
     {
         void ClearStats();
 
-        IReadOnlyList <IProfilerStat> GetStats();
+        IReadOnlyList<IProfilerStat> GetStats();
 
         Dictionary<string, double> Averages { get; }
 

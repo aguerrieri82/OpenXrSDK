@@ -54,7 +54,6 @@ namespace XrEngine.Gltf
         string? _basePath;
         string? _filePath;
 
-
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
@@ -74,7 +73,6 @@ namespace XrEngine.Gltf
             "KHR_node_visibility",
             "KHR_materials_anisotropy",
             "KHR_materials_pbrSpecularGlossiness" };
-
 
         #region STRUCTS
 
@@ -356,7 +354,7 @@ namespace XrEngine.Gltf
             var img = _model!.Images[imgId];
 
             TextureData CreateImage()
-            { 
+            {
                 Log.Info(this, "Loading image {0}", img.Uri);
 
                 try
@@ -467,7 +465,7 @@ namespace XrEngine.Gltf
                 if (_textures.TryRemove(cacheKey, out var curCacheTask))
                     Debug.Assert(curCacheTask.Result == result);
             }
-   
+
             return _textures.GetOrAdd(cacheKey, img =>
             {
                 var texResult = result ?? new Texture2D();
@@ -677,8 +675,8 @@ namespace XrEngine.Gltf
                 if (result.Thickness == 0 && result.Roughness == 0)
                     result.TransmissionMode = TransmissionMode.DualAlpha;
                 else
-                    result.TransmissionMode = _options.TransmissionBkOnly ? 
-                        TransmissionMode.TextureBackground : 
+                    result.TransmissionMode = _options.TransmissionBkOnly ?
+                        TransmissionMode.TextureBackground :
                         TransmissionMode.Texture;
             }
 
@@ -1206,7 +1204,7 @@ namespace XrEngine.Gltf
 
                         var morphComp = new MorphComponent
                         {
-            
+
                         };
 
                         switch (attr.Key)
@@ -1375,7 +1373,7 @@ namespace XrEngine.Gltf
                     mat.Skin = SkinMode.Static;
                     mat.UseSkin = node?.Skin != null;
                     mat.UseMorph = (weights != null && weights.Length > 0);
-    
+
                     curMesh.Materials.Add(mat);
                 }
 
@@ -1464,7 +1462,7 @@ namespace XrEngine.Gltf
 
         protected Object3D Flattern(Object3D obj3d, int nodeId)
         {
-            Object3D curObj = obj3d;
+            var curObj = obj3d;
 
             while (true)
             {
@@ -1485,7 +1483,7 @@ namespace XrEngine.Gltf
 
             return curObj;
         }
-        
+
         public Object3D ProcessNode(int nodeId)
         {
             ProcessVariants();
@@ -1612,7 +1610,6 @@ namespace XrEngine.Gltf
 
             return nodeObj;
         }
-
 
         public Light ProcessLight(int lightId, Light? result = null)
         {
@@ -1912,7 +1909,7 @@ namespace XrEngine.Gltf
 
             var result = new List<AnimationGroup>(_model.Animations.Length);
 
-            int animId = 0;
+            var animId = 0;
             foreach (var anim in _model.Animations)
             {
                 result.Add(ProcessAnimation(animId));
@@ -1927,7 +1924,7 @@ namespace XrEngine.Gltf
             var glScene = _model!.Scenes[sceneId];
 
             var scene = new Group3D();
-            
+
             AssignAsset(scene, scene.Name, "scene", sceneId);
 
             foreach (var nodeId in glScene.Nodes)
@@ -1961,13 +1958,13 @@ namespace XrEngine.Gltf
         static Stream Clone(Stream stream)
         {
             var result = new MemoryStream();
-            
+
             if (stream.CanSeek)
                 stream.Position = 0;
 
             stream.CopyTo(result);
             result.Position = 0;
-            
+
             return result;
         }
 
@@ -2048,7 +2045,7 @@ namespace XrEngine.Gltf
 
             ProcessVariants();
 
-            int sceneId = 0;
+            var sceneId = 0;
 
             foreach (var scene in _model.Scenes)
             {

@@ -85,11 +85,11 @@ namespace XrEngine.OpenGL
                 DrawVirtual(6);
                 return;
             }
-            
+
             if (ctx.ClipMode == ShaderClipMode.DepthClear)
             {
                 var depthTex = _renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment)!;
-                
+
                 Debug.Assert(depthTex != null);
 
                 var camera = ctx.PassCamera!;
@@ -263,7 +263,7 @@ namespace XrEngine.OpenGL
             var ctx = _renderer.UpdateContext;
 
             ctx.UseManualDepthTest = layer.Type == GlLayerType.Transmission && !ctx.CanSampleColor;
-            
+
             if (ctx.UseManualDepthTest)
                 _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
 

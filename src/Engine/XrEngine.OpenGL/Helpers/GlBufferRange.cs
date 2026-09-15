@@ -102,7 +102,7 @@ namespace XrEngine.OpenGL
 
         private readonly Dictionary<object, GlBufferRangeSlot<T>> _slotsByOwner = [];
         private readonly Stack<int> _freeSlots = new();
-        internal readonly  bool _usePermanentMap;
+        internal readonly bool _usePermanentMap;
 
         private GlBufferRangeSlot<T>?[] _slots = [];
         private int _nextSlot;

@@ -36,7 +36,7 @@ namespace XrSamples
 
             if (mesh is Group3D group)
                 group.FindByName<Object3D>("Cloth Backdrop")?.Remove();
- #endif
+#endif
 
             return builder
                 .UseApp(app)

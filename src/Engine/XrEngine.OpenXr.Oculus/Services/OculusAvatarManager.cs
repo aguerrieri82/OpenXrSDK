@@ -1,9 +1,6 @@
-using System;
+using global::Oculus.Avatar2;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using global::Oculus.Avatar2;
 using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus

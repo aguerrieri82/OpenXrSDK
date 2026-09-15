@@ -5,7 +5,6 @@ using System.Numerics;
 using XrEngine.Audio;
 using XrEngine.Gltf;
 using XrMath;
-using static XrEngine.Gltf.GltfLoader.KHR_lights_punctual;
 
 namespace XrEngine.OpenXr
 {
@@ -112,8 +111,7 @@ namespace XrEngine.OpenXr
 
             IXrInput? input = null;
 
-            bool isLeft = path.Contains("left");
-
+            var isLeft = path.Contains("left");
 
             group.AddBehavior((_, ctx) =>
             {

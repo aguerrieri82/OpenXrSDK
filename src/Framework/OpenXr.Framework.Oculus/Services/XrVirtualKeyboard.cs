@@ -2,8 +2,6 @@
 using OpenXr.Framework.Oculus.Structs;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -164,7 +162,7 @@ namespace OpenXr.Framework.Oculus
                 space.LocationType = locType;
 
             _app.CheckResult(_keyExt!.CreateVirtualKeyboardSpaceMETA!(_app.Session, _keyboard, ref space, ref _keyboardSpace), "CreateVirtualKeyboardSpaceMETA");
-            
+
             _isVisible = true;
         }
 

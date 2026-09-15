@@ -23,9 +23,9 @@ using System.Runtime.InteropServices;
 
 namespace Oculus.Avatar2.Experimental
 {
-    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
     using ovrAvatar2EntityId = Avatar2.CAPI.ovrAvatar2EntityId;
     using ovrAvatar2EntityViewFlags = Avatar2.CAPI.ovrAvatar2EntityViewFlags;
+    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
 
     public static partial class CAPI
     {

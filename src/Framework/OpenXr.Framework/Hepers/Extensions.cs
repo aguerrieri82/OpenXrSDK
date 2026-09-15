@@ -13,13 +13,12 @@ namespace OpenXr.Framework
     public static class Extensions
     {
 
-        extension (XrApp self)
+        extension(XrApp self)
         {
             public bool IsMetaSimulator => self.RuntimeName == "Meta XR Simulator";
 
             public bool IsMetaLink => self.RuntimeName == "Oculus" && OperatingSystem.IsWindows();
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVector3(this in Vector3f value)
@@ -165,7 +164,6 @@ namespace OpenXr.Framework
                     completionSource.SetCanceled();
             });
         }
-
 
         public static unsafe void DumpLayersJson(this XrApp self, ref CompositionLayerBaseHeader*[] layers, uint count)
         {

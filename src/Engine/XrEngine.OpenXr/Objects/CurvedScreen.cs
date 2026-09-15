@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace XrEngine.OpenXr
+﻿namespace XrEngine.OpenXr
 {
     public class CurvedScreen : TriangleMesh, IGeneratedContent
     {

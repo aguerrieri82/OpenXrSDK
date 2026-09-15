@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace Oculus.Platform
@@ -20,7 +19,7 @@ namespace Oculus.Platform
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            JToken token = JToken.Load(reader);
+            var token = JToken.Load(reader);
 
             JArray array = null;
 
@@ -42,7 +41,7 @@ namespace Oculus.Platform
                 // Deserialize each element as T (not T[]) to avoid re-entering
                 // this converter and causing infinite recursion.
                 var result = new T[array.Count];
-                for (int i = 0; i < array.Count; i++)
+                for (var i = 0; i < array.Count; i++)
                 {
                     result[i] = array[i].ToObject<T>(serializer);
                 }

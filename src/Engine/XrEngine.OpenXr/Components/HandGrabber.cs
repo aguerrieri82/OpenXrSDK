@@ -1,7 +1,7 @@
-﻿using Silk.NET.OpenXR;
+﻿using OpenXr.Framework.Oculus;
+using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
-using OpenXr.Framework.Oculus;
 using XrMath;
 
 namespace XrEngine.OpenXr

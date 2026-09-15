@@ -1,6 +1,5 @@
 ﻿using CanvasUI;
 using UI.Binding;
-using XrEngine;
 using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples

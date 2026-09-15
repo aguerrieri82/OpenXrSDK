@@ -13,9 +13,7 @@ using XrEngine.OpenGL;
 using Microsoft.Extensions.Logging;
 using Context2 = global::Android.Content.Context;
 using Silk.NET.OpenGLES.Extensions.EXT;
-using Silk.NET.OpenXR;
 using Android.Runtime;
-using Java.Interop;
 
 namespace XrEngine.OpenXr.Android
 {

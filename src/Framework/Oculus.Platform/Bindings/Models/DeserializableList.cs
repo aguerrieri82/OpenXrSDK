@@ -2,7 +2,6 @@
 
 using Newtonsoft.Json;
 using Oculus.Platform;
-using System.Collections.Generic;
 [JsonConverter(typeof(DeserializableListConverter))]
 public class DeserializableList<T>
 {
@@ -21,7 +20,6 @@ public class DeserializableList<T>
 
     [JsonProperty("summary")]
     public SummaryJSON Summary { get; set; }
-
 
     // Added to enable running foreach on this class which dev frequently uses.
     // Making LeaderboarEntryList implements IEnumerator directly breaks json deserialization.

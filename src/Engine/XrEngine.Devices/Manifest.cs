@@ -12,7 +12,6 @@ using Android.Content.PM;
 [assembly: UsesFeature(PackageManager.FeatureCamera, Required = false)]
 [assembly: UsesFeature(PackageManager.FeatureUsbHost, Required = false)]
 
-
 [assembly: UsesPermission(Manifest.Permission.Bluetooth)]
 [assembly: UsesPermission(Manifest.Permission.BluetoothAdmin)]
 [assembly: UsesPermission(Manifest.Permission.BluetoothScan)]

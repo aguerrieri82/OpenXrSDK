@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 /// Custom JSON converter that handles both array and object formats when deserializing DeserializableList.
@@ -10,7 +9,7 @@ public class DeserializableListConverter : JsonConverter
     public DeserializableListConverter() { }
     public override bool CanConvert(Type objectType)
     {
-        Type type = objectType;
+        var type = objectType;
         while (type != null)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DeserializableList<>))
@@ -22,9 +21,9 @@ public class DeserializableListConverter : JsonConverter
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        JToken token = JToken.Load(reader);
+        var token = JToken.Load(reader);
 
-        object result = Activator.CreateInstance(objectType);
+        var result = Activator.CreateInstance(objectType);
         var dataProperty = objectType.GetProperty("Data");
         var pagingProperty = objectType.GetProperty("Paging");
         var summaryProperty = objectType.GetProperty("Summary");
@@ -66,7 +65,7 @@ public class DeserializableListConverter : JsonConverter
 
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
     {
-        Type objectType = value.GetType();
+        var objectType = value.GetType();
         var dataProperty = objectType.GetProperty("Data");
         var pagingProperty = objectType.GetProperty("Paging");
         var summaryProperty = objectType.GetProperty("Summary");

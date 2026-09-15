@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<UseNAudio>false</UseNAudio>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
@@ -10,12 +11,19 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<PackageReference Include="NAudio.Core" Version="2.3.0" />
-		<Content PackagePath="runtimes/win-x64/native/" 
-			Include="sfizz_api.dll" 
+
+		<Content PackagePath="runtimes/win-x64/native/"
+			Include="sfizz_api.dll"
 			Visible="False"
-			CopyToOutputDirectory="PreserveNewest" 
+			CopyToOutputDirectory="PreserveNewest"
 			UseLink="True" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(UseNAudio)' == 'true' AND '$(IsAndroid)' == 'false'">
+		<PackageReference Include="NAudio.Core" Version="2.3.0" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(UseNAudio)' != 'true'">
+		<Compile Remove="SfizzSampleProvider.cs" />
+	</ItemGroup>
 </Project>

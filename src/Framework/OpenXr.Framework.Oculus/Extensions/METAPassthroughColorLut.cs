@@ -14,7 +14,7 @@ namespace OpenXr.Framework.Oculus
 
         [AllowNull]
         public CreatePassthroughColorLutMETADelegate CreatePassthroughColorLutMETA;
-        
+
         [AllowNull]
         public UpdatePassthroughColorLutMETADelegate UpdatePassthroughColorLutMETA;
 

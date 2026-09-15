@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 using Newtonsoft.Json;
 /// Custom JSON converter that handles empty strings when deserializing to UInt64.
 /// When an empty string is encountered, it will use 0 as the default value.
@@ -17,7 +16,7 @@ public class UInt64EmptyStringConverter : JsonConverter<UInt64>
     {
         if (reader.TokenType == JsonToken.String)
         {
-            string stringValue = (string)reader.Value;
+            var stringValue = (string)reader.Value;
             if (string.IsNullOrEmpty(stringValue))
             {
                 // Return 0 for empty strings
@@ -25,7 +24,7 @@ public class UInt64EmptyStringConverter : JsonConverter<UInt64>
             }
 
             // Try to parse the string value
-            if (UInt64.TryParse(stringValue, out UInt64 result))
+            if (UInt64.TryParse(stringValue, out var result))
             {
                 return result;
             }

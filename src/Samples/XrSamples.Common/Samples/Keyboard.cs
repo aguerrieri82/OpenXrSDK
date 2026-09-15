@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using XrEngine;
-using XrEngine.Gltf;
 using XrEngine.OpenXr;
 
 namespace XrSamples
@@ -24,7 +23,7 @@ namespace XrSamples
                 .UseVirtualKeyboard(quod)
                 .ConfigureApp(e =>
                 {
-                    var key  = (ITextInputProvider)scene.DescendantsOrSelf().OfType<VirtualKeyboardView>().First();
+                    var key = (ITextInputProvider)scene.DescendantsOrSelf().OfType<VirtualKeyboardView>().First();
 
                     var click = e.Inputs!.Right.Button.BClick;
 
@@ -37,11 +36,11 @@ namespace XrSamples
                             else
                                 key.Show();
                         }
-          
+
                     });
-         
+
                 })
-                .SetGlOptions(opt=> opt.UseInstanceDraw = true)
+                .SetGlOptions(opt => opt.UseInstanceDraw = true)
                 .ConfigureSampleApp();
         }
     }

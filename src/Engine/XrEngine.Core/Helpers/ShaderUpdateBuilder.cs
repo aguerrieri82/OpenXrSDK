@@ -247,9 +247,9 @@ namespace XrEngine
             });
         }
 
-        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value, 
-            int slot, BufferStore store, 
-            BufferUsage usage = BufferUsage.Uniforms, Func<UpdateShaderContext, bool>? canLoad = null) 
+        public readonly void LoadBufferArray<T>(UpdateAction<T[]?> value,
+            int slot, BufferStore store,
+            BufferUsage usage = BufferUsage.Uniforms, Func<UpdateShaderContext, bool>? canLoad = null)
             where T : unmanaged
         {
             ISimpleBuffer<T>? buffer = null;
@@ -278,7 +278,7 @@ namespace XrEngine
                     return;
 
                 buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store, usage);
-                
+
                 if (buffer.SizeBytes == 0)
                     return;
 

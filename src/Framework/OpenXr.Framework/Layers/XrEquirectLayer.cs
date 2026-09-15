@@ -1,6 +1,5 @@
 ﻿using Silk.NET.OpenXR;
 using XrMath;
-using XrMath.Entities;
 
 namespace OpenXr.Framework
 {

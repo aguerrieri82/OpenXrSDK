@@ -14,17 +14,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="4.150.1" />
+		<PackageReference Include="SkiaSharp" Version="4.152.0" />
 		<PackageReference Include="System.IO.Hashing" Version="$(MsExtVersion)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content PackagePath="runtimes/win-x64/native/" 
-				 Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" 
-				 CopyToOutputDirectory="PreserveNewest" 
-				 Link="%(Filename)%(Extension)"
-				 Visible="False"
-				 UseLink="True" />
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">

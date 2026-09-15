@@ -1,10 +1,5 @@
 using global::Oculus.Platform;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace XrEngine.OpenXr.Oculus
 {
@@ -47,7 +42,7 @@ namespace XrEngine.OpenXr.Oculus
                 AppId = appId
             };
 
-            var result = await RequestAsync(() => 
+            var result = await RequestAsync(() =>
                 StandaloneNative.ovr_Platform_InitializeStandaloneOculus(ref init),
                 ReadInitializationResult)
                 .ConfigureAwait(false);
@@ -76,7 +71,6 @@ namespace XrEngine.OpenXr.Oculus
 
             if (result != 0)
                 throw new InvalidOperationException($"Oculus initialization failed: {result}.");
-
 
             _accessToken = await RequestAsync(
                 StandaloneNative.ovr_User_GetAccessToken,

@@ -2,7 +2,6 @@
 using XrEngine;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
-using XrMath;
 
 namespace XrSamples
 {
@@ -22,7 +21,7 @@ namespace XrSamples
 
             var settings = new WaterFloodSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "water_flood_settings.json"));
-             
+
             var water = scene.AddChild(new Water(simulationSize, gridSize)
             {
                 Name = "Flood water"
@@ -75,7 +74,7 @@ namespace XrSamples
                 waterLevel = MathF.Min(settings.MaximumDepth, waterLevel);
                 water.Material.WaterDepth = waterLevel;
 
-                var floorNormal = Vector3.Transform(Vector3.UnitZ,  floor.WorldOrientation);
+                var floorNormal = Vector3.Transform(Vector3.UnitZ, floor.WorldOrientation);
 
                 water.WorldOrientation = floor.WorldOrientation;
                 water.WorldPosition = floor.WorldPosition + floorNormal * (floorThickness * 0.5f + waterLevel);

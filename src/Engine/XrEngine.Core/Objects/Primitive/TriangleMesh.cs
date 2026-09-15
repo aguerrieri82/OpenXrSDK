@@ -257,7 +257,7 @@ namespace XrEngine
                     Log.Warn(this, "Canno re-upload compressed geometry");
                     return;
                 }
-           
+
                 _geometry.Invalidate();
             }
         }
@@ -375,7 +375,6 @@ namespace XrEngine
         public Type? CompIndexType { get; set; }
 
         public static bool EnableCompression = true;
-
 
         #region IVertexSource
 

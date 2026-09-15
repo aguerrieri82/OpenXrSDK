@@ -5,7 +5,6 @@ using Silk.NET.OpenGLES.Extensions.OES;
 #else
 using Silk.NET.OpenGL;
 
-
 #endif
 
 using XrMath;
@@ -19,7 +18,6 @@ namespace XrEngine.OpenGL
         const GetTextureParameter TextureViewMinLayer = (GetTextureParameter)0x82DD;
 
         const GetTextureParameter TextureViewNumLayers = (GetTextureParameter)0x82DE;
-
 
 #if GLES
         static ExtClearTexture? _clearExt;
@@ -39,7 +37,6 @@ namespace XrEngine.OpenGL
         internal uint _viewNumLayers;
         protected bool _isAttached;
         private int _updateCount;
-
 
         public GlTexture(GL gl)
             : base(gl)
@@ -214,7 +211,6 @@ namespace XrEngine.OpenGL
                 : Target;
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureWidth, out int w);
-
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureHeight, out int h);
 
@@ -484,7 +480,7 @@ namespace XrEngine.OpenGL
 
             if (!OpenGLRender.Current!.Features.IsAngle && EngineNativeLib.RdcIsAttached())
                 return;
-        
+
             if (_clearExt == null)
             {
                 if (!_gl.TryGetExtension(out _clearExt))
@@ -541,7 +537,6 @@ namespace XrEngine.OpenGL
             _gl.ClearTexSubImage(_handle, level, region.X, region.Y, layer, region.Width, region.Height, 1, pixelFormat, pixelType, buffer);
 #endif
         }
-
 
         public GlTexture CreateView(uint minLayer, uint numLayers, uint minLevel = 0, uint numLevels = 1)
         {
@@ -684,7 +679,7 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
-               // GlState.Current.ResetTextures();
+                // GlState.Current.ResetTextures();
 
                 if (!_isAttached)
                 {
@@ -724,7 +719,6 @@ namespace XrEngine.OpenGL
 
             base.Dispose();
         }
-
 
         public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0, GlTexture? parentTex = null)
         {

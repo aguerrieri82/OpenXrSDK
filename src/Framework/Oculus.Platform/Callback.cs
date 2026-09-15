@@ -1,13 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
-using System.Collections.Generic;
-
 namespace Oculus.Platform
 {
     public static class Callback
     {
-        private static Dictionary<ulong, Request> requestIDsToRequests = new Dictionary<ulong, Request>();
+        private static readonly Dictionary<ulong, Request> requestIDsToRequests = new Dictionary<ulong, Request>();
 
         internal static void AddRequest(Request request)
         {
@@ -29,7 +26,7 @@ namespace Oculus.Platform
             }
 
             // Handle notification callback intent popping
-            foreach (ulong sessionId in notificationCallbacks.Keys.ToArray())
+            foreach (var sessionId in notificationCallbacks.Keys.ToArray())
             {
                 while (PlatformClient.GetMessageCount(sessionId) > 0)
                 {
@@ -66,7 +63,7 @@ namespace Oculus.Platform
 
         private class RequestCallback
         {
-            private Message.Callback messageCallback;
+            private readonly Message.Callback messageCallback;
 
             /// This method initializes a new instance of the RequestCallback class.
             /// It is used to handle asynchronous requests made to the platform.
@@ -94,7 +91,7 @@ namespace Oculus.Platform
 
         private sealed class RequestCallback<T> : RequestCallback
         {
-            private Message<T>.Callback callback;
+            private readonly Message<T>.Callback callback;
 
             /// This method initializes a new instance of the RequestCallback class with a specified callback function.
             /// It sets the message callback to the provided callback function, which will be executed when a response is received for the associated request.
@@ -109,13 +106,13 @@ namespace Oculus.Platform
             {
                 if (callback != null)
                 {
-                    Message<T> typedMessage = new Message<T>(msg.requestID, msg.sessionID, msg.cookie, msg.data, msg.status);
+                    var typedMessage = new Message<T>(msg.requestID, msg.sessionID, msg.cookie, msg.data, msg.status);
                     callback(typedMessage);
                 }
             }
         }
 
-        private static Dictionary<ulong, RequestCallback> notificationCallbacks = new Dictionary<ulong, RequestCallback>();
+        private static readonly Dictionary<ulong, RequestCallback> notificationCallbacks = new Dictionary<ulong, RequestCallback>();
         internal static void SetNotificationCallback(ulong sessionId, Message.Callback callback)
         {
             if (callback == null)

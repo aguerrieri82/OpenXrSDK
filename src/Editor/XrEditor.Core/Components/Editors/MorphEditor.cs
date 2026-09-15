@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 using XrEngine.Components;
 
@@ -20,7 +17,7 @@ namespace XrEditor
                 _host = host;
 
                 DisplayName = index.ToString().PadRight(3, ' ') + ".  " + (name ?? "Weigth");
-                 
+
                 Name = name;
 
                 var property = new SimpleProperty<float>(
@@ -38,19 +35,17 @@ namespace XrEditor
 
             public FloatEditor Editor { get; }
 
-            public string DisplayName { get;  }
+            public string DisplayName { get; }
 
             public string? Name { get; }
 
             public int Index { get; }
         }
 
-
         public MorphEditor()
         {
             _weights = [];
         }
-
 
         protected override void OnEditValueChanged(MeshMorph newValue)
         {

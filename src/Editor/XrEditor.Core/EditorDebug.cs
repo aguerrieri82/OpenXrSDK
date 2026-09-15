@@ -1,24 +1,16 @@
-﻿
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Loader;
-using Windows.Data.Xml.Dom;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenXr;
 
 #if DEVELOPMENT
 
 using XrSamples;
-using XrSamples.Dnd;
-using XrSamples.Graffiti;
-using XrEngine;
 using XrEngine.OpenGL;
 
 #endif
 
 namespace XrEditor
 {
-    public  static class EditorDebug
+    public static class EditorDebug
     {
         public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
@@ -42,7 +34,6 @@ namespace XrEditor
 
         public static readonly bool UseDxHost = false;
 
-
 #if DEVELOPMENT
 
         public static readonly string PersistentPath = "d:\\Projects\\XrEditor";
@@ -55,7 +46,6 @@ namespace XrEditor
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
             @"D:\Projects\"];
-
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               .When(IsMultiView, b => b.UseMultiView())
@@ -83,7 +73,7 @@ namespace XrEditor
 
                   opt.ContactShadow.Use = false;
                   opt.ContactShadow.IsMultiView = IsMultiView;
-                  
+
                   opt.ToneMap = ToneMapMode.Aces;
                   opt.UseProfiler = false;
                   opt.UseTransmission = true;
@@ -120,7 +110,6 @@ namespace XrEditor
               .CreateGeoLayers()
               //.CreateDnd()
               .Build();
-
 
 #else
 

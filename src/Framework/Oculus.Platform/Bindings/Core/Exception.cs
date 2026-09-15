@@ -5,8 +5,6 @@
  * @generated SignedSource<<7f1d6a8835ba490fed3aa5344ed83c4a>>
  */
 
-using System;
-
 namespace Oculus.Platform
 {
     public class HorizonException : Exception

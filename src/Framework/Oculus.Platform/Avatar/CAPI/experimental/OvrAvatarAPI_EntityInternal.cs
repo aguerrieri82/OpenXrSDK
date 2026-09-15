@@ -19,13 +19,12 @@
  */
 // Native declarations ported from Meta Avatars SDK 40.0.1. Unity helpers omitted.
 #nullable enable
-using System;
 using System.Runtime.InteropServices;
 
 namespace Oculus.Avatar2.Experimental
 {
-    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
     using ovrAvatar2EntityId = Avatar2.CAPI.ovrAvatar2EntityId;
+    using ovrAvatar2Result = Avatar2.CAPI.ovrAvatar2Result;
 
     public static partial class CAPI
     {
@@ -89,5 +88,4 @@ namespace Oculus.Avatar2.Experimental
 
 namespace Oculus.Avatar2
 {
-    using EXPERIMENTAL_CAPI = Oculus.Avatar2.Experimental.CAPI;
 }

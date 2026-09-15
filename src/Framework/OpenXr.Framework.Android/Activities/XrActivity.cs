@@ -1,12 +1,10 @@
-﻿using Android;
-using Android.Content;
+﻿using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Microsoft.Extensions.Logging;
 using XrInteraction;
-using static Android.Telephony.CarrierConfigManager;
 
 namespace OpenXr.Framework.Android
 {

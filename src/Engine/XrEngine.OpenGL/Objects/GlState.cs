@@ -452,7 +452,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         private void SetFrontFace(FrontFaceDirection value, bool force = false)
         {
             if (FrontFace != value || force)
@@ -753,7 +752,6 @@ namespace XrEngine.OpenGL
 
             Commit();
         }
-
 
         public uint GetActiveTexture(TextureTarget target, int slot)
         {

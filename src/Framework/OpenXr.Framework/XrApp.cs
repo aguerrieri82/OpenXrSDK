@@ -10,10 +10,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
@@ -1085,7 +1083,6 @@ namespace OpenXr.Framework
                    _lastSessionState == SessionState.Synchronized;
         }
 
-
         public Task WaitFutureAsync(FutureEXT future)
         {
             var info = new FutureWaitInfo
@@ -1796,7 +1793,6 @@ namespace OpenXr.Framework
                 _logger.LogWarning("xxx");
                 result.BlendMode = EnvironmentBlendMode.Opaque;
             }
-       
 
             result.Size = viewInfo.RecommendedImageRect;
             result.Size = new Extent2Di
@@ -1897,20 +1893,17 @@ namespace OpenXr.Framework
 
         public bool IsUserPresent { get; protected set; }
 
-
         public string? RuntimeName => _runtimeName;
 
         public string? LeftIntProfile => _leftIntProfile;
 
         public string? RightIntProfile => _rightIntProfile;
 
-
         public Pose3 ReferenceFrame { get; set; }
 
         public bool UseLocalSpace { get; set; }
 
         public ITextInputProvider? TextInput { get; set; }
-
 
         public event System.Action? BeginFrameEvent;
 
@@ -1919,7 +1912,6 @@ namespace OpenXr.Framework
         public event XrEventHandler XrEvent;
 
         public event System.Action? SessionChanged;
-
 
         public static XrApp? Current { get; internal set; }
 

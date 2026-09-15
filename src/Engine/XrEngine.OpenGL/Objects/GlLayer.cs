@@ -618,7 +618,7 @@ namespace XrEngine.OpenGL
                 return 0;
 
             var ctx = _render.UpdateContext;
-         
+
             var frustumCulling = _render.Options.FrustumCulling;
             var frustumPlanes = ctx.FrustumPlanes.AsSpan();
 

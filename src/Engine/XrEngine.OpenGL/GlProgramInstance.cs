@@ -125,8 +125,6 @@ namespace XrEngine.OpenGL
             if (!NeedUpdate && !Material.NeedUpdateShader(ctx))
                 return false;
 
-
-
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
@@ -240,7 +238,6 @@ namespace XrEngine.OpenGL
 
             program.SetLabel(Material.GetType().Name);
 
-
             if (_useGeo)
             {
                 program.AddExtension("GL_EXT_geometry_shader");
@@ -314,7 +311,7 @@ namespace XrEngine.OpenGL
         }
 
         public ISimpleBuffer<T> GetBuffer<T>(int bufferId, BufferStore store, BufferUsage usage, string? uniformName = null)
-            where T: unmanaged
+            where T : unmanaged
         {
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store, usage);

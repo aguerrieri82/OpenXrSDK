@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using XrMath;
 
-
 namespace XrEngine.OpenXr
 {
     public class OculusEnvRayCollider : IEnvRayCollider, IDisposable

@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
+using Common.Interop;
 using System.Numerics;
 using System.Text;
-using Common.Interop;
-using XrEngine.Components;
 using XrMath;
 using AvatarApi = global::Oculus.Avatar2.CAPI;
 
@@ -212,9 +209,9 @@ namespace XrEngine.OpenXr.Oculus
             var textureFormat = srgb ? TextureFormat.SRgba8 : TextureFormat.Rgba8;
             var levels = new List<TextureData>();
 
-            uint width = image.Native.sizeX;
-            uint height = image.Native.sizeY;
-            int offset = 0;
+            var width = image.Native.sizeX;
+            var height = image.Native.sizeY;
+            var offset = 0;
 
             for (uint mip = 0; mip < Math.Max(image.Native.mipCount, 1); mip++)
             {
@@ -281,7 +278,7 @@ namespace XrEngine.OpenXr.Oculus
                     throw new InvalidOperationException("Cannot decode avatar BC5 normal map.");
             }
 
-            for (int i = 0; i < pixels.Length; i += 4)
+            for (var i = 0; i < pixels.Length; i += 4)
             {
                 var x = pixels[i] / 255f * 2 - 1;
                 var y = pixels[i + 1] / 255f * 2 - 1;
@@ -304,7 +301,7 @@ namespace XrEngine.OpenXr.Oculus
             var uv1 = ReadBuffer<Vector2>(id, count, AvatarApi.ovrAvatar2VertexBuffer_GetTexCoord1, true);
             var vertices = new VertexData[count];
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 vertices[i].Pos = positions[i];
 
@@ -376,7 +373,7 @@ namespace XrEngine.OpenXr.Oculus
                 var weights = ReadBuffer<Vector4>(id, count, AvatarApi.ovrAvatar2VertexBuffer_GetJointWeights);
                 var skin = new SkinData[count];
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     var joint = jointIndices[i];
 

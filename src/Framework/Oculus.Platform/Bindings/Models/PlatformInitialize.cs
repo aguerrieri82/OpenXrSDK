@@ -1,9 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using Newtonsoft.Json;
+using System.ComponentModel;
 namespace Oculus.Platform.Models
 {
     public class PlatformInitialize

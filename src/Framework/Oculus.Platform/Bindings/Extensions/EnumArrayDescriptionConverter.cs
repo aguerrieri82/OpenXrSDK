@@ -1,9 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 using Newtonsoft.Json;
-using System;
 using System.ComponentModel;
-using System.Reflection;
 public class EnumArrayDescriptionConverter<T> : JsonConverter where T : struct, Enum
 {
     public EnumArrayDescriptionConverter() { }
@@ -21,10 +19,10 @@ public class EnumArrayDescriptionConverter<T> : JsonConverter where T : struct, 
             return;
         }
 
-        T[] array = (T[])value;
+        var array = (T[])value;
         writer.WriteStartArray();
 
-        foreach (T item in array)
+        foreach (var item in array)
         {
             writer.WriteValue(GetDescription(item));
         }
@@ -57,7 +55,7 @@ public class EnumArrayDescriptionConverter<T> : JsonConverter where T : struct, 
 
     private string GetDescription(T value)
     {
-        FieldInfo fi = value.GetType().GetField(value.ToString());
+        var fi = value.GetType().GetField(value.ToString());
         if (fi != null)
         {
             var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);

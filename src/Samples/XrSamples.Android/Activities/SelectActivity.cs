@@ -10,7 +10,6 @@ using XrEngine.OpenXr;
 namespace XrSamples.Android.Activities
 {
 
-
     [IntentFilter([Intent.ActionMain],
         Categories = [Intent.CategoryDefault, OculusIntentCategory.TwoD])]
     [Activity(

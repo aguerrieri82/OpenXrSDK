@@ -1,9 +1,6 @@
-﻿using OpenXr.Framework.Oculus;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.OpenXr.Oculus;
-
 
 namespace XrSamples
 {

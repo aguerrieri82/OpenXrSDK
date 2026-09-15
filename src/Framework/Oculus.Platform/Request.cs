@@ -1,7 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
-using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 
 namespace Oculus.Platform
@@ -106,7 +104,6 @@ namespace Oculus.Platform
         public ulong RequestID { get; set; }
         protected Message.Callback _callback;
         private TaskCompletionSource<Message> _tcs;
-
 
         public Request(ulong requestID)
         {

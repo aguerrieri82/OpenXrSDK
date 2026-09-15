@@ -5,7 +5,6 @@ using System.Numerics;
 using XrEngine.Components;
 using XrMath;
 
-
 namespace XrEngine.OpenXr.Oculus
 {
     public class AvatarFaceTrack : Behavior<Avatar>

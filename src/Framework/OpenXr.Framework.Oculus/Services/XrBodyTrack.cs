@@ -1,7 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 
-
 namespace OpenXr.Framework.Oculus
 {
     public class XrBodyTrack : IDisposable
@@ -105,7 +104,6 @@ namespace OpenXr.Framework.Oculus
         {
             _app.CheckResult(_bodyTrackingCalibration!.ResetBodyTrackingCalibrationMETA(_tracker), "ResetBodyTrackingCalibrationMETA");
         }
-
 
         public bool IsCalibrationSupported()
         {
@@ -253,7 +251,6 @@ namespace OpenXr.Framework.Oculus
         public bool IsActive => _isActive;
 
         public BodyJointLocationFB[]? Joints => _joints;
-
 
         public BodyTrackingFidelityMETA? Fidelity => _fidelity;
 

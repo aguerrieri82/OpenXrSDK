@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 /// Custom JSON converter that serializes UInt64 arrays as string arrays.
@@ -21,10 +20,10 @@ public class UInt64ArrayAsStringConverter : JsonConverter
             return null;
         }
 
-        JArray array = JArray.Load(reader);
-        UInt64[] result = new UInt64[array.Count];
+        var array = JArray.Load(reader);
+        var result = new UInt64[array.Count];
 
-        for (int i = 0; i < array.Count; i++)
+        for (var i = 0; i < array.Count; i++)
         {
             if (array[i].Type == JTokenType.String)
             {
@@ -47,10 +46,10 @@ public class UInt64ArrayAsStringConverter : JsonConverter
             return;
         }
 
-        UInt64[] array = (UInt64[])value;
+        var array = (UInt64[])value;
         writer.WriteStartArray();
 
-        foreach (UInt64 item in array)
+        foreach (var item in array)
         {
             writer.WriteValue(item.ToString());
         }

@@ -2,7 +2,6 @@
 
 using Newtonsoft.Json;
 using Oculus.Platform.Models;
-using System;
 
 namespace Oculus.Platform
 {
@@ -72,7 +71,7 @@ namespace Oculus.Platform
         public string data;
         public HorizonStatus status;
         public bool IsError => !status.IsSuccess();
-        private Error error;
+        private readonly Error error;
 
         /// Returns the error object associated with this message, or null if there is no error.
         public virtual Error GetError() { return error; }

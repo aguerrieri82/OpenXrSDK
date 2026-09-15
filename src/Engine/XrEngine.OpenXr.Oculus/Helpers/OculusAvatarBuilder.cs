@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using XrEngine.Components;
 using AvatarApi = global::Oculus.Avatar2.CAPI;
@@ -29,7 +27,7 @@ namespace XrEngine.OpenXr.Oculus
             var joints = new Joint3D[pose.jointCount];
             var jointNodes = new Dictionary<AvatarApi.ovrAvatar2NodeId, Joint3D>();
 
-            for (int i = 0; i < joints.Length; i++)
+            for (var i = 0; i < joints.Length; i++)
             {
                 joints[i] = new Joint3D
                 {
@@ -41,7 +39,7 @@ namespace XrEngine.OpenXr.Oculus
                 jointNodes.Add(pose.nodeIds[i], joints[i]);
             }
 
-            for (int i = 0; i < joints.Length; i++)
+            for (var i = 0; i < joints.Length; i++)
             {
                 var parent = pose.parents[i];
 
@@ -75,14 +73,14 @@ namespace XrEngine.OpenXr.Oculus
 
                 if (jointLen > 0)
                 {
-                    var skin = new MeshSkin 
-                    { 
-                        Joints = new Joint3D[jointLen], 
+                    var skin = new MeshSkin
+                    {
+                        Joints = new Joint3D[jointLen],
                         SkinId = Guid.NewGuid(),
                         InverseBindMatrices = new Matrix4x4[jointLen]
                     };
 
-                    for (int j = 0; j < jointLen; j++)
+                    for (var j = 0; j < jointLen; j++)
                     {
                         var info = primitive.Joints[j];
                         var node = state.pose.nodeIds[info.jointIndex];

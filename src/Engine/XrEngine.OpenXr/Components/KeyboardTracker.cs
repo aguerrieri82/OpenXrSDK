@@ -66,7 +66,7 @@ namespace XrEngine.OpenXr
             if (_keyboardSpace.Handle == 0)
                 return;
 
-            if (ctx.Time - _lastBoundsTime > 2f)
+            if (ctx.Time - _lastBoundsTime > 2)
             {
                 _bounds = _oculus!.GetSpaceBoundingBox3D(_keyboardSpace).ToBounds3();
                 _lastBoundsTime = ctx.Time;
@@ -75,9 +75,10 @@ namespace XrEngine.OpenXr
             var loc = _app!.SpacesTracker.GetLastLocation(_keyboardSpace);
 
             if (loc != null && loc.IsValid)
+            {
                 _pose = loc.Pose;
-
-            UpdateHole();
+                UpdateHole();
+            }
         }
 
         private void UpdateHole()
@@ -105,6 +106,7 @@ namespace XrEngine.OpenXr
             }
 
             _hole.IsVisible = true;
+
             _hole.Transform.Position = _pose.Position + Vector3.Transform(_bounds.Center, _pose.Orientation);
             _hole.Transform.Orientation = _pose.Orientation;
             _hole.Transform.Scale = _bounds.Size;
@@ -135,7 +137,6 @@ namespace XrEngine.OpenXr
 
             GC.SuppressFinalize(this);
         }
-
 
         public bool CreateHole { get; set; }
 

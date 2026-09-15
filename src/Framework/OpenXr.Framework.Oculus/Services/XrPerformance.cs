@@ -6,7 +6,7 @@ namespace OpenXr.Framework.Oculus
     public struct XrPerformanceValue
     {
         public string Name;
-        
+
         public float Value;
 
         public PerformanceMetricsCounterUnitMETA Unit;

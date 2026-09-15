@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class VirtualMesh : Object3D, IVirtualVertexSource
     {
@@ -14,11 +10,9 @@ namespace XrEngine
             VerticesCount = verticesCount;
         }
 
-
         #region IVirtualVertexSource
 
         EngineObject IVertexSource.Host => this;
-
 
         void IGpuObject.NotifyLoaded()
         {

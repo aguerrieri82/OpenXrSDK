@@ -1,11 +1,6 @@
-﻿using OpenXr.Framework;
-using PhysX.Framework;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.OpenXr.Oculus;
-using static Sfizz.SfzParser;
 
 namespace XrSamples
 {
@@ -20,7 +15,6 @@ namespace XrSamples
 
             var texture = AssetLoader.Instance.Load<Texture2D>("res://asset/check.png");
 
-
             var texture2 = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/CameraEnv.jpg");
 
             var screen = scene.AddChild(new CurvedScreen());
@@ -30,7 +24,7 @@ namespace XrSamples
             sphere.WorldPosition = new Vector3(0, 1.3f, 0);
             sphere.AddComponent(new XrEquirectSphereAttached(texture2)
             {
-                
+
             });
 
             return builder

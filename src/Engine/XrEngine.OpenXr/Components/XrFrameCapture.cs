@@ -1,8 +1,4 @@
 ﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace XrEngine.OpenXr
 {
@@ -30,7 +26,7 @@ namespace XrEngine.OpenXr
                 _isCapturing = true;
                 _captureRequest = false;
             }
-       }
+        }
 
         private void OnEndFrame()
         {
@@ -40,7 +36,6 @@ namespace XrEngine.OpenXr
                 _isCapturing = false;
             }
         }
-
 
         [Action]
         public void Capture()

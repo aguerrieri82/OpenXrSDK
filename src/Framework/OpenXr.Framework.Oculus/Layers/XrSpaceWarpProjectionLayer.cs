@@ -142,7 +142,7 @@ namespace OpenXr.Framework.Oculus
 
             var depthIx = _depthSwaps.Length == 1 ? 0 : index;
             var depthSwap = _depthSwaps[depthIx];
-             
+
             info->DepthSubImage.Swapchain = depthSwap;
             info->DepthSubImage.ImageArrayIndex = _depthSwaps.Length == 1 ? (uint)index : 0u;
 

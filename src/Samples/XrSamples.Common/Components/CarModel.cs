@@ -103,8 +103,8 @@ namespace XrSamples
         private TriangleMesh? _mainTube;
         private TriangleMesh? _hubFL;
         private TriangleMesh? _hubFR;
-        private TriangleMesh? _hubBL;
-        private TriangleMesh? _hubBR;
+        private readonly TriangleMesh? _hubBL;
+        private readonly TriangleMesh? _hubBR;
         private TriangleMesh? _steeringWheelTube;
         private readonly IPbrMaterial _tubeMaterial;
 

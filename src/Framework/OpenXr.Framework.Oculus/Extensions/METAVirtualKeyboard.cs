@@ -1,19 +1,15 @@
 ﻿using Silk.NET.OpenXR;
-using Silk.NET.OpenXR.Extensions.FB;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace OpenXr.Framework.Oculus.Structs
 {
     public class METAVirtualKeyboard : BaseXrExtension
     {
         public METAVirtualKeyboard(XR xr, Instance instance)
-            : base(xr, instance) 
+            : base(xr, instance)
         {
-            
+
         }
 
         [AllowNull]
@@ -49,7 +45,6 @@ namespace OpenXr.Framework.Oculus.Structs
         [AllowNull]
         public ChangeVirtualKeyboardTextContextMETADelegate ChangeVirtualKeyboardTextContextMETA;
 
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate Result CreateVirtualKeyboardMETADelegate(Session session, ref VirtualKeyboardCreateInfoMETA createInfo, ref VirtualKeyboardMETA keyboard);
 
@@ -82,7 +77,6 @@ namespace OpenXr.Framework.Oculus.Structs
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate Result ChangeVirtualKeyboardTextContextMETADelegate(VirtualKeyboardMETA keyboard, ref VirtualKeyboardTextContextChangeInfoMETA changeInfo);
-
 
         public const string ExtensionName = "XR_META_virtual_keyboard";
     }

@@ -12,7 +12,6 @@ namespace OpenXr.Framework
     {
         private static XrOculusPlugin? _oculus;
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static XrSpaceWarpProjectionLayer AddProjectionSpaceWarp(this XrLayerManager manager, RenderViewDelegate renderView, IXrMotionVectorProvider provider)
         {

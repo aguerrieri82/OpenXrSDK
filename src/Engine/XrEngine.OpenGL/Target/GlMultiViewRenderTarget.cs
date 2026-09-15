@@ -9,7 +9,6 @@ using XrMath;
 namespace XrEngine.OpenGL
 {
 
-
     public class GlMultiViewRenderTarget : IGlRenderTargetFB
     {
         protected GlMultiViewFrameBuffer _frameBuffer;

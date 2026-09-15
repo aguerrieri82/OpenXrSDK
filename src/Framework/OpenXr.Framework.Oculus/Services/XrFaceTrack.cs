@@ -48,7 +48,6 @@ namespace OpenXr.Framework.Oculus
             return bodyProps.SupportsAudioFaceTracking != 0 || bodyProps.SupportsVisualFaceTracking != 0;
         }
 
-
         public unsafe void Create(FaceExpressionSet2FB expressionSet = FaceExpressionSet2FB.DefaultFB)
         {
             Initialize();
@@ -66,8 +65,8 @@ namespace OpenXr.Framework.Oculus
             {
                 Type = StructureType.FaceTrackerCreateInfo2FB,
                 FaceExpressionSet = expressionSet,
-                RequestedDataSourceCount= 2,
-                RequestedDataSources= dataSources
+                RequestedDataSourceCount = 2,
+                RequestedDataSources = dataSources
             };
 
             var result = new FaceTracker2FB();

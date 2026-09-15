@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OpenXr.Framework.Oculus
+﻿namespace OpenXr.Framework.Oculus
 {
     public static class OculusIntentCategory
     {

@@ -5,6 +5,7 @@ namespace OpenXr.Framework.Oculus
 {
     public class XrOculusTouchControllerHand<THand> : XrInteractionProfileHand<THand>
     {
+
         [XrPath("/input/thumbrest/force")]
         [XrProfile(XrProfiles.TouchPro)]
         [AllowNull]

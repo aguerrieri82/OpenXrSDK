@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 using Newtonsoft.Json;
-using Oculus.Platform;
 
 namespace Oculus.Platform.Models
 {
@@ -25,8 +24,8 @@ namespace Oculus.Platform.Models
 
         public static Error FromStatus(HorizonStatus status)
         {
-            string context = status.GetContext();
-            int httpCode = -1;
+            var context = status.GetContext();
+            var httpCode = -1;
 
             if (!string.IsNullOrEmpty(context))
             {

@@ -17,7 +17,6 @@ using Action = Silk.NET.OpenXR.Action;
 namespace OpenXr.Framework.Oculus
 {
 
-
     public partial class XrOculusPlugin : XrBasePlugin, IDisposable
     {
         public static readonly string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
@@ -110,7 +109,6 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntity? _spatial;
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
-
 
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
         protected NativeStruct<HandTrackingWideMotionModeInfoMETA> _handWideMotion;
@@ -305,7 +303,6 @@ namespace OpenXr.Framework.Oculus
 
             return Encoding.UTF8.GetString(buffer).Trim('\0').Split(',');
         }
-
 
         public async Task<XrAnchorInfo> CreateAnchorAsync(Pose3 pose, Space refSpace)
         {
@@ -725,7 +722,6 @@ namespace OpenXr.Framework.Oculus
                 }
             }
 
-
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
@@ -838,7 +834,6 @@ namespace OpenXr.Framework.Oculus
 
             return result;
         }
-
 
         public void UpdateFoveation()
         {
@@ -1184,8 +1179,6 @@ namespace OpenXr.Framework.Oculus
                 return _performance;
             }
         }
-
-
 
         public OculusOptions Options => _options;
     }

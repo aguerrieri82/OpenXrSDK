@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
             Debug.Assert(isHead != isTail);
 
             _effect.UseFxAA = UseFxAA;
- 
+
             IGlRenderTargetFB? passTarget = null;
 
             if (curTarget is GlDefaultRenderTarget glDefaultRender)
@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
             {
                 if (!_isInit)
                 {
-                    bool isMultiview = sourceTarget.FrameBuffer is GlMultiViewFrameBuffer;
+                    var isMultiview = sourceTarget.FrameBuffer is GlMultiViewFrameBuffer;
 
                     _pool = new GlRenderTargetPool(_renderer.GL, isMultiview);
                     _pool.Name = "Post Process";
@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
             DrawQuad();
 
             passTarget?.End(false);
-      
+
             if (realColor.Depth == 4 && copy)
                 realColor.CopyTo(realColor, 0, (int)destIndex, (int)sourceIndex, 2);
         }
@@ -112,9 +112,9 @@ namespace XrEngine.OpenGL
                 if (view.Value.ParentTexture != view.Value)
                     view.Value.Dispose();
             }
-            
+
             _views.Clear();
-            
+
             _pool?.Dispose();
             _pool = null;
 

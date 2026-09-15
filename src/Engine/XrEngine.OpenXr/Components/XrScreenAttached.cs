@@ -183,7 +183,6 @@ namespace XrEngine.OpenXr
             else
                 glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
 
-
             if (FlipY && !SupportNativeFlip)
             {
                 _texture!.ToGlTexture().BlitTo(

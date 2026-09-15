@@ -40,9 +40,9 @@
     <File Path="../third-party/filament/filament/backend/src/vulkan/VulkanTexture.h" />
   </Folder>
   <Folder Name="/#Global/">
+    <File Path="../../../.editorconfig" />
     <File Path="../.gitattributes" />
     <File Path="../.gitignore" />
-    <File Path=".editorconfig" />
     <File Path="AspNetCoreMini.props" />
     <File Path="Directory.Build.props" />
     <File Path="XrSDK.vsext" />

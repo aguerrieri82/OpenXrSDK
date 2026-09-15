@@ -5,7 +5,6 @@ using XrEngine.Devices;
 using XrEngine.OpenXr;
 using XrMath;
 
-
 namespace XrSamples
 {
     public partial class OverlayTextureV2Effect : ShaderMaterial

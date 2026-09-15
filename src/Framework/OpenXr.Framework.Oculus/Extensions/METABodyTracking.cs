@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-
 namespace OpenXr.Framework.Oculus
 {
     public enum BodyTrackingFidelityMETA

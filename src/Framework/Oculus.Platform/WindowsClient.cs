@@ -1,11 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Runtime.InteropServices;
 
 namespace Oculus.Platform
 {
@@ -16,7 +13,6 @@ namespace Oculus.Platform
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int hzpsdk_Initialize(string appId, string platform, string extraSettingsJson);
 
-
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ulong hzpsdk_MakeRequest(
             string module,
@@ -24,7 +20,6 @@ namespace Oculus.Platform
             int apiVersion,
             string requestData,
             int cookie);
-
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr hzpsdk_PopMessage(ulong sessionID, bool yield);
@@ -84,12 +79,12 @@ namespace Oculus.Platform
                 return initStatus;
             }
 
-            string jsonRequest = JsonConvert.SerializeObject(new
+            var jsonRequest = JsonConvert.SerializeObject(new
             {
                 access_token = accessToken
             });
 
-            int statusCode = hzpsdk_Initialize(appId, runtimeMode, jsonRequest);
+            var statusCode = hzpsdk_Initialize(appId, runtimeMode, jsonRequest);
 
             var candidateStatus = new HorizonStatus(statusCode, "Initialize");
             candidateStatus.ThrowIfError();
@@ -132,8 +127,8 @@ namespace Oculus.Platform
         {
             if (runtimeIncompatible) return null;
 
-            IntPtr ptr = hzpsdk_PopMessage(sessionID, yield);
-            string messageString = GetStringFromIntPtr(ptr);
+            var ptr = hzpsdk_PopMessage(sessionID, yield);
+            var messageString = GetStringFromIntPtr(ptr);
 
             if (messageString == null)
             {
@@ -141,12 +136,12 @@ namespace Oculus.Platform
             }
 
             var messageObj = JsonConvert.DeserializeObject<JObject>(messageString);
-            ulong requestId = (ulong)messageObj["requestId"];
-            string response = (string)messageObj["response"];
-            int statusCode = (int)messageObj["statusCode"];
-            string statusMessage = (string)messageObj["statusMessage"] ?? "";
+            var requestId = (ulong)messageObj["requestId"];
+            var response = (string)messageObj["response"];
+            var statusCode = (int)messageObj["statusCode"];
+            var statusMessage = (string)messageObj["statusMessage"] ?? "";
 
-            Message m = new Message(requestId, 0, 0, response, new HorizonStatus(statusCode, statusMessage));
+            var m = new Message(requestId, 0, 0, response, new HorizonStatus(statusCode, statusMessage));
             return m;
         }
 

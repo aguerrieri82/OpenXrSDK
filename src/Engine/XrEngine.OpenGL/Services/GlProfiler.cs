@@ -268,7 +268,6 @@ namespace XrEngine.OpenGL
                     .ToString("N0", CultureInfo.InvariantCulture)
                     .PadLeft(10));
 
-
             sb.Append("─────────────────────────────────────");
 
             return sb.ToString();
