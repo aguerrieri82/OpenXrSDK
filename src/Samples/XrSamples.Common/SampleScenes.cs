@@ -240,14 +240,14 @@ namespace XrSamples
                 WorldPosition = new Vector3(0, 1, 0),
             };
 
+            if (!noOverlay && (XrPlatform.IsAndroid || forceOverlay))
+                panel.CreateOverlay();
+
             return builder
                 .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-
-                    if (!noOverlay && (XrPlatform.IsAndroid || forceOverlay))
-                        panel.CreateOverlay(e.XrApp);
                 });
         }
 

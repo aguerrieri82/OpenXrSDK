@@ -18,13 +18,6 @@ namespace OpenXr.Framework
             _header.ValueRef.Type = StructureType.CompositionLayerEquirect2Khr;
         }
 
-        public override void Initialize(XrApp app, IList<string> extensions)
-        {
-            extensions.Add("XR_KHR_composition_layer_equirect2");
-
-            base.Initialize(app, extensions);
-        }
-
         protected override void SetSubImage(ref CompositionLayerEquirect2KHR layer, SwapchainSubImage subImage)
         {
             layer.SubImage = subImage;

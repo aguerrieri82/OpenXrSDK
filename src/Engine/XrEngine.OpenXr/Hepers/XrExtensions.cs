@@ -21,9 +21,9 @@ namespace XrEngine.OpenXr
     public unsafe static class XrExtensions
     {
 
-        public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
+        public static void CreateOverlay(this CanvasView3D canvas)
         {
-            canvas.AddComponent(new XrQuodAttached(app));
+            canvas.AddComponent(new XrQuodAttached());
 
         }
 

@@ -13,28 +13,16 @@ namespace XrEngine.OpenXr
         XrQuadLayer? _layer;
         AngleVulkanContext? _vulkanCtx;
 
-        public XrQuodAttached(XrApp app)
+        public XrQuodAttached()
         {
-            _xrApp = app;
         }
-
-        public void Dispose()
-        {
-            if (_layer != null)
-            {
-                _xrApp?.Layers.Remove(_layer);
-                _layer.Dispose();
-                _xrApp = null;
-                _layer = null;
-            }
-
-            GC.SuppressFinalize(this);
-        }
-
 
         protected override void DetachXr()
         {
             _host.Mode = CanvasViewMode.Texture;
+
+            _layer?.Dispose();
+            _layer = null;
         }
 
         protected unsafe override void AttachXr()
@@ -79,6 +67,21 @@ namespace XrEngine.OpenXr
 
             return true;
         }
+
+
+        public void Dispose()
+        {
+            if (_layer != null)
+            {
+                _xrApp?.Layers.Remove(_layer);
+                _layer.Dispose();
+                _xrApp = null;
+                _layer = null;
+            }
+
+            GC.SuppressFinalize(this);
+        }
+
 
         public XrQuadLayer? Layer => _layer;
 

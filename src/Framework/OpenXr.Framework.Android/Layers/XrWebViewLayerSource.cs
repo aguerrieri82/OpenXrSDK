@@ -231,8 +231,8 @@ namespace OpenXr.Framework.Android
 
         public static int AlignToMultiple(int number, int bitSize)
         {
-            var mask = (1 << bitSize) - 1; // Create a mask with the bit size
-            return (number + mask) & ~mask; // Align the number to the nearest multiple
+            var mask = (1 << bitSize) - 1;
+            return (number + mask) & ~mask; 
         }
 
         protected void ScheduleDraw(Action<Canvas> action)
@@ -347,8 +347,6 @@ namespace OpenXr.Framework.Android
                         SendKey(Keycode.Enter);
                         break;
                 }
-
-                //UpdateTextContext();
             });
         }
 
@@ -378,12 +376,11 @@ namespace OpenXr.Framework.Android
                 }
                 catch (Exception ex)
                 {
-                    Log.Warn(this.GetType().Name, ex.ToString());
+                    Log.Warn(GetType().Name, ex.ToString());
                     _textInput.SetText("");
 
                 }
             });
-
         }
 
         private string? GetWebViewVersion()
@@ -426,8 +423,6 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportZoom(false);
             _webView.Settings.DefaultZoom = ZoomDensity.Far;
             _webView.Settings.BuiltInZoomControls = false;
-            //_webView.Settings.UseWideViewPort = true;
-            //_webView.Settings.LoadWithOverviewMode = true;
 
             _webView.SetLayerType(LayerType.Hardware, null);
 

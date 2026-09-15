@@ -59,10 +59,10 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Spatial",
+               // SampleName = "Water Flood",
                 Msaa = 1,
                 Scale = 1f,
-                ViewPlaneGrid = true,
+                ViewPlaneGrid = false,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,

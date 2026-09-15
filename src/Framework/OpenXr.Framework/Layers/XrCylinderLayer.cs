@@ -17,13 +17,6 @@ namespace OpenXr.Framework
             _header.ValueRef.Type = StructureType.CompositionLayerCylinderKhr;
         }
 
-        public override void Initialize(XrApp app, IList<string> extensions)
-        {
-            extensions.Add("XR_KHR_composition_layer_cylinder");
-
-            base.Initialize(app, extensions);
-        }
-
         protected override void SetSubImage(ref CompositionLayerCylinderKHR layer, SwapchainSubImage subImage)
         {
             layer.SubImage = subImage;

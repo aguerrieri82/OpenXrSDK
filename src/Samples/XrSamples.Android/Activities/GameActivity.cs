@@ -189,7 +189,7 @@ namespace XrSamples.Android.Activities
 
             builder.SetRenderQuality(_settings.Scale, (uint)_settings.Msaa);
 
-            if (!_settings.ViewPlaneGrid)
+            //if (!_settings.ViewPlaneGrid)
                 builder.RemovePlaneGrid();
 
             if (_settings.UseProfileOverlay)

@@ -46,17 +46,22 @@ namespace XrEngine.OpenXr
             _keyboard.Create(Pose3.Identity);
             _keyboard.SetVisible(false);
 
-            using var stream = _keyboard.LoadModel();
+            if (_model == null)
+                LoadModel();
+
+            _isInit = true;
+
+            return true;
+        }
+
+        protected void LoadModel()
+        {
+            using var stream = _keyboard!.LoadModel();
 
             using var loader = new GltfLoader(_ => throw new NotSupportedException());
 
             _model = loader.Load(stream, new GltfLoaderOptions
             {
-                GeometryHandler = geo =>
-                {
-
-                },
-
                 TextureLoader = (url, tex, out data) =>
                 {
                     data = new();
@@ -106,10 +111,6 @@ namespace XrEngine.OpenXr
             _animationManager = _scene!.EnsureComponent<AnimationManager>();
 
             _animations = _model.Component<AnimationsHost>().Animations;
-
-            _isInit = true;
-
-            return true;
         }
 
         public void SetText(string text)
@@ -125,8 +126,9 @@ namespace XrEngine.OpenXr
                 {
                     _keyboard?.Dispose();
                     _keyboard = null;
-                    _textureMap.Clear();
+
                     _isInit = false;
+
                     return;
                 }
 
