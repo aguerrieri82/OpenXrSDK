@@ -788,59 +788,28 @@ namespace OpenXr.Framework
 
         public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time)
         {
-            var result = new SpaceLocation();
-            result.Type = StructureType.SpaceLocation;
+            var result = new SpaceLocation
+            {
+                Type = StructureType.SpaceLocation
+            };
 
-            var vel = new SpaceVelocity();
-            vel.Type = StructureType.SpaceVelocity;
+            var vel = new SpaceVelocity
+            {
+                Type = StructureType.SpaceVelocity
+            };
 
             result.Next = &vel;
 
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
+
             return new XrSpaceLocation
             {
-                Pose = ReferenceFrame.Multiply(result.Pose.ToPose3()),
+                Pose = this.ToReferenceFrame(ref result.Pose),
                 Flags = result.LocationFlags,
                 VelocityFlags = vel.VelocityFlags,
                 LinearVelocity = vel.LinearVelocity.ToVector3(),
                 AngularVelocity = vel.AngularVelocity.ToVector3()
             };
-        }
-
-        [Obsolete("Oculus throws access violation")]
-        public unsafe XrSpaceLocation[] LocateSpaces(Space[] spaces, Space baseSpace, long time = 0)
-        {
-            var locations = new SpaceLocationData[spaces.Length];
-
-            fixed (Space* pSpaces = spaces)
-            fixed (SpaceLocationData* pLocations = locations)
-            {
-                var result = new SpaceLocations
-                {
-                    Type = StructureType.SpaceLocations,
-                    Locations = pLocations,
-                    Next = null,
-                    LocationCount = (uint)locations.Length
-                };
-
-                var info = new SpacesLocateInfo
-                {
-                    Type = StructureType.SpacesLocateInfo,
-                    BaseSpace = baseSpace,
-                    Spaces = pSpaces,
-                    SpaceCount = (uint)spaces.Length,
-                    Time = time,
-                    Next = null,
-                };
-
-                CheckResult(_xr!.LocateSpaces(_session, &info, &result), "LocateSpaces");
-            }
-
-            return locations.Select(a => new XrSpaceLocation
-            {
-                Pose = a.Pose.ToPose3().Multiply(ReferenceFrame),
-                Flags = a.LocationFlags
-            }).ToArray();
         }
 
         protected void DisposeSpace(ref Space space)

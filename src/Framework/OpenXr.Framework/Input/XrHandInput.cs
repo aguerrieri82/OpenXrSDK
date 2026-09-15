@@ -1,5 +1,8 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.EXT;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using XrMath;
 
 namespace OpenXr.Framework
 {
@@ -68,6 +71,12 @@ namespace OpenXr.Framework
             {
                 result.JointLocations = pData;
                 _app.CheckResult(_app._handTracking!.LocateHandJoints(_tracker, in info, ref result), "LocateHandJoints");
+            }
+
+            if (!_app.ReferenceFrame.IsIdentity())
+            {
+                foreach (ref var joint in data.AsSpan())
+                    _app.ToReferenceFrame(ref joint.Pose);
             }
 
             _isActive = result.IsActive != 0;

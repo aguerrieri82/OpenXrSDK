@@ -166,12 +166,12 @@ namespace XrEngine.OpenXr
 
         public Vector3 ReferenceFramePos
         {
-            get => XrApp.Current!.ReferenceFrame.Position;
+            get => _xrApp.ReferenceFrame.Position;
 
-            set => XrApp.Current!.ReferenceFrame = new Pose3
+            set => _xrApp.ReferenceFrame = new Pose3
             {
                 Position = value,
-                Orientation = XrApp.Current!.ReferenceFrame.Orientation
+                Orientation = _xrApp.ReferenceFrame.Orientation
             };
         }
 

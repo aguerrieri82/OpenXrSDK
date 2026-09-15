@@ -30,11 +30,9 @@ namespace OpenXr.Framework
             var verticalAngle = section.UpperVerticalAngle - section.LowerVerticalAngle;
             var verticalScale = MathF.PI / verticalAngle;
 
-            layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(section.Pose).ToPoseF();
+            layer.Pose = _xrApp!.FromReferenceFrame(section.Pose);
             layer.Radius = section.Radius;
-
             layer.Scale = new Vector2f(horizontalScale, verticalScale);
-
             layer.Bias = new Vector2f(
                 0.5f - horizontalScale * 0.5f,
                 0.5f - verticalScale * 0.5f);

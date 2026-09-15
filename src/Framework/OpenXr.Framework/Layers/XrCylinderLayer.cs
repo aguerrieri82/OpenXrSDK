@@ -28,7 +28,7 @@ namespace OpenXr.Framework
         {
             var cylinder = _getCylinder();
 
-            layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(cylinder.Pose).ToPoseF();
+            layer.Pose = _xrApp!.FromReferenceFrame(cylinder.Pose);
             layer.Radius = cylinder.Radius;
             layer.CentralAngle = cylinder.Angle;
             layer.AspectRatio = cylinder.Radius * cylinder.Angle / cylinder.Height;

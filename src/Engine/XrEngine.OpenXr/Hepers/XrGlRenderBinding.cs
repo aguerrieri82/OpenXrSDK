@@ -228,6 +228,7 @@ namespace XrEngine.OpenXr
             camera.Transform.Version++;
 
             var eyes = camera.Eyes;
+
             var referenceFrame = XrApp.Current!.ReferenceFrame.ToMatrix();
 
             for (var i = 0; i < info.ProjViews.Length; i++)

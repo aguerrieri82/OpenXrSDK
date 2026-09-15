@@ -29,7 +29,7 @@ namespace OpenXr.Framework
         {
             var section = _getSection();
 
-            layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(section.Pose).ToPoseF();
+            layer.Pose = _xrApp!.FromReferenceFrame(section.Pose);
             layer.Radius = section.Radius;
             layer.CentralHorizontalAngle = section.HorizontalAngle;
             layer.UpperVerticalAngle = section.UpperVerticalAngle;

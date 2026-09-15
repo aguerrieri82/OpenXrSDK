@@ -119,10 +119,8 @@ namespace OpenXr.Framework.Oculus
                     {
                         for (var i = 0; i < capsules.Length; i++)
                         {
-                            ref var v0 = ref Unsafe.AsRef<Vector3>(&pCap[i].Points.Element0);
-                            ref var v1 = ref Unsafe.AsRef<Vector3>(&pCap[i].Points.Element1);
-                            v0 = _app.ReferenceFrame.Transform(v0);
-                            v1 = _app.ReferenceFrame.Transform(v1);
+                            _app.ToReferenceFrame(ref pCap[i].Points.Element0);
+                            _app.ToReferenceFrame(ref pCap[i].Points.Element1);
                         }
                     }
                 }

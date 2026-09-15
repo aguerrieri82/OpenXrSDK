@@ -1,5 +1,8 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
+using System.Runtime.CompilerServices;
+using XrMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -203,6 +206,12 @@ namespace OpenXr.Framework.Oculus
                 result.JointLocations = pJoints;
 
                 _app.CheckResult(_bodyTracking!.LocateBodyJointsFB(_tracker, ref info, ref result), "LocateBodyJointsFB");
+            }
+
+            if (!_app.ReferenceFrame.IsIdentity())
+            {
+                foreach (ref var joint in joints.AsSpan())
+                    _app.ToReferenceFrame(ref joint.Pose);
             }
 
             _joints = joints;

@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -18,6 +19,34 @@ namespace OpenXr.Framework
             public bool IsMetaSimulator => self.RuntimeName == "Meta XR Simulator";
 
             public bool IsMetaLink => self.RuntimeName == "Oculus" && OperatingSystem.IsWindows();
+
+            public Posef FromReferenceFrame(Pose3 pose)
+            {
+                if (!self.ReferenceFrame.IsIdentity())
+                    return self.ReferenceFrame.Inverse().Multiply(pose).ToPoseF();
+
+                return pose.ToPoseF();
+            }
+
+            public Pose3 ToReferenceFrame(ref Posef pose, bool checkIdentity = false)
+            {
+                ref var pose3 = ref Unsafe.As<Posef, Pose3>(ref pose);
+
+                if (!checkIdentity || !self.ReferenceFrame.IsIdentity())
+                    pose3 = self.ReferenceFrame.Multiply(pose3);
+
+                return pose3;
+            }
+
+            public void ToReferenceFrame(ref Vector3f vector, bool checkIdentity = false)
+            {
+                if (!checkIdentity || !self.ReferenceFrame.IsIdentity())
+                {
+                    ref var vec3 = ref Unsafe.As<Vector3f, Vector3>(ref vector);
+                    vec3 = self.ReferenceFrame.Transform(vec3);
+                }
+            }
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

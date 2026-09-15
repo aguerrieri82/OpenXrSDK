@@ -36,8 +36,10 @@ namespace XrMath
             Orientation = Quaternion.Identity
         };
 
-        public Vector3 Position;
+        #warning DO NOT INVERT THIS ORDER
 
         public Quaternion Orientation;
+
+        public Vector3 Position;
     }
 }

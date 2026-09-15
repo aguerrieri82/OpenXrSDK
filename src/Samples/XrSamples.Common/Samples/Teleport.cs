@@ -45,7 +45,7 @@ namespace XrSamples
                 .UseApp(app)
                 .UseDefaultHDR()
                 .ConfigureSampleApp()
-                .UseTeleport(ControllerHand.Left, player)
+                .UseTeleport(ControllerHand.Right, player)
                 .ConfigureApp(e =>
                 {
                     e.XrApp.UseLocalSpace = false;

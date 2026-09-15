@@ -118,8 +118,9 @@ namespace OpenXr.Framework.Oculus
             {
                 var info = _spaceWarpInfo.ItemPointer(i);
                 info->LayerFlags = CompositionLayerSpaceWarpInfoFlagsFB.None;
+               
+                var curPose = _xrApp.ToReferenceFrame(ref projViews[i].Pose);
 
-                var curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
                 var lastPose = _lastPose[i];
 
                 info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();

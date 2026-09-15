@@ -100,8 +100,10 @@ namespace XrSamples
 
             UpdatePlayer(deltaTime);
             UpdateHands(deltaTime);
+            
             UpdateHandMotion(LeftPalmSlot, LeftFingerSlot, out var leftMotion, out var leftPosition);
             UpdateHandMotion(RightPalmSlot, RightFingerSlot, out var rightMotion, out var rightPosition);
+
             _state.LeftHandMotion = leftMotion;
             _state.LeftHandPosition = leftPosition;
             _state.RightHandMotion = rightMotion;
@@ -126,8 +128,7 @@ namespace XrSamples
             UpdateHand(app, HandEXT.RightExt, _rightGripPose, RightPalmSlot, RightFingerSlot, deltaTime);
         }
 
-        private void UpdateHand(XrApp app, HandEXT side, XrPoseInput gripPose,
-            int palmSlot, int fingerSlot, float deltaTime)
+        private void UpdateHand(XrApp app, HandEXT side, XrPoseInput gripPose, int palmSlot, int fingerSlot, float deltaTime)
         {
             app.Hands.TryGetValue(side, out var hand);
 
@@ -135,19 +136,20 @@ namespace XrSamples
             {
                 var palm = hand.Joints[(int)HandJointEXT.PalmExt];
                 var finger = hand.Joints[(int)HandJointEXT.IndexTipExt];
-                var referenceFrame = app.ReferenceFrame.ToMatrix();
 
-                UpdateJoint(palm, referenceFrame, palmSlot, 0.055f, deltaTime);
-                UpdateJoint(finger, referenceFrame, fingerSlot, 0.025f, deltaTime);
+                UpdateJoint(palm, palmSlot, 0.055f, deltaTime);
+                
+                UpdateJoint(finger, fingerSlot, 0.025f, deltaTime);
+                
                 return;
             }
 
             ClearContact(fingerSlot);
+
             UpdateController(app, gripPose, palmSlot, deltaTime);
         }
 
-        private void UpdateJoint(HandJointLocationEXT joint, Matrix4x4 referenceFrame,
-            int slot, float radius, float deltaTime)
+        private void UpdateJoint(HandJointLocationEXT joint, int slot, float radius, float deltaTime)
         {
             if ((joint.LocationFlags & SpaceLocationFlags.PositionValidBit) == 0)
             {
@@ -155,8 +157,7 @@ namespace XrSamples
                 return;
             }
 
-            var world = Vector3.Transform(joint.Pose.Position.ToVector3(), referenceFrame);
-            UpdateContact(slot, world, radius, ContactSource.Hand, deltaTime);
+            UpdateContact(slot, joint.Pose.Position.ToVector3(), radius, ContactSource.Hand, deltaTime);
         }
 
         private void UpdateController(XrApp app, XrPoseInput gripPose, int slot, float deltaTime)
@@ -207,6 +208,7 @@ namespace XrSamples
                 Radius = radius,
                 Speed = speed
             };
+
             _lastContacts[slot] = local;
             _contactSources[slot] = source;
         }
@@ -219,6 +221,7 @@ namespace XrSamples
             var distance = Vector2.Distance(position, _lastPlayerPosition);
             var isInside = MathF.Abs(position.X) <= size.X * 0.5f &&
                 MathF.Abs(position.Y) <= size.Y * 0.5f && _material.WaterDepth > 0;
+
             var isContinuous = _hasPlayerPosition && distance < 0.5f && deltaTime < 0.1f;
             var speed = distance / deltaTime;
 
