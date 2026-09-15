@@ -75,22 +75,18 @@ namespace OpenXr.Framework.Oculus
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Result RetrieveSpaceDiscoveryResultsMETADelegate(Session session, ulong requestId, ref SpaceDiscoveryResultsMETA result);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public unsafe delegate Result GetRecommendedLayerResolutionMETADelegate(Session session, RecommendedLayerResolutionGetInfoMETA* getInfo, RecommendedLayerResolutionMETA* resolution);
+        RetrieveSpaceDiscoveryResultsMETADelegate? RetrieveSpaceDiscoveryResultsMETA;
 
         GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
 
         DiscoverSpacesMETADelegate? DiscoverSpacesMETA;
 
-        RetrieveSpaceDiscoveryResultsMETADelegate? RetrieveSpaceDiscoveryResultsMETA;
 
-        SetHandTrackingFrequencyHintMETADelegate? SetHandTrackingFrequencyHintMETA;
+        METAHandTrackingFrequencyHint? _extHandFreq;
 
-        GetRecommendedLayerResolutionMETADelegate? GetRecommendedLayerResolutionMETA;
+        METASimultaneousHandsAndControllers? _extHandsContr;
 
-        ResumeSimultaneousHandsAndControllersTrackingMETADelegate? ResumeSimultaneousHandsAndControllersTracking;
-
-        PauseSimultaneousHandsAndControllersTrackingMETADelegate? PauseSimultaneousHandsAndControllersTracking;
+        METARecommendedLayerResolution? _extLayerRes;
 
         #endregion
 
@@ -123,6 +119,9 @@ namespace OpenXr.Framework.Oculus
         protected NativeArray<HandTrackingDataSourceEXT>? _handsDataSources;
         protected NativeStruct<HandTrackingDataSourceInfoEXT> _handDataSourceInfo;
         protected XrPerformance? _performance;
+
+        protected XrSpatial? _spatialService;
+        protected Task<XrSpatial>? _spatialTask;
 
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
@@ -164,13 +163,14 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_FB_foveation_configuration");
             extensions.Add("XR_FB_space_warp");
             extensions.Add("XR_FB_swapchain_update_state_opengl_es");
-            extensions.Add("XR_META_recommended_layer_resolution");
             extensions.Add("XR_META_spatial_entity_discovery");
             extensions.Add("XR_EXT_hand_tracking_data_source");
             extensions.Add("XR_META_hand_tracking_microgestures");
             extensions.Add("XR_FB_composition_layer_image_layout");
             extensions.Add("XR_FB_composition_layer_depth_test");
             extensions.Add("XR_META_passthrough_color_lut");
+
+            extensions.Add(METARecommendedLayerResolution.ExtensionName);
 
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);
@@ -184,6 +184,13 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(MetaPerformanceMetrics.ExtensionName);
 
             extensions.Add(METAEnvironmentRaycast.ExtensionName);
+
+            extensions.Add("XR_EXT_spatial_entity");
+            extensions.Add("XR_EXT_spatial_anchor");
+            extensions.Add("XR_EXT_spatial_plane_tracking");
+            extensions.Add("XR_EXT_spatial_marker_tracking");
+            extensions.Add("XR_EXT_spatial_persistence");
+            extensions.Add("XR_EXT_spatial_persistence_operations");
 
             extensions.Add(METADynamicObjectTracker.ExtensionName);
             extensions.Add(METADynamicObjectKeyboard.ExtensionName);
@@ -232,26 +239,83 @@ namespace OpenXr.Framework.Oculus
 
             if (!_app.IsMetaSimulator && !_app.IsMetaLink)
             {
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrSetHandTrackingFrequencyHintMETA", &func), "Bind xrSetHandTrackingFrequencyHintMETA ");
-                SetHandTrackingFrequencyHintMETA = Marshal.GetDelegateForFunctionPointer<SetHandTrackingFrequencyHintMETADelegate>(new nint(func.Handle));
+                _extHandFreq = new(_app.Xr, _app.Instance);
 
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetRecommendedLayerResolutionMETA", &func), "Bind xrGetRecommendedLayerResolutionMETA ");
-                GetRecommendedLayerResolutionMETA = Marshal.GetDelegateForFunctionPointer<GetRecommendedLayerResolutionMETADelegate>(new nint(func.Handle));
+                _extLayerRes = new(_app.Xr, _app.Instance);
             }
 
             if (_options.UseBothHandAndControllers)
-            {
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrResumeSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrResumeSimultaneousHandsAndControllersTrackingMETA ");
-                ResumeSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<ResumeSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
-
-                _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrPauseSimultaneousHandsAndControllersTrackingMETA", &func), "Bind xrPauseSimultaneousHandsAndControllersTrackingMETA ");
-                PauseSimultaneousHandsAndControllersTracking = Marshal.GetDelegateForFunctionPointer<PauseSimultaneousHandsAndControllersTrackingMETADelegate>(new nint(func.Handle));
-            }
+                _extHandsContr = new(_app.Xr, _app.Instance);
         }
 
         public override void OnSessionCreated()
         {
             SetColorSpace(_options.ColorSpace);
+        }
+
+        public override void OnSessionEnd()
+        {
+            if (_app!.Session.Handle == 0)
+            {
+                _spatialService?.Dispose();
+                _spatialService = null;
+                _spatialTask = null;
+            }
+        }
+
+        public Task<XrSpatial> GetSpatialAsync()
+        {
+            if (_spatialTask == null || _spatialTask.IsFaulted || _spatialTask.IsCanceled)
+                _spatialTask = CreateSpatialAsync();
+            return _spatialTask;
+        }
+
+        protected async Task<XrSpatial> CreateSpatialAsync()
+        {
+            var spatial = new XrSpatial(_app!);
+            
+            _spatialService = spatial;
+
+            try
+            {
+                if (_app!.HasExtension("XR_EXT_spatial_persistence"))
+                {
+                    var scopes = spatial.EnumeratePersistenceScopes();
+                    
+                    if (scopes.Contains(SpatialPersistenceScopeEXT.SystemManagedExt))
+                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.SystemManagedExt);
+
+                    if (_app.HasExtension("XR_EXT_spatial_persistence_operations") && scopes.Contains(SpatialPersistenceScopeEXT.LocalAnchorsExt))
+                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.LocalAnchorsExt);
+                }
+
+                var capabilities = new List<XrSpatialCapability>();
+
+                foreach (var capability in spatial.EnumerateCapabilities())
+                {
+                    if (capability != SpatialCapabilityEXT.AnchorExt && capability != SpatialCapabilityEXT.PlaneTrackingExt)
+                        continue;
+
+                    var components = spatial.EnumerateComponents(capability).ToList();
+                    if (!spatial.IsPersistenceCreated)
+                        components.Remove(SpatialComponentTypeEXT.PersistenceExt);
+
+                    capabilities.Add(new XrSpatialCapability
+                    {
+                        Capability = capability,
+                        Components = components.ToArray()
+                    });
+                }
+
+                await spatial.CreateAsync(capabilities.ToArray());
+
+                return spatial;
+            }
+            catch
+            {
+                spatial.Dispose();
+                throw;
+            }
         }
 
         public override void OnSessionBegin()
@@ -275,7 +339,6 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe string[] GetSpaceSemanticLabels(Space space)
         {
-
             var labels = string.Join(',', LABELS);
 
             var support = new SemanticLabelsSupportInfoFB
@@ -806,7 +869,7 @@ namespace OpenXr.Framework.Oculus
                 Next = null
             };
 
-            _app!.CheckResult(GetRecommendedLayerResolutionMETA!(_app!.Session, &info, &result), "GetRecommendedLayerResolutionMETA");
+            _app!.CheckResult(_extLayerRes!.GetRecommendedLayerResolutionMETA!(_app!.Session, ref info, ref result), "GetRecommendedLayerResolutionMETA");
 
             if (result.IsValid == 1)
                 return result.RecommendedImageDimensions;
@@ -1009,13 +1072,13 @@ namespace OpenXr.Framework.Oculus
 
         public void SetHandTrackingFrequencyHint(HandTrackingFrequencyHintMETA frequencyHint)
         {
-            if (SetHandTrackingFrequencyHintMETA == null)
+            if (_extHandFreq == null)
                 return;
 
             if (_options.UseBothHandAndControllers && frequencyHint == HandTrackingFrequencyHintMETA.HighMeta)
                 throw new NotSupportedException("Fast Motion Mode not supporte when XR_META_simultaneous_hands_and_controllers is on");
 
-            _app!.CheckResult(SetHandTrackingFrequencyHintMETA(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
+            _app!.CheckResult(_extHandFreq.SetHandTrackingFrequencyHintMETA(_app!.Session, frequencyHint), "SetHandTrackingFrequencyHint");
         }
 
         public unsafe XrHandMesh GetHandMesh(HandTrackerEXT tracker)
@@ -1114,7 +1177,7 @@ namespace OpenXr.Framework.Oculus
                 {
                     Type = StructureType.SimultaneousHandsAndControllersTrackingResumeInfoMeta
                 };
-                _app!.CheckResult(ResumeSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "ResumeSimultaneousHandsAndControllersTracking");
+                _app!.CheckResult(_extHandsContr!.ResumeSimultaneousHandsAndControllersTrackingMETA!(_app!.Session, ref info), "ResumeSimultaneousHandsAndControllersTracking");
             }
             else
             {
@@ -1122,7 +1185,7 @@ namespace OpenXr.Framework.Oculus
                 {
                     Type = StructureType.SimultaneousHandsAndControllersTrackingPauseInfoMeta
                 };
-                _app!.CheckResult(PauseSimultaneousHandsAndControllersTracking!(_app!.Session, ref info), "PauseSimultaneousHandsAndControllersTracking");
+                _app!.CheckResult(_extHandsContr!.PauseSimultaneousHandsAndControllersTrackingMETA!(_app!.Session, ref info), "PauseSimultaneousHandsAndControllersTracking");
             }
         }
 
@@ -1163,6 +1226,7 @@ namespace OpenXr.Framework.Oculus
 
         public void Dispose()
         {
+            _spatialService?.Dispose();
             _foveationInfo.Dispose();
             _handWideMotion.Dispose();
             _handsDataSources?.Dispose();

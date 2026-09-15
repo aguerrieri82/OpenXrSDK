@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
         public bool IsCompleted()
         {
             //out uint: restore after clanup:
-            _gl.GetQueryObject(_handle, QueryObjectParameterName.ResultAvailable, out var available);
+            _gl.GetQueryObject(_handle, QueryObjectParameterName.ResultAvailable, out uint available);
 
             return available != 0;
         }
@@ -71,7 +71,7 @@ namespace XrEngine.OpenGL
                 if (typeof(T) == typeof(uint))
                 {
                     //out uint: restore after clanup:
-                    _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out var uintRes);
+                    _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out uint uintRes);
                     _lastResult = (T)(object)uintRes;
                 }
 

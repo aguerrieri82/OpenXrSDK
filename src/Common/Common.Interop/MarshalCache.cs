@@ -10,11 +10,14 @@ namespace Common.Interop
         public static int SizeOf(Type type)
         {
             _cache ??= [];
+
             if (!_cache.TryGetValue(type, out var size))
             {
-                size = Marshal.SizeOf(type);
+                var marshalType = type.IsEnum ? Enum.GetUnderlyingType(type) : type;
+                size = Marshal.SizeOf(marshalType);
                 _cache[type] = size;
             }
+
             return size;
         }
     }

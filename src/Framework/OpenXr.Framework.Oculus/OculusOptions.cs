@@ -25,7 +25,7 @@ namespace OpenXr.Framework.Oculus
                 Offset = 0,
             };
             UseHandsWideMotion = true;
-            UseBothHandAndControllers = true;
+            UseBothHandAndControllers = false;
             HandTrackingFrequency = HandTrackingFrequencyHintMETA.HighMeta;
             ColorSpace = ColorSpaceFB.Rec709FB;
         }
