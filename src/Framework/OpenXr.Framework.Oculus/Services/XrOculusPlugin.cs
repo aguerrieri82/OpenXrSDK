@@ -23,70 +23,25 @@ namespace OpenXr.Framework.Oculus
 
         #region EXTENSIONS
 
-        public const SpaceComponentTypeFB XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META = (SpaceComponentTypeFB)1000269000;
+        protected METAHandTrackingFrequencyHint? _extHandFreq;
+        protected METASimultaneousHandsAndControllers? _extHandsContr;
+        protected METARecommendedLayerResolution? _extLayerRes;
+        protected METASpatialEntityMesh? _extMesh;
+        protected METASpatialEntityDiscovery? _extDiscovery;
 
-        const StructureType XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META = (StructureType)1000269001;
+        protected FBScene? _scene;
+        protected FBSpatialEntity? _spatial;
+        protected FBSpatialEntityQuery? _spatialQuery;
+        protected FBTriangleMesh? _mesh;
+        protected FBHapticPcm? _haptic;
+        protected FBDisplayRefreshRate? _refreshRate;
+        protected FBSpatialEntityContainer? _container;
+        protected FBFoveation? _foveation;
+        protected FBHandTrackingMesh? _handMesh;
+        protected FBSpatialEntityStorage? _spatialStorage;
+        protected FBColorSpace? _colorSpace;
+        protected FBSwapchainUpdateState? _swapChainUpdate;
 
-        const StructureType XR_TYPE_SPACE_TRIANGLE_MESH_META = (StructureType)1000269002;
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct SpaceTriangleMeshGetInfoMETA
-        {
-            public StructureType Type;
-            public unsafe void* Next;
-        };
-
-        [StructLayout(LayoutKind.Sequential)]
-        unsafe struct SpaceFilterUuidMETA
-        {
-            public StructureType Type;
-            public void* Next;
-            public uint UuidCount;
-            public UuidEXT* Uuids;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        unsafe struct SpaceFilterComponentMETA
-        {
-            public StructureType Type;
-            public void* Next;
-            public SpaceComponentTypeFB ComponentType;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct SpaceTriangleMeshMETA
-        {
-            public StructureType Type;
-            public unsafe void* Next;
-            public uint VertexCapacityInput;
-            public uint VertexCountOutput;
-            public unsafe Vector3f* Vertices;
-            public uint IndexCapacityInput;
-            public uint IndexCountOutput;
-            public unsafe uint* Indices;
-        }
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate Result GetSpaceTriangleMeshMETADelegate(Space space, ref SpaceTriangleMeshGetInfoMETA getInfo, ref SpaceTriangleMeshMETA triangleMeshOutput);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate Result DiscoverSpacesMETADelegate(Session session, ref SpaceDiscoveryInfoMETA info, ref ulong requestId);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate Result RetrieveSpaceDiscoveryResultsMETADelegate(Session session, ulong requestId, ref SpaceDiscoveryResultsMETA result);
-
-        RetrieveSpaceDiscoveryResultsMETADelegate? RetrieveSpaceDiscoveryResultsMETA;
-
-        GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
-
-        DiscoverSpacesMETADelegate? DiscoverSpacesMETA;
-
-
-        METAHandTrackingFrequencyHint? _extHandFreq;
-
-        METASimultaneousHandsAndControllers? _extHandsContr;
-
-        METARecommendedLayerResolution? _extLayerRes;
 
         #endregion
 
@@ -101,31 +56,16 @@ namespace OpenXr.Framework.Oculus
             public Type? ResultType;
         }
 
-        protected FBScene? _scene;
-        protected FBSpatialEntity? _spatial;
-        protected FBSpatialEntityQuery? _spatialQuery;
-        protected FBTriangleMesh? _mesh;
-
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
         protected NativeStruct<HandTrackingWideMotionModeInfoMETA> _handWideMotion;
-        protected FBHapticPcm? _haptic;
-        protected FBDisplayRefreshRate? _refreshRate;
-        protected FBSpatialEntityContainer? _container;
-        protected FBFoveation? _foveation;
-        protected FBSwapchainUpdateState? _swapChainUpdate;
-        protected FBHandTrackingMesh? _handMesh;
-        protected FBSpatialEntityStorage? _spatialStorage;
-        protected FBColorSpace? _colorSpace;
         protected NativeArray<HandTrackingDataSourceEXT>? _handsDataSources;
         protected NativeStruct<HandTrackingDataSourceInfoEXT> _handDataSourceInfo;
         protected XrPerformance? _performance;
-
         protected XrSpatial? _spatialService;
         protected Task<XrSpatial>? _spatialTask;
-
+        protected readonly OculusOptions _options;
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
-        protected readonly OculusOptions _options;
 
         public XrOculusPlugin()
             : this(new OculusOptions())
@@ -142,6 +82,25 @@ namespace OpenXr.Framework.Oculus
         {
             _app = app;
 
+            extensions.Add("XR_FB_hand_tracking_capsules");
+            extensions.Add("XR_FB_hand_tracking_aim");
+            extensions.Add("XR_META_touch_controller_plus");
+            extensions.Add("XR_FB_foveation_configuration");
+            extensions.Add("XR_FB_space_warp");
+            extensions.Add("XR_FB_swapchain_update_state_opengl_es");
+            extensions.Add("XR_EXT_hand_tracking_data_source");
+            extensions.Add("XR_META_hand_tracking_microgestures");
+            extensions.Add("XR_FB_composition_layer_image_layout");
+            extensions.Add("XR_FB_composition_layer_depth_test");
+            extensions.Add("XR_META_passthrough_color_lut");
+
+            extensions.Add("XR_EXT_spatial_entity");
+            extensions.Add("XR_EXT_spatial_anchor");
+            extensions.Add("XR_EXT_spatial_plane_tracking");
+            extensions.Add("XR_EXT_spatial_marker_tracking");
+            extensions.Add("XR_EXT_spatial_persistence");
+            extensions.Add("XR_EXT_spatial_persistence_operations");
+
             extensions.Add(FBScene.ExtensionName);
             extensions.Add(FBSceneCapture.ExtensionName);
             extensions.Add(FBTriangleMesh.ExtensionName);
@@ -155,43 +114,18 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
             extensions.Add(FBHandTrackingMesh.ExtensionName);
             extensions.Add(FBColorSpace.ExtensionName);
+            extensions.Add(FBFaceTracking2.ExtensionName);
+            extensions.Add(MetaPerformanceMetrics.ExtensionName);
 
-            extensions.Add("XR_FB_hand_tracking_capsules");
-            extensions.Add("XR_FB_hand_tracking_aim");
-            extensions.Add("XR_META_spatial_entity_mesh");
-            extensions.Add("XR_META_touch_controller_plus");
-            extensions.Add("XR_FB_foveation_configuration");
-            extensions.Add("XR_FB_space_warp");
-            extensions.Add("XR_FB_swapchain_update_state_opengl_es");
-            extensions.Add("XR_META_spatial_entity_discovery");
-            extensions.Add("XR_EXT_hand_tracking_data_source");
-            extensions.Add("XR_META_hand_tracking_microgestures");
-            extensions.Add("XR_FB_composition_layer_image_layout");
-            extensions.Add("XR_FB_composition_layer_depth_test");
-            extensions.Add("XR_META_passthrough_color_lut");
-
+            extensions.Add(METASpatialEntityMesh.ExtensionName);
+            extensions.Add(METASpatialEntityDiscovery.ExtensionName);
             extensions.Add(METARecommendedLayerResolution.ExtensionName);
-
             extensions.Add(METAVirtualKeyboard.ExtensionName);
             extensions.Add(FBRenderModel.ExtensionName);
-
             extensions.Add(METAHandTrackingWideMotionMode.ExtensionName);
             extensions.Add(METAHandTrackingFrequencyHint.ExtensionName);
             extensions.Add(METAHandTrackingUnextrapolatedPoses.ExtensionName);
-
-            extensions.Add(FBFaceTracking2.ExtensionName);
-
-            extensions.Add(MetaPerformanceMetrics.ExtensionName);
-
             extensions.Add(METAEnvironmentRaycast.ExtensionName);
-
-            extensions.Add("XR_EXT_spatial_entity");
-            extensions.Add("XR_EXT_spatial_anchor");
-            extensions.Add("XR_EXT_spatial_plane_tracking");
-            extensions.Add("XR_EXT_spatial_marker_tracking");
-            extensions.Add("XR_EXT_spatial_persistence");
-            extensions.Add("XR_EXT_spatial_persistence_operations");
-
             extensions.Add(METADynamicObjectTracker.ExtensionName);
             extensions.Add(METADynamicObjectKeyboard.ExtensionName);
 
@@ -204,6 +138,7 @@ namespace OpenXr.Framework.Oculus
                     throw new NotSupportedException("XR_META_simultaneous_hands_and_controllers is not compatible with XR_FB_body_tracking");
 
                 extensions.Add("XR_META_body_tracking_full_body");
+
                 extensions.Add(FBBodyTracking.ExtensionName);
                 extensions.Add(METABodyTrackingFidelity.ExtensionName);
                 extensions.Add(METABodyTrackingCalibration.ExtensionName);
@@ -227,26 +162,20 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
             _app.Xr.TryGetInstanceExtension<FBColorSpace>(null, _app.Instance, out _colorSpace);
 
-            var func = new PfnVoidFunction();
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
-            GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
-
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrDiscoverSpacesMETA", &func), "Bind xrDiscoverSpacesMETA");
-            DiscoverSpacesMETA = Marshal.GetDelegateForFunctionPointer<DiscoverSpacesMETADelegate>(new nint(func.Handle));
-
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrRetrieveSpaceDiscoveryResultsMETA", &func), "Bind xrRetrieveSpaceDiscoveryResultsMETA ");
-            RetrieveSpaceDiscoveryResultsMETA = Marshal.GetDelegateForFunctionPointer<RetrieveSpaceDiscoveryResultsMETADelegate>(new nint(func.Handle));
+            _extDiscovery = new(_app.Xr, _app.Instance);
+            _extMesh = new(_app.Xr, _app.Instance);
 
             if (!_app.IsMetaSimulator && !_app.IsMetaLink)
             {
                 _extHandFreq = new(_app.Xr, _app.Instance);
-
                 _extLayerRes = new(_app.Xr, _app.Instance);
             }
 
             if (_options.UseBothHandAndControllers)
                 _extHandsContr = new(_app.Xr, _app.Instance);
         }
+
+
 
         public override void OnSessionCreated()
         {
@@ -262,62 +191,6 @@ namespace OpenXr.Framework.Oculus
                 _spatialTask = null;
             }
         }
-
-        public Task<XrSpatial> GetSpatialAsync()
-        {
-            if (_spatialTask == null || _spatialTask.IsFaulted || _spatialTask.IsCanceled)
-                _spatialTask = CreateSpatialAsync();
-            return _spatialTask;
-        }
-
-        protected async Task<XrSpatial> CreateSpatialAsync()
-        {
-            var spatial = new XrSpatial(_app!);
-            
-            _spatialService = spatial;
-
-            try
-            {
-                if (_app!.HasExtension("XR_EXT_spatial_persistence"))
-                {
-                    var scopes = spatial.EnumeratePersistenceScopes();
-                    
-                    if (scopes.Contains(SpatialPersistenceScopeEXT.SystemManagedExt))
-                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.SystemManagedExt);
-
-                    if (_app.HasExtension("XR_EXT_spatial_persistence_operations") && scopes.Contains(SpatialPersistenceScopeEXT.LocalAnchorsExt))
-                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.LocalAnchorsExt);
-                }
-
-                var capabilities = new List<XrSpatialCapability>();
-
-                foreach (var capability in spatial.EnumerateCapabilities())
-                {
-                    if (capability != SpatialCapabilityEXT.AnchorExt && capability != SpatialCapabilityEXT.PlaneTrackingExt)
-                        continue;
-
-                    var components = spatial.EnumerateComponents(capability).ToList();
-                    if (!spatial.IsPersistenceCreated)
-                        components.Remove(SpatialComponentTypeEXT.PersistenceExt);
-
-                    capabilities.Add(new XrSpatialCapability
-                    {
-                        Capability = capability,
-                        Components = components.ToArray()
-                    });
-                }
-
-                await spatial.CreateAsync(capabilities.ToArray());
-
-                return spatial;
-            }
-            catch
-            {
-                spatial.Dispose();
-                throw;
-            }
-        }
-
         public override void OnSessionBegin()
         {
             UpdateFoveation();
@@ -465,7 +338,7 @@ namespace OpenXr.Framework.Oculus
 
                     var reqId = GenerateReqId();
 
-                    _app!.CheckResult(DiscoverSpacesMETA!(_app.Session, ref info, ref reqId), "DiscoverSpacesMETA");
+                    _app!.CheckResult(_extDiscovery!.DiscoverSpacesMETA!(_app.Session, ref info, ref reqId), "DiscoverSpacesMETA");
 
                     return reqId;
                 }
@@ -567,7 +440,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SpaceQueryResultsFB,
             };
 
-            _app!.CheckResult(RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
+            _app!.CheckResult(_extDiscovery!.RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
 
             var results = new SpaceDiscoveryResultMETA[(int)result.ResultCountOutput];
 
@@ -575,7 +448,7 @@ namespace OpenXr.Framework.Oculus
             {
                 result.ResultCapacityInput = result.ResultCountOutput;
                 result.Results = ptr;
-                _app!.CheckResult(RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
+                _app!.CheckResult(_extDiscovery!.RetrieveSpaceDiscoveryResultsMETA!(_app!.Session, reqId, ref result), "RetrieveSpaceDiscoveryResultsMETA");
             }
 
             Array.Resize(ref results, (int)result.ResultCountOutput);
@@ -633,15 +506,13 @@ namespace OpenXr.Framework.Oculus
         {
             var info = new SpaceTriangleMeshGetInfoMETA
             {
-                Type = XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META
             };
 
             var result = new SpaceTriangleMeshMETA
             {
-                Type = XR_TYPE_SPACE_TRIANGLE_MESH_META
             };
 
-            _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
+            _app!.CheckResult(_extMesh!.GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
             var vertexArray = new Vector3f[result.VertexCountOutput];
             var indexArray = new uint[result.IndexCountOutput];
@@ -653,7 +524,7 @@ namespace OpenXr.Framework.Oculus
                 result.Vertices = pVertex;
                 result.IndexCapacityInput = result.IndexCountOutput;
                 result.Indices = pIndex;
-                _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
+                _app!.CheckResult(_extMesh!.GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
                 return new Mesh3
                 {
@@ -1222,6 +1093,63 @@ namespace OpenXr.Framework.Oculus
             }
 
             return null;
+        }
+
+        public Task<XrSpatial> GetSpatialAsync()
+        {
+            if (_spatialTask == null || _spatialTask.IsFaulted || _spatialTask.IsCanceled)
+                _spatialTask = CreateSpatialAsync();
+
+            return _spatialTask;
+        }
+
+        protected async Task<XrSpatial> CreateSpatialAsync()
+        {
+            var spatial = new XrSpatial(_app!);
+
+            _spatialService = spatial;
+
+            try
+            {
+                if (_app!.HasExtension("XR_EXT_spatial_persistence"))
+                {
+                    var scopes = spatial.EnumeratePersistenceScopes();
+
+                    if (scopes.Contains(SpatialPersistenceScopeEXT.SystemManagedExt))
+                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.SystemManagedExt);
+
+                    if (_app.HasExtension("XR_EXT_spatial_persistence_operations") && scopes.Contains(SpatialPersistenceScopeEXT.LocalAnchorsExt))
+                        await spatial.CreatePersistenceAsync(SpatialPersistenceScopeEXT.LocalAnchorsExt);
+                }
+
+                var capabilities = new List<XrSpatialCapability>();
+
+                foreach (var capability in spatial.EnumerateCapabilities())
+                {
+                    if (capability != SpatialCapabilityEXT.AnchorExt && capability != SpatialCapabilityEXT.PlaneTrackingExt)
+                        continue;
+
+                    var components = spatial.EnumerateComponents(capability).ToList();
+
+                    if (!spatial.IsPersistenceCreated)
+                        components.Remove(SpatialComponentTypeEXT.PersistenceExt);
+
+                    capabilities.Add(new XrSpatialCapability
+                    {
+                        Capability = capability,
+                        Components = components.ToArray()
+                    });
+                }
+
+                await spatial.CreateAsync(capabilities.ToArray());
+
+                return spatial;
+            }
+            catch
+            {
+                spatial.Dispose();
+                throw;
+            }
         }
 
         public void Dispose()

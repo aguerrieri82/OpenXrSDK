@@ -118,7 +118,7 @@ namespace OpenXr.Framework
                     }
 
                     if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
-                        xrOculus.GetSpaceComponentEnabled(space.Space, XrOculusPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
+                        xrOculus.GetSpaceComponentEnabled(space.Space, METASpatialEntityMesh.SpaceComponentTypeTriangleMeshMeta))
                     {
                         var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
                         item.Mesh = new Mesh3

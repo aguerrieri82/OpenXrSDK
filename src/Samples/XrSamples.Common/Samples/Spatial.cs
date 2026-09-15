@@ -21,7 +21,7 @@ namespace XrSamples
             factory.AddMesh(new PbrMaterial() { Color = "#ff0000" });
             factory.AddWalls(new PbrMaterial() { Color = "#00ff00" });
 
-            scene.AddChild(new OculusSceneView2()
+            scene.AddChild(new OculusSceneView()
             {
                 Factory = factory,  
             });

@@ -81,9 +81,11 @@ namespace OpenXr.Framework.Oculus
         public unsafe SpatialCapabilityEXT[] EnumerateCapabilities()
         {
             uint count = 0;
+
             _app.CheckResult(_ext.EnumerateSpatialCapabilities(_app.Instance, _app.SystemId, 0, ref count, null), "EnumerateSpatialCapabilities");
 
             var result = new SpatialCapabilityEXT[count];
+
             fixed (SpatialCapabilityEXT* pResult = result)
                 _app.CheckResult(_ext.EnumerateSpatialCapabilities(_app.Instance, _app.SystemId, count, ref count, pResult), "EnumerateSpatialCapabilities");
 
@@ -96,9 +98,11 @@ namespace OpenXr.Framework.Oculus
             {
                 Type = StructureType.SpatialCapabilityComponentTypesExt
             };
+
             _app.CheckResult(_ext.EnumerateSpatialCapabilityComponentTypes(_app.Instance, _app.SystemId, capability, ref info), "EnumerateSpatialCapabilityComponentTypes");
 
             var result = new SpatialComponentTypeEXT[info.ComponentTypeCountOutput];
+
             fixed (SpatialComponentTypeEXT* pResult = result)
             {
                 info.ComponentTypeCapacityInput = (uint)result.Length;
@@ -115,6 +119,7 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_ext.EnumerateSpatialCapabilityFeatures(_app.Instance, _app.SystemId, capability, 0, ref count, null), "EnumerateSpatialCapabilityFeatures");
 
             var result = new SpatialCapabilityFeatureEXT[count];
+
             fixed (SpatialCapabilityFeatureEXT* pResult = result)
                 _app.CheckResult(_ext.EnumerateSpatialCapabilityFeatures(_app.Instance, _app.SystemId, capability, count, ref count, pResult), "EnumerateSpatialCapabilityFeatures");
 
@@ -132,6 +137,7 @@ namespace OpenXr.Framework.Oculus
                 throw new ArgumentException("At least one spatial capability is required", nameof(capabilities));
 
             _pendingOperations++;
+
             try
             {
                 var future = CreateContext(capabilities);
@@ -157,6 +163,7 @@ namespace OpenXr.Framework.Oculus
         protected unsafe FutureEXT CreateContext(XrSpatialCapability[] capabilities)
         {
             var allocations = new List<IDisposable>();
+
             try
             {
                 var pointers = stackalloc SpatialCapabilityConfigurationBaseHeaderEXT*[capabilities.Length];
@@ -246,6 +253,7 @@ namespace OpenXr.Framework.Oculus
                 }
 
                 var contexts = _persistenceContexts.Values.ToArray();
+
                 fixed (SpatialPersistenceContextEXT* pContexts = contexts)
                 {
                     var persistence = new SpatialContextPersistenceConfigEXT
@@ -277,6 +285,7 @@ namespace OpenXr.Framework.Oculus
         public XrSpatialEntity CreateAnchor(Pose3 pose, Space? baseSpace = null, long time = 0)
         {
             EnsureCreated();
+
             if (_anchor == null)
                 throw new NotSupportedException(ExtSpatialAnchor.ExtensionName);
 
@@ -287,6 +296,7 @@ namespace OpenXr.Framework.Oculus
                 BaseSpace = baseSpace ?? _app.ReferenceSpace,
                 Time = time == 0 ? _app.FramePredictedDisplayTime : time
             };
+
             var result = new XrSpatialEntity();
             _app.CheckResult(_anchor.CreateSpatialAnchor(_context, ref info, ref result.Id, ref result.Handle), "CreateSpatialAnchor");
             return result;
@@ -295,11 +305,13 @@ namespace OpenXr.Framework.Oculus
         public XrSpatialEntity CreateEntity(ulong entityId)
         {
             EnsureCreated();
+
             var info = new SpatialEntityFromIdCreateInfoEXT
             {
                 Type = StructureType.SpatialEntityFromIDCreateInfoExt,
                 EntityId = entityId
             };
+            
             var result = new XrSpatialEntity { Id = entityId };
             _app.CheckResult(_ext.CreateSpatialEntityFromId(_context, ref info, ref result.Handle), "CreateSpatialEntityFromId");
             return result;
@@ -308,10 +320,12 @@ namespace OpenXr.Framework.Oculus
         public void DestroyEntity(ref XrSpatialEntity entity)
         {
             EnsureCreated();
+
             if (entity.Handle.Handle == 0)
                 return;
 
             _app.CheckResult(_ext.DestroySpatialEntity(entity.Handle), "DestroySpatialEntity");
+
             entity = default;
         }
 
@@ -324,10 +338,13 @@ namespace OpenXr.Framework.Oculus
             SpatialEntityTrackingStateEXT? trackingState = null)
         {
             EnsureCreated();
+            
             _pendingOperations++;
+
             try
             {
                 var future = CreateDiscoverySnapshot(components, persistedUuids, trackingState);
+
                 await _app.WaitFutureAsync(future);
 
                 var completionInfo = new CreateSpatialDiscoverySnapshotCompletionInfoEXT
@@ -337,12 +354,15 @@ namespace OpenXr.Framework.Oculus
                     BaseSpace = baseSpace ?? _app.ReferenceSpace,
                     Time = time == 0 ? _app.FramePredictedDisplayTime : time
                 };
+                
                 var completion = new CreateSpatialDiscoverySnapshotCompletionEXT
                 {
                     Type = StructureType.CreateSpatialDiscoverySnapshotCompletionExt
                 };
+
                 _app.CheckResult(_ext.CreateSpatialDiscoverySnapshotComplete(_context, ref completionInfo, ref completion), "CreateSpatialDiscoverySnapshotComplete");
                 _app.CheckResult(completion.FutureResult, "CreateSpatialDiscoverySnapshot");
+                
                 return completion.Snapshot;
             }
             finally
@@ -364,6 +384,7 @@ namespace OpenXr.Framework.Oculus
                     Type = StructureType.SpatialFilterTrackingStateExt,
                     TrackingState = trackingState.GetValueOrDefault()
                 };
+                
                 var uuidFilter = new SpatialDiscoveryPersistenceUuidFilterEXT
                 {
                     Type = StructureType.SpatialDiscoveryPersistenceUuidFilterExt,
@@ -371,6 +392,7 @@ namespace OpenXr.Framework.Oculus
                     PersistedUuids = pUuids,
                     Next = trackingState.HasValue ? &stateFilter : null
                 };
+                
                 var info = new SpatialDiscoverySnapshotCreateInfoEXT
                 {
                     Type = StructureType.SpatialDiscoverySnapshotCreateInfoExt,
@@ -378,6 +400,7 @@ namespace OpenXr.Framework.Oculus
                     ComponentTypes = pComponents,
                     Next = uuidFilter.PersistedUuidCount == 0 ? uuidFilter.Next : &uuidFilter
                 };
+
                 var future = new FutureEXT();
                 _app.CheckResult(_ext.CreateSpatialDiscoverySnapshotAsync(_context, ref info, ref future), "CreateSpatialDiscoverySnapshotAsync");
                 return future;
@@ -387,14 +410,17 @@ namespace OpenXr.Framework.Oculus
         public Pose3? LocateAnchor(XrSpatialEntity anchor, Space? baseSpace = null, long time = 0)
         {
             var snapshot = CreateUpdateSnapshot([anchor], [SpatialComponentTypeEXT.AnchorExt], baseSpace, time);
+
             try
             {
                 var locations = GetAnchors(snapshot);
+
                 for (var i = 0; i < locations.EntityIds.Length; i++)
                 {
                     if (locations.EntityIds[i] == anchor.Id && locations.EntityStates[i] == SpatialEntityTrackingStateEXT.TrackingExt)
                         return locations.Data[i].ToPose3();
                 }
+                
                 return null;
             }
             finally
@@ -411,7 +437,9 @@ namespace OpenXr.Framework.Oculus
             long time = 0)
         {
             EnsureCreated();
+         
             var handles = new SpatialEntityEXT[entities.Length];
+            
             for (var i = 0; i < entities.Length; i++)
                 handles[i] = entities[i].Handle;
 
@@ -428,6 +456,7 @@ namespace OpenXr.Framework.Oculus
                     BaseSpace = baseSpace ?? _app.ReferenceSpace,
                     Time = time == 0 ? _app.FramePredictedDisplayTime : time
                 };
+
                 var result = new SpatialSnapshotEXT();
                 _app.CheckResult(_ext.CreateSpatialUpdateSnapshot(_context, ref info, ref result), "CreateSpatialUpdateSnapshot");
                 return result;
@@ -450,8 +479,11 @@ namespace OpenXr.Framework.Oculus
                 throw new NotSupportedException(ExtSpatialPersistence.ExtensionName);
 
             uint count = 0;
+            
             _app.CheckResult(_persistence.EnumerateSpatialPersistenceScopes(_app.Instance, _app.SystemId, 0, ref count, null), "EnumerateSpatialPersistenceScopes");
+            
             var result = new SpatialPersistenceScopeEXT[count];
+
             fixed (SpatialPersistenceScopeEXT* pResult = result)
                 _app.CheckResult(_persistence.EnumerateSpatialPersistenceScopes(_app.Instance, _app.SystemId, count, ref count, pResult), "EnumerateSpatialPersistenceScopes");
 
@@ -462,12 +494,15 @@ namespace OpenXr.Framework.Oculus
         public async Task CreatePersistenceAsync(SpatialPersistenceScopeEXT scope)
         {
             EnsureIdle();
+            
             if (_persistence == null)
                 throw new NotSupportedException(ExtSpatialPersistence.ExtensionName);
+
             if (IsCreated || _persistenceContexts.ContainsKey(scope))
                 throw new InvalidOperationException("Create persistence before creating the spatial context");
 
             _pendingOperations++;
+
             try
             {
                 var info = new SpatialPersistenceContextCreateInfoEXT
@@ -475,17 +510,22 @@ namespace OpenXr.Framework.Oculus
                     Type = StructureType.SpatialPersistenceContextCreateInfoExt,
                     Scope = scope
                 };
+
                 var future = new FutureEXT();
                 _app.CheckResult(_persistence.CreateSpatialPersistenceContextAsync(_app.Session, ref info, ref future), "CreateSpatialPersistenceContextAsync");
+                
                 await _app.WaitFutureAsync(future);
 
                 var completion = new CreateSpatialPersistenceContextCompletionEXT
                 {
                     Type = StructureType.CreateSpatialPersistenceContextCompletionExt
                 };
+                
                 _app.CheckResult(_persistence.CreateSpatialPersistenceContextComplete(_app.Session, future, ref completion), "CreateSpatialPersistenceContextComplete");
                 _app.CheckResult(completion.FutureResult, "CreateSpatialPersistenceContext");
+                
                 CheckPersistenceResult(completion.CreateResult, "CreateSpatialPersistenceContext");
+                
                 _persistenceContexts.Add(scope, completion.PersistenceContext);
             }
             finally
@@ -497,8 +537,11 @@ namespace OpenXr.Framework.Oculus
         public async Task<Uuid> PersistAsync(ulong entityId, SpatialPersistenceScopeEXT scope = SpatialPersistenceScopeEXT.LocalAnchorsExt)
         {
             EnsureCreated();
+
             var persistenceContext = GetPersistenceContext(scope);
+            
             _pendingOperations++;
+            
             try
             {
                 var info = new SpatialEntityPersistInfoEXT
@@ -507,17 +550,24 @@ namespace OpenXr.Framework.Oculus
                     SpatialContext = _context,
                     SpatialEntityId = entityId
                 };
+
                 var future = new FutureEXT();
+                
                 _app.CheckResult(_persistenceOperations!.PersistSpatialEntityAsync(persistenceContext, ref info, ref future), "PersistSpatialEntityAsync");
+                
                 await _app.WaitFutureAsync(future);
 
                 var completion = new PersistSpatialEntityCompletionEXT
                 {
                     Type = StructureType.PersistSpatialEntityCompletionExt
                 };
+                
                 _app.CheckResult(_persistenceOperations.PersistSpatialEntityComplete(persistenceContext, future, ref completion), "PersistSpatialEntityComplete");
+                
                 _app.CheckResult(completion.FutureResult, "PersistSpatialEntity");
+                
                 CheckPersistenceResult(completion.PersistResult, "PersistSpatialEntity");
+
                 return completion.PersistUuid;
             }
             finally
@@ -530,8 +580,11 @@ namespace OpenXr.Framework.Oculus
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(XrSpatial));
+
             var persistenceContext = GetPersistenceContext(scope);
+            
             _pendingOperations++;
+            
             try
             {
                 var info = new SpatialEntityUnpersistInfoEXT
@@ -539,16 +592,22 @@ namespace OpenXr.Framework.Oculus
                     Type = StructureType.SpatialEntityUnpersistInfoExt,
                     PersistUuid = uuid
                 };
+
                 var future = new FutureEXT();
+                
                 _app.CheckResult(_persistenceOperations!.UnpersistSpatialEntityAsync(persistenceContext, ref info, ref future), "UnpersistSpatialEntityAsync");
+                
                 await _app.WaitFutureAsync(future);
 
                 var completion = new UnpersistSpatialEntityCompletionEXT
                 {
                     Type = StructureType.UnpersistSpatialEntityCompletionExt
                 };
+                
                 _app.CheckResult(_persistenceOperations.UnpersistSpatialEntityComplete(persistenceContext, future, ref completion), "UnpersistSpatialEntityComplete");
+                
                 _app.CheckResult(completion.FutureResult, "UnpersistSpatialEntity");
+                
                 CheckPersistenceResult(completion.UnpersistResult, "UnpersistSpatialEntity");
             }
             finally
@@ -567,8 +626,10 @@ namespace OpenXr.Framework.Oculus
         {
             if (_persistenceOperations == null)
                 throw new NotSupportedException(ExtSpatialPersistenceOperations.ExtensionName);
+            
             if (!_persistenceContexts.TryGetValue(scope, out var context))
                 throw new InvalidOperationException($"Spatial persistence context is not created: {scope}");
+
             return context;
         }
 
@@ -629,6 +690,7 @@ namespace OpenXr.Framework.Oculus
                 _persistenceContexts.Remove(item.Key);
             }
         }
+
         public void Dispose()
         {
             if (_disposed)
@@ -644,12 +706,14 @@ namespace OpenXr.Framework.Oculus
                 _context = default;
                 _persistenceContexts.Clear();
             }
+
             _app.XrEvent -= OnEvent;
             _anchor?.Dispose();
             _persistenceOperations?.Dispose();
             _persistence?.Dispose();
             _ext.Dispose();
             _disposed = true;
+
             GC.SuppressFinalize(this);
         }
 
@@ -660,6 +724,7 @@ namespace OpenXr.Framework.Oculus
             SpatialEntityTrackingStateEXT? trackingState = null)
         {
             EnsureCreated();
+
             fixed (SpatialComponentTypeEXT* pComponents = components)
             {
                 var filter = new SpatialFilterTrackingStateEXT
@@ -667,6 +732,7 @@ namespace OpenXr.Framework.Oculus
                     Type = StructureType.SpatialFilterTrackingStateExt,
                     TrackingState = trackingState.GetValueOrDefault()
                 };
+
                 var condition = new SpatialComponentDataQueryConditionEXT
                 {
                     Type = StructureType.SpatialComponentDataQueryConditionExt,
@@ -674,10 +740,12 @@ namespace OpenXr.Framework.Oculus
                     ComponentTypes = pComponents,
                     Next = trackingState.HasValue ? &filter : null
                 };
+
                 var result = new SpatialComponentDataQueryResultEXT
                 {
                     Type = StructureType.SpatialComponentDataQueryResultExt
                 };
+                
                 _app.CheckResult(_ext.QuerySpatialComponentData(snapshot, ref condition, ref result), "QuerySpatialComponentData");
 
                 var data = new XrSpatialQueryResult
@@ -685,6 +753,7 @@ namespace OpenXr.Framework.Oculus
                     EntityIds = new ulong[result.EntityIdCountOutput],
                     EntityStates = new SpatialEntityTrackingStateEXT[result.EntityStateCountOutput]
                 };
+
                 fixed (ulong* pIds = data.EntityIds)
                 fixed (SpatialEntityTrackingStateEXT* pStates = data.EntityStates)
                 {
@@ -713,6 +782,7 @@ namespace OpenXr.Framework.Oculus
                 ComponentTypeCount = 1,
                 ComponentTypes = &component
             };
+
             fixed (ulong* pIds = entities.EntityIds)
             fixed (SpatialEntityTrackingStateEXT* pStates = entities.EntityStates)
             {
@@ -725,6 +795,7 @@ namespace OpenXr.Framework.Oculus
                     EntityStateCapacityInput = (uint)entities.EntityStates.Length,
                     EntityStates = pStates
                 };
+
                 _app.CheckResult(_ext.QuerySpatialComponentData(snapshot, ref condition, ref result), "QuerySpatialComponentData");
             }
         }
@@ -733,6 +804,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.AnchorExt]);
             var data = new Posef[entities.EntityIds.Length];
+            
             fixed (Posef* pData = data)
             {
                 var list = new SpatialComponentAnchorListEXT
@@ -741,8 +813,10 @@ namespace OpenXr.Framework.Oculus
                     LocationCount = (uint)data.Length,
                     Locations = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.AnchorExt, entities, &list);
             }
+
             return new XrSpatialComponentData<Posef>
             {
                 EntityIds = entities.EntityIds,
@@ -755,6 +829,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.Bounded2DExt]);
             var data = new SpatialBounded2DDataEXT[entities.EntityIds.Length];
+           
             fixed (SpatialBounded2DDataEXT* pData = data)
             {
                 var list = new SpatialComponentBounded2DListEXT
@@ -763,8 +838,10 @@ namespace OpenXr.Framework.Oculus
                     BoundCount = (uint)data.Length,
                     Bounds = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.Bounded2DExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialBounded2DDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -777,6 +854,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.Bounded3DExt]);
             var data = new Boxf[entities.EntityIds.Length];
+           
             fixed (Boxf* pData = data)
             {
                 var list = new SpatialComponentBounded3DListEXT
@@ -785,8 +863,10 @@ namespace OpenXr.Framework.Oculus
                     BoundCount = (uint)data.Length,
                     Bounds = pData
                 };
+            
                 ReadComponent(snapshot, SpatialComponentTypeEXT.Bounded3DExt, entities, &list);
             }
+
             return new XrSpatialComponentData<Boxf>
             {
                 EntityIds = entities.EntityIds,
@@ -799,6 +879,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.ParentExt]);
             var data = new ulong[entities.EntityIds.Length];
+            
             fixed (ulong* pData = data)
             {
                 var list = new SpatialComponentParentListEXT
@@ -807,8 +888,10 @@ namespace OpenXr.Framework.Oculus
                     ParentCount = (uint)data.Length,
                     Parents = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.ParentExt, entities, &list);
             }
+
             return new XrSpatialComponentData<ulong>
             {
                 EntityIds = entities.EntityIds,
@@ -822,6 +905,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.Mesh3DExt]);
             var data = new SpatialMeshDataEXT[entities.EntityIds.Length];
+            
             fixed (SpatialMeshDataEXT* pData = data)
             {
                 var list = new SpatialComponentMesh3DListEXT
@@ -830,8 +914,10 @@ namespace OpenXr.Framework.Oculus
                     MeshCount = (uint)data.Length,
                     Meshes = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.Mesh3DExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialMeshDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -844,6 +930,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.Mesh2DExt]);
             var data = new SpatialMeshDataEXT[entities.EntityIds.Length];
+
             fixed (SpatialMeshDataEXT* pData = data)
             {
                 var list = new SpatialComponentMesh2DListEXT
@@ -852,8 +939,10 @@ namespace OpenXr.Framework.Oculus
                     MeshCount = (uint)data.Length,
                     Meshes = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.Mesh2DExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialMeshDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -866,6 +955,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.Polygon2DExt]);
             var data = new SpatialPolygon2DDataEXT[entities.EntityIds.Length];
+            
             fixed (SpatialPolygon2DDataEXT* pData = data)
             {
                 var list = new SpatialComponentPolygon2DListEXT
@@ -874,8 +964,10 @@ namespace OpenXr.Framework.Oculus
                     PolygonCount = (uint)data.Length,
                     Polygons = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.Polygon2DExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialPolygon2DDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -888,6 +980,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.PlaneAlignmentExt]);
             var data = new SpatialPlaneAlignmentEXT[entities.EntityIds.Length];
+            
             fixed (SpatialPlaneAlignmentEXT* pData = data)
             {
                 var list = new SpatialComponentPlaneAlignmentListEXT
@@ -896,8 +989,10 @@ namespace OpenXr.Framework.Oculus
                     PlaneAlignmentCount = (uint)data.Length,
                     PlaneAlignments = pData
                 };
+            
                 ReadComponent(snapshot, SpatialComponentTypeEXT.PlaneAlignmentExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialPlaneAlignmentEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -910,6 +1005,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.PlaneSemanticLabelExt]);
             var data = new SpatialPlaneSemanticLabelEXT[entities.EntityIds.Length];
+            
             fixed (SpatialPlaneSemanticLabelEXT* pData = data)
             {
                 var list = new SpatialComponentPlaneSemanticLabelListEXT
@@ -918,8 +1014,10 @@ namespace OpenXr.Framework.Oculus
                     SemanticLabelCount = (uint)data.Length,
                     SemanticLabels = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.PlaneSemanticLabelExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialPlaneSemanticLabelEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -932,6 +1030,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.MarkerExt]);
             var data = new SpatialMarkerDataEXT[entities.EntityIds.Length];
+            
             fixed (SpatialMarkerDataEXT* pData = data)
             {
                 var list = new SpatialComponentMarkerListEXT
@@ -940,8 +1039,10 @@ namespace OpenXr.Framework.Oculus
                     MarkerCount = (uint)data.Length,
                     Markers = pData
                 };
+            
                 ReadComponent(snapshot, SpatialComponentTypeEXT.MarkerExt, entities, &list);
             }
+            
             return new XrSpatialComponentData<SpatialMarkerDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -954,6 +1055,7 @@ namespace OpenXr.Framework.Oculus
         {
             var entities = QueryEntities(snapshot, [SpatialComponentTypeEXT.PersistenceExt]);
             var data = new SpatialPersistenceDataEXT[entities.EntityIds.Length];
+            
             fixed (SpatialPersistenceDataEXT* pData = data)
             {
                 var list = new SpatialComponentPersistenceListEXT
@@ -962,8 +1064,10 @@ namespace OpenXr.Framework.Oculus
                     PersistDataCount = (uint)data.Length,
                     PersistData = pData
                 };
+
                 ReadComponent(snapshot, SpatialComponentTypeEXT.PersistenceExt, entities, &list);
             }
+
             return new XrSpatialComponentData<SpatialPersistenceDataEXT>
             {
                 EntityIds = entities.EntityIds,
@@ -975,14 +1079,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe byte[] GetBufferBytes(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+            
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferUint8(snapshot, ref info, 0, ref count, (byte*)null), "GetSpatialBufferUint8");
+            
             var result = new byte[count];
+            
             fixed (byte* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferUint8(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferUint8");
 
@@ -992,14 +1101,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe ushort[] GetBufferUInt16(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+            
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+            
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferUint16(snapshot, ref info, 0, ref count, null), "GetSpatialBufferUint16");
+            
             var result = new ushort[count];
+            
             fixed (ushort* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferUint16(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferUint16");
 
@@ -1009,14 +1123,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe uint[] GetBufferUInt32(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+            
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+            
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferUint32(snapshot, ref info, 0, ref count, null), "GetSpatialBufferUint32");
+            
             var result = new uint[count];
+            
             fixed (uint* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferUint32(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferUint32");
 
@@ -1026,14 +1145,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe float[] GetBufferFloats(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+            
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferFloat(snapshot, ref info, 0, ref count, null), "GetSpatialBufferFloat");
+            
             var result = new float[count];
+            
             fixed (float* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferFloat(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferFloat");
 
@@ -1043,14 +1167,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe Vector2f[] GetBufferVector2(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+            
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+            
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferVector2(snapshot, ref info, 0, ref count, null), "GetSpatialBufferVector2");
+            
             var result = new Vector2f[count];
+            
             fixed (Vector2f* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferVector2(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferVector2");
 
@@ -1060,14 +1189,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe Vector3f[] GetBufferVector3(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+            
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferVector3(snapshot, ref info, 0, ref count, null), "GetSpatialBufferVector3");
+            
             var result = new Vector3f[count];
+            
             fixed (Vector3f* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferVector3(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferVector3");
 
@@ -1077,14 +1211,19 @@ namespace OpenXr.Framework.Oculus
         public unsafe string GetBufferString(SpatialSnapshotEXT snapshot, ulong bufferId)
         {
             EnsureCreated();
+            
             var info = new SpatialBufferGetInfoEXT
             {
                 Type = StructureType.SpatialBufferGetInfoExt,
                 BufferId = bufferId
             };
+
             uint count = 0;
+            
             _app.CheckResult(_ext.GetSpatialBufferString(snapshot, ref info, 0, ref count, (byte*)null), "GetSpatialBufferString");
+            
             var result = new byte[count];
+            
             fixed (byte* pResult = result)
                 _app.CheckResult(_ext.GetSpatialBufferString(snapshot, ref info, count, ref count, pResult), "GetSpatialBufferString");
 
