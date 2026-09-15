@@ -145,7 +145,7 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
-        public unsafe override void OnInstanceCreated()
+        public override void OnInstanceCreated()
         {
             Debug.Assert(_app != null);
 
@@ -189,8 +189,11 @@ namespace OpenXr.Framework.Oculus
                 _spatialService?.Dispose();
                 _spatialService = null;
                 _spatialTask = null;
+
+                _performance = null;
             }
         }
+
         public override void OnSessionBegin()
         {
             UpdateFoveation();

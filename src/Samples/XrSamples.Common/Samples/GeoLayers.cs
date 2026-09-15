@@ -22,6 +22,7 @@ namespace XrSamples
 
             var sphere = scene.AddChild(new EquirectSphere(3));
             sphere.WorldPosition = new Vector3(0, 1.3f, 0);
+
             sphere.AddComponent(new XrEquirectSphereAttached(texture2)
             {
 

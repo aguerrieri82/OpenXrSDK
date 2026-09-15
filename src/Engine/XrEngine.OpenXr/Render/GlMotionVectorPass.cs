@@ -27,6 +27,7 @@ namespace XrEngine.OpenXr
             : base(renderer)
         {
             _xrApp = xrApp;
+            _xrApp.SessionChanged += OnSessionChanged;
 
             _multiView = multiView;
 
@@ -46,6 +47,17 @@ namespace XrEngine.OpenXr
             }
 
             Priority = -1;
+        }
+
+        private void OnSessionChanged()
+        {
+            if (_xrApp.State == XrAppState.Stopped)
+                Clear();
+        }
+
+        public void Clear()
+        {
+            _pool.Clear();
         }
 
         public unsafe void SetTargets(XrSwapchain swapchain, SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg, int colorFormat)

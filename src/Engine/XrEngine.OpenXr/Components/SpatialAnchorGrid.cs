@@ -1,12 +1,13 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class SpatialAnchorGrid : AsyncBehavior<Object3D>
+    public class SpatialAnchorGrid : BaseXrComponent<Object3D>
     {
         public class SpatialAnchor
         {
@@ -24,7 +25,7 @@ namespace XrEngine.OpenXr
         protected Pose3 _lastPose;
         protected XrOculusPlugin? _oculus;
         protected readonly List<SpatialAnchor> _anchors = [];
-        protected bool _isInit;
+        protected bool _isLoaded;
         protected List<(SpatialAnchor Anchor, float Distance)> _changedAnchors = [];
 
         public SpatialAnchorGrid()
@@ -33,6 +34,7 @@ namespace XrEngine.OpenXr
             MaxDistance = 2f;
             UpdateIntervalSec = 0.1f;
             DistanceTollerance = 0.01f;
+            _isAsync = true;
         }
 
         public SpatialAnchor? GetClosestAnchor(Vector3 worldPos, out float distance)
@@ -51,21 +53,25 @@ namespace XrEngine.OpenXr
             }
 
             distance = minDistance;
+
             return minAnchor;
         }
 
         public async Task ClearAsync(bool delete)
         {
+            Debug.Assert(_oculus != null);
+            Debug.Assert(_xrApp != null);
+
             foreach (var anchor in _anchors)
             {
-                XrApp.Current!.SpacesTracker.Remove(anchor.Space);
+                _xrApp.SpacesTracker.Remove(anchor.Space);
 
                 if (delete)
                 {
                     if (anchor.IsCreated)
-                        XrApp.Current!.DestroySpace(anchor.Space);
+                        _xrApp.DestroySpace(anchor.Space);
 
-                    if (_oculus!.GetSpaceComponentEnabled(anchor.Space, SpaceComponentTypeFB.StorableFB))
+                    if (_oculus.GetSpaceComponentEnabled(anchor.Space, SpaceComponentTypeFB.StorableFB))
                     {
                         var supported = _oculus.EnumerateSpaceSupportedComponentsFB(anchor.Space);
 
@@ -82,9 +88,12 @@ namespace XrEngine.OpenXr
 
         protected async Task LoadAnchorsAsync()
         {
+            Debug.Assert(_oculus != null);
+            Debug.Assert(_xrApp != null);
+
             await ClearAsync(false);
 
-            var spaces = await _oculus!.DiscoverSpacesAsync();
+            var spaces = await _oculus.DiscoverSpacesAsync();
 
             foreach (var anchor in spaces)
             {
@@ -95,7 +104,7 @@ namespace XrEngine.OpenXr
 
                 await _oculus.EnsureSpaceComponentAsync(anchor.Space, SpaceComponentTypeFB.LocatableFB);
 
-                var pose = XrApp.Current!.LocateSpace(anchor.Space, XrApp.Current.ReferenceSpace);
+                var pose = _xrApp.LocateSpace(anchor.Space, _xrApp.ReferenceSpace);
 
                 if (pose.IsValid)
                     AddAnchor(anchor.Space, anchor.Uuid.ToGuid(), pose.Pose, false);
@@ -105,6 +114,8 @@ namespace XrEngine.OpenXr
 
         protected void AddAnchor(Space space, Guid id, Pose3 worldPose, bool isCreated)
         {
+            Debug.Assert(_xrApp != null);
+
             var hostWorldPose = _host.GetWorldPose();
 
             _anchors.Add(new SpatialAnchor
@@ -116,23 +127,33 @@ namespace XrEngine.OpenXr
                 IsCreated = isCreated
             });
 
-            XrApp.Current!.SpacesTracker.Add(space, TimeSpan.FromSeconds(UpdateIntervalSec));
+            _xrApp.SpacesTracker.Add(space, TimeSpan.FromSeconds(UpdateIntervalSec));
         }
 
-        protected override async Task UpdateAsync(RenderContext ctx)
+        protected override void AttachXr()
         {
-            if (XrApp.Current == null || !XrApp.Current.IsStarted)
-                return;
+            _oculus ??= _xrApp!.Plugin<XrOculusPlugin>();
+        }
 
-            _oculus ??= XrApp.Current.Plugin<XrOculusPlugin>();
+        protected override void DetachXr()
+        {
+            _oculus = null;
+            _isLoaded = false;
+        }
 
-            if (!_isInit)
+        protected override async Task UpdateWorkAsync(RenderContext ctx)
+        {
+            Debug.Assert(_xrApp != null);
+
+            Debug.Assert(_oculus != null);
+
+            if (!_isLoaded)
             {
                 await LoadAnchorsAsync();
-                _isInit = true;
+                _isLoaded = true;
             }
 
-            var head = XrApp.Current.SpacesTracker.GetLastLocation(XrApp.Current.Head);
+            var head = _xrApp.SpacesTracker.GetLastLocation(_xrApp.Head);
 
             if (head == null || !head.IsValid)
                 return;
@@ -143,7 +164,7 @@ namespace XrEngine.OpenXr
 
                 if (anchor == null || distance > MaxDistance)
                 {
-                    var xrAnchor = await _oculus.CreateAnchorAsync(head.Pose, XrApp.Current.ReferenceSpace);
+                    var xrAnchor = await _oculus.CreateAnchorAsync(head.Pose, _xrApp.ReferenceSpace);
 
                     await _oculus.EnsureSpaceComponentAsync(xrAnchor.Space, SpaceComponentTypeFB.LocatableFB);
 
@@ -160,7 +181,7 @@ namespace XrEngine.OpenXr
 
             foreach (var anchor in _anchors)
             {
-                var location = XrApp.Current!.SpacesTracker.GetLastLocation(anchor.Space);
+                var location = _xrApp.SpacesTracker.GetLastLocation(anchor.Space);
 
                 if (location == null || !location.IsValid)
                     continue;

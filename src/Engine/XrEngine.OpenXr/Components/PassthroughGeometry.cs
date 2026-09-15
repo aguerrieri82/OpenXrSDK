@@ -7,58 +7,60 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class PassthroughGeometry : Behavior<Scene3D>
+    public class PassthroughGeometry : BaseXrComponent<Scene3D>
     {
         private bool _isInit;
         private OculusSceneView? _sceneModel;
-        private XrPassthroughLayer? _ptLayer;
+        private XrPassthroughLayer? _layer;
 
-        protected override void Update(RenderContext ctx)
+
+        protected override void AttachXr()
         {
-            if (_isInit)
+            _sceneModel = _host.Descendants<OculusSceneView>().FirstOrDefault();
+
+            _layer = _xrApp!.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+        }
+
+        protected override void DetachXr()
+        {
+            _isInit = false;    
+        }
+
+        protected override void UpdateWork(RenderContext ctx)
+        {
+            if (_isInit || _layer == null)
                 return;
 
-            Debug.Assert(_host != null);
+            if (_sceneModel == null || _sceneModel.Children.Count == 0)
+                return;
 
-            var xrApp = XrApp.Current;
+            Debug.Assert(_xrApp != null);
 
-            _sceneModel ??= _host.Descendants<OculusSceneView>().FirstOrDefault();
+            var meshObj = (TriangleMesh)_sceneModel.Children[0];
 
-            if (_sceneModel != null && _sceneModel.Children.Count > 0)
+            Debug.Assert(meshObj.Geometry != null);
+
+            var triMesh = new Mesh3
             {
-                _ptLayer ??= xrApp?.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+                Indices = meshObj.Geometry.Indices,
+                Vertices = meshObj.Geometry.ExtractPositions()
+            };
 
-                if (_ptLayer != null)
+            var test = Cube3D.Default;
+
+            triMesh.Indices = test.Indices;
+            triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
+
+            var ptMesh = _layer.AddMesh(triMesh, _xrApp.ReferenceSpace, meshObj);
+
+            _layer.UpdateMesh(
+                ptMesh, new Posef
                 {
-                    var meshObj = (TriangleMesh)_sceneModel.Children[0];
-
-                    Debug.Assert(meshObj.Geometry != null);
-
-                    var triMesh = new Mesh3
-                    {
-                        Indices = meshObj.Geometry.Indices,
-                        Vertices = meshObj.Geometry.ExtractPositions()
-                    };
-
-                    var test = Cube3D.Default;
-
-                    triMesh.Indices = test.Indices!;
-                    triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
-
-                    var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
-
-                    _ptLayer.UpdateMesh(
-                        ptMesh, new Posef
-                        {
-                            Orientation = Quaternion.Identity.ToQuaternionf()
-                        },
-                        new Vector3f(0.2f, 0.2f, 0.2f),
-                        xrApp.ReferenceSpace,
-                        xrApp.FramePredictedDisplayTime);
-
-                    _isInit = true;
-                }
-            }
+                    Orientation = Quaternion.Identity.ToQuaternionf()
+                },
+                new Vector3f(0.2f, 0.2f, 0.2f),
+                _xrApp.ReferenceSpace,
+                _xrApp.FramePredictedDisplayTime);
         }
     }
 }

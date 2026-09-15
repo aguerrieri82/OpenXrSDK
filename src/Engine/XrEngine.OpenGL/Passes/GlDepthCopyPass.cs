@@ -114,6 +114,11 @@ namespace XrEngine.OpenGL
             return _renderTarget.FrameBuffer.Color;
         }
 
+        public void Clear()
+        {
+            _pool.Clear();
+        }
+
         public override void Dispose()
         {
             _pool.Dispose();

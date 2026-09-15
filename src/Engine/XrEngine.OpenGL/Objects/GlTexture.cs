@@ -728,6 +728,14 @@ namespace XrEngine.OpenGL
             return texture;
         }
 
+        public static void ClearAttached()
+        {
+            var attached = _attached.Values.Where(a => a.IsAttached).ToArray();
+
+            foreach (var tex in attached)
+                tex.Dispose();
+        }
+
         protected bool PrepareStorage(
             uint width,
             uint height,

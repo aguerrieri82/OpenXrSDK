@@ -5,38 +5,17 @@ using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine.OpenGL;
+using XrEngine.OpenXr.Components;
 using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class XrScreenAttached : Behavior<CurvedScreen>, IDisposable
+    public class XrScreenAttached : BaseXrLayerAttach<CurvedScreen, XrCylinderLayer>
     {
-        readonly IGeometryLayerSource _source;
-        readonly Texture2D? _texture;
 
-        readonly Dictionary<Material, bool> _materialStates = [];
-
-        XrApp? _app;
-        XrCylinderLayer? _layer;
-        TextureMaterial? _textureMaterial;
-        DepthOnlyMaterial? _depthMaterial;
-        AngleVulkanContext? _vulkanCtx;
-
-        bool _xrMode;
-
-        public unsafe XrScreenAttached(Texture2D texture)
+        public XrScreenAttached(Texture2D texture)
         {
-            _texture = texture;
-
-            _textureMaterial = new TextureMaterial(texture)
-            {
-            };
-
-            _source = new XrTextureLayerSource(
-                RenderTexture,
-                new Size2I(texture.Width, texture.Height));
-
-            FlipY = true;
+            Initialize(texture);
         }
 
         public XrScreenAttached(IGeometryLayerSource source)
@@ -44,61 +23,15 @@ namespace XrEngine.OpenXr
             _source = source;
         }
 
-        protected override void OnAttach()
+        protected override XrCylinderLayer CreateLayer()
         {
-            Debug.Assert(_host != null);
+            Debug.Assert(_source != null);
 
-            if (_textureMaterial != null)
-                _host.Materials.Add(_textureMaterial);
-
-            _depthMaterial = new DepthOnlyMaterial
-            {
-                IsEnabled = false
-            };
-
-            _host.Materials.Add(_depthMaterial);
-        }
-
-        protected override void Update(RenderContext ctx)
-        {
-            var app = XrApp.Current;
-
-            if (app != _app)
-            {
-                DetachXr();
-
-                if (app != null)
-                    AttachXr(app);
-            }
-
-            SetXrMode(_app?.IsStarted == true);
-        }
-
-        private void AttachXr(XrApp app)
-        {
-            _app = app;
-
-            _layer = new XrCylinderLayer(GetCylinder, _source)
+            return new XrCylinderLayer(GetCylinder, _source)
             {
                 Priority = XrLayerPriority.UiGeomeytry,
                 FlipY = FlipY && SupportNativeFlip
             };
-
-            _app.Layers.Add(_layer);
-        }
-
-        private void DetachXr()
-        {
-            SetXrMode(false);
-
-            if (_layer != null)
-            {
-                _app?.Layers.Remove(_layer);
-                _layer.Dispose();
-                _layer = null;
-            }
-
-            _app = null;
         }
 
         private Cylinder GetCylinder()
@@ -123,103 +56,5 @@ namespace XrEngine.OpenXr
                 Angle = _host.Curvature
             };
         }
-
-        private void SetXrMode(bool value)
-        {
-            if (_xrMode == value)
-                return;
-
-            _xrMode = value;
-
-            if (_xrMode)
-                EnableXrMode();
-            else
-                DisableXrMode();
-        }
-
-        private void EnableXrMode()
-        {
-            Debug.Assert(_host != null && _depthMaterial != null);
-
-            _materialStates.Clear();
-
-            foreach (var material in _host.Materials)
-            {
-                if (material == _depthMaterial)
-                    continue;
-
-                _materialStates[material] = material.IsEnabled;
-                material.IsEnabled = false;
-            }
-
-            _depthMaterial.IsEnabled = _layer!.Priority < XrLayerPriority.Projection;
-        }
-
-        private void DisableXrMode()
-        {
-            foreach (var item in _materialStates)
-                item.Key.IsEnabled = item.Value;
-
-            _materialStates.Clear();
-
-            if (_depthMaterial != null)
-                _depthMaterial.IsEnabled = false;
-        }
-
-        private unsafe bool RenderTexture(GeometryRenderData data, SwapchainImageBaseHeader* image, long predTime)
-        {
-            var swapchain = data.Swapchain!;
-
-            var useAngle = OpenGLRender.Current!.Features.IsAngle;
-
-            uint glImage;
-
-            if (useAngle)
-            {
-                _vulkanCtx ??= Context.Require<AngleVulkanContext>();
-
-                glImage = _vulkanCtx.AttachVulkanImage(image, swapchain).Texture;
-            }
-            else
-                glImage = ((SwapchainImageOpenGLKHR*)image)->Image;
-
-            if (FlipY && !SupportNativeFlip)
-            {
-                _texture!.ToGlTexture().BlitTo(
-                    GlTexture.Attach(OpenGLRender.Current.GL, glImage), true);
-            }
-            else
-                _texture!.ToGlTexture().CopyTo(GlTexture.Attach(OpenGLRender.Current.GL, glImage));
-
-            return true;
-        }
-
-        public void Dispose()
-        {
-            DetachXr();
-
-            if (_host != null)
-            {
-                if (_depthMaterial != null)
-                    _host.Materials.Remove(_depthMaterial);
-
-                if (_textureMaterial != null)
-                    _host.Materials.Remove(_textureMaterial);
-            }
-
-            _depthMaterial?.Dispose();
-            _depthMaterial = null;
-
-            _textureMaterial?.Dispose();
-            _textureMaterial = null;
-
-            GC.SuppressFinalize(this);
-        }
-
-        protected bool SupportNativeFlip => !OperatingSystem.IsWindows();
-
-        public bool FlipY { get; set; }
-
-        public XrCylinderLayer? Layer => _layer;
     }
 }

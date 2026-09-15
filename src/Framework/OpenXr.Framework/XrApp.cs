@@ -137,10 +137,13 @@ namespace OpenXr.Framework
 
             _extensions.Add("XR_KHR_locate_spaces");
             _extensions.Add("XR_KHR_convert_timespec_time");
-            _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add("XR_EXT_hand_interaction");
+
+            _extensions.Add("XR_KHR_composition_layer_depth");
             _extensions.Add("XR_KHR_composition_layer_equirect2");
             _extensions.Add("XR_KHR_composition_layer_equirect");
+            _extensions.Add("XR_KHR_composition_layer_cylinder");
+            
             _extensions.Add("XR_EXT_user_presence");
 
             _apiLayers.Add("XR_APILAYER_LUNARG_core_validation");
@@ -477,6 +480,9 @@ namespace OpenXr.Framework
             DisposeSpace(ref _stage);
 
             ListInvoke<IXrLayer>(_layers.List, p => p.Destroy());
+
+            foreach (var hand in _hands)
+                hand.Value.Destroy();
 
             if (_session.Handle != 0)
             {

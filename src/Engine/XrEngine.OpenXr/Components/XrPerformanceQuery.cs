@@ -1,12 +1,13 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using System.Diagnostics;
 
 namespace XrEngine.OpenXr
 {
-    public class XrPerformanceQuery : Behavior<Scene3D>
+    public class XrPerformanceQuery : BaseXrComponent<Scene3D>
     {
-        readonly Dictionary<string, float> _performances = [];
-        private XrOculusPlugin? _oculus;
+        protected readonly Dictionary<string, float> _performances = [];
+        protected XrOculusPlugin? _oculus;
 
         public XrPerformanceQuery()
         {
@@ -22,15 +23,18 @@ namespace XrEngine.OpenXr
             _oculus?.Performance.SetEnabled(true);
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override void AttachXr()
         {
-            if (_oculus == null)
-            {
-                _oculus = XrApp.Current?.Plugin<XrOculusPlugin>();
-                _oculus?.Performance.SetEnabled(true);
-            }
-            else
-                _oculus.Performance.ReadAll(_performances);
+            _oculus = _xrApp!.Plugin<XrOculusPlugin>();
+
+            _oculus.Performance.SetEnabled(true);
+        }
+
+        protected override void UpdateWork(RenderContext ctx)
+        {
+            Debug.Assert(_oculus != null);
+
+            _oculus.Performance.ReadAll(_performances);
         }
 
         public Dictionary<string, float> Performances => _performances;

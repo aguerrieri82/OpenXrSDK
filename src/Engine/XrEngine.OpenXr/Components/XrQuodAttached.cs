@@ -1,10 +1,4 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-#endif
-
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using OpenXr.Framework.Angle;
 using OpenXr.Framework.Layers;
 using Silk.NET.OpenXR;
@@ -14,54 +8,44 @@ using XrEngine.UI;
 
 namespace XrEngine.OpenXr
 {
-    public class XrQuodAttached : Behavior<CanvasView3D>, IDisposable
+    public class XrQuodAttached : BaseXrComponent<CanvasView3D>, IDisposable
     {
-        XrQuadLayer[]? _layers;
+        XrQuadLayer? _layer;
         AngleVulkanContext? _vulkanCtx;
-        readonly XrApp _app;
 
         public XrQuodAttached(XrApp app)
         {
-            _app = app;
+            _xrApp = app;
         }
 
         public void Dispose()
         {
-            if (_app == null || _layers == null)
-                return;
-
-            foreach (var layer in _layers)
+            if (_layer != null)
             {
-                _app.Layers.Remove(layer);
-                layer.Dispose();
+                _xrApp?.Layers.Remove(_layer);
+                _layer.Dispose();
+                _xrApp = null;
+                _layer = null;
             }
-
-            _layers = null;
 
             GC.SuppressFinalize(this);
         }
 
-        protected unsafe override void OnAttach()
+
+        protected override void DetachXr()
+        {
+            _host.Mode = CanvasViewMode.Texture;
+        }
+
+        protected unsafe override void AttachXr()
         {
             Debug.Assert(_host != null);
+
+            _host.Mode = CanvasViewMode.RenderTarget;
 
             var useAngle = OpenGLRender.Current!.Features.IsAngle;
 
-            var layer = _app.Layers.AddQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiGeomeytry);
-
-            _layers = [layer];
-        }
-
-        protected override void Update(RenderContext ctx)
-        {
-            Debug.Assert(_host != null);
-
-            if (_app.IsStarted && _host.Mode == CanvasViewMode.Texture)
-                _host.Mode = CanvasViewMode.RenderTarget;
-
-            if (!_app.IsStarted && _host.Mode == CanvasViewMode.RenderTarget)
-                _host.Mode = CanvasViewMode.Texture;
-
+            _layer = _xrApp!.Layers.AddQuod(_host.BindToQuad(), RenderQuod, _host.PixelSize, XrLayerPriority.UiGeomeytry);
         }
 
         unsafe bool RenderQuod(GeometryRenderData data, SwapchainImageBaseHeader* image, long predTime)
@@ -96,7 +80,7 @@ namespace XrEngine.OpenXr
             return true;
         }
 
-        public XrQuadLayer[]? Layers => _layers;
+        public XrQuadLayer? Layer => _layer;
 
     }
 }

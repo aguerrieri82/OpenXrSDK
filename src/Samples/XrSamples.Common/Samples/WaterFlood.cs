@@ -30,10 +30,8 @@ namespace XrSamples
             settings.Apply(water);
 
             var sceneFactory = new DefaultSceneModelFactory();
-            var sceneView = scene.AddChild(new OculusSceneView
-            {
-                Factory = sceneFactory
-            });
+
+            var sceneView = scene.AddChild(new OculusSceneView(sceneFactory));
 
             var depthMaskMaterial = new DepthOnlyMaterial
             {

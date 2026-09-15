@@ -92,12 +92,16 @@ namespace OpenXr.Framework
             {
                 foreach (var item in _colorSwaps)
                     item.Dispose();
+
+                _colorSwaps = null;
             }
 
             if (_depthSwaps != null)
             {
                 foreach (var item in _depthSwaps)
                     item.Dispose();
+
+                _depthSwaps = null;
             }
 
             _header.ValueRef.Space.Handle = 0;

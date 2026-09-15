@@ -26,7 +26,6 @@ namespace OpenXr.Framework.Oculus
         private readonly XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
         private METAPassthroughColorLut? _colorLut;
-
         private METAPassthroughPreferences? _preferences;
         private readonly List<XrColorLut> _colorLuts = [];
 
@@ -42,7 +41,6 @@ namespace OpenXr.Framework.Oculus
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {
-
             extensions.Add(FBPassthrough.ExtensionName);
             extensions.Add(METAEnvironmentDepth.ExtensionName);
             extensions.Add(METAPassthroughColorLut.ExtensionName);
@@ -154,37 +152,6 @@ namespace OpenXr.Framework.Oculus
             _isStarted = false;
         }
 
-        public override void Destroy()
-        {
-            if (_passthrough != null)
-            {
-                foreach (var mesh in _meshes)
-                    _xrApp!.CheckResult(_passthrough.DestroyGeometryInstanceFB(mesh.Instance), "DestroyGeometryInstanceFB");
-
-                if (_ptLayer.Handle != 0)
-                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughLayerFB(_ptLayer), "DestroyPassthroughLayerFB");
-
-                if (_ptInstance.Handle != 0)
-                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughFB(_ptInstance), "DestroyPassthroughFB");
-
-                _ptInstance.Handle = 0;
-                _ptLayer.Handle = 0;
-
-                foreach (var lut in _colorLuts)
-                    lut.Dispose();
-
-                _colorLuts.Clear();
-            }
-
-            _envDepth.Dispose();
-
-            _meshes.Clear();
-
-            _xrApp?.XrEvent -= OnEvent;
-
-            base.Destroy();
-        }
-
         public override void Create()
         {
             if (!IsEnabled)
@@ -217,8 +184,37 @@ namespace OpenXr.Framework.Oculus
             _isStarted = true;
 
             _xrApp.XrEvent += OnEvent;
+        }
 
-            base.Create();
+        public override void Destroy()
+        {
+            if (_passthrough != null)
+            {
+                foreach (var mesh in _meshes)
+                    _xrApp!.CheckResult(_passthrough.DestroyGeometryInstanceFB(mesh.Instance), "DestroyGeometryInstanceFB");
+
+                if (_ptLayer.Handle != 0)
+                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughLayerFB(_ptLayer), "DestroyPassthroughLayerFB");
+
+                if (_ptInstance.Handle != 0)
+                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughFB(_ptInstance), "DestroyPassthroughFB");
+
+                _ptInstance.Handle = 0;
+                _ptLayer.Handle = 0;
+
+                foreach (var lut in _colorLuts)
+                    lut.Dispose();
+
+                _colorLuts.Clear();
+            }
+
+            _envDepth.Dispose();
+
+            _meshes.Clear();
+
+            _xrApp?.XrEvent -= OnEvent;
+
+            base.Destroy();
         }
 
         protected override void OnEnabledChanged(bool isEnabled)

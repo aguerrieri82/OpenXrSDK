@@ -1,15 +1,15 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class KeyboardTracker : AsyncBehavior<Object3D>, IDisposable, IDrawGizmos
+    public class KeyboardTracker : BaseXrComponent<Object3D>, IDisposable, IDrawGizmos
     {
         private XrDynamicObjectTracker? _dynTracker;
-        private XrApp? _app;
         private XrOculusPlugin? _oculus;
         private Space _keyboardSpace;
         private Bounds3 _bounds;
@@ -20,36 +20,45 @@ namespace XrEngine.OpenXr
         public KeyboardTracker()
         {
             CreateHole = true;
+            _isAsync = true;
         }
 
-        protected override async Task UpdateAsync(RenderContext ctx)
+        protected override void AttachXr()
         {
-            if (!XrDevice.IsMetaQuest)
-                return;
+            _oculus = _xrApp!.Plugin<XrOculusPlugin>();
+        }
 
-            if (_app == null && XrApp.Current != null)
-                _app = XrApp.Current;
+        protected override void DetachXr()
+        {
+            _hole?.IsVisible = false;
+            _dynTracker?.Dispose();
+            _dynTracker = null;
+        }
 
-            if (_app != null && _app.IsStarted && _dynTracker == null)
+        protected override async Task UpdateWorkAsync(RenderContext ctx)
+        {
+            Debug.Assert(_xrApp != null);
+
+            if (_dynTracker == null)
             {
-                _dynTracker = new XrDynamicObjectTracker(_app);
+                _dynTracker = new XrDynamicObjectTracker(_xrApp);
 
                 await _dynTracker.CreateAsync();
+
                 await _dynTracker.SetTrackedClassesAsync(DynamicObjectClassMETA.KeyboardMeta);
             }
 
-            if (_dynTracker != null && _keyboardSpace.Handle == 0)
+            if (_keyboardSpace.Handle == 0)
             {
-                _oculus ??= _app!.Plugin<XrOculusPlugin>();
-
-                var result = await _oculus.QueryAllSpacesAsync(
+                var result = await _oculus!.QueryAllSpacesAsync(
                     storageLocation: SpaceStorageLocationFB.LocalFB,
                     component: METADynamicObjectTracker.SpaceComponentTypeDynamicObjectDataMeta);
 
                 if (result.Length > 0)
                 {
                     _keyboardSpace = result[0].Space;
-                    _app!.SpacesTracker.Add(_keyboardSpace, TimeSpan.FromSeconds(0));
+
+                    _xrApp!.SpacesTracker.Add(_keyboardSpace, TimeSpan.FromSeconds(0));
 
                     if (!_oculus.GetSpaceComponentEnabled(_keyboardSpace, SpaceComponentTypeFB.LocatableFB))
                         await _oculus.SetSpaceComponentStatusAsync(_keyboardSpace, SpaceComponentTypeFB.LocatableFB, true);
@@ -72,7 +81,7 @@ namespace XrEngine.OpenXr
                 _lastBoundsTime = ctx.Time;
             }
 
-            var loc = _app!.SpacesTracker.GetLastLocation(_keyboardSpace);
+            var loc = _xrApp!.SpacesTracker.GetLastLocation(_keyboardSpace);
 
             if (loc != null && loc.IsValid)
             {
@@ -129,11 +138,8 @@ namespace XrEngine.OpenXr
 
         public void Dispose()
         {
-            if (_dynTracker != null)
-            {
-                _dynTracker.Dispose();
-                _dynTracker = null;
-            }
+            _dynTracker?.Dispose();
+            _dynTracker = null;
 
             GC.SuppressFinalize(this);
         }

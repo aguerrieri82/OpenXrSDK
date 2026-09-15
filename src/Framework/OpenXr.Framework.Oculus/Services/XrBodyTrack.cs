@@ -230,7 +230,8 @@ namespace OpenXr.Framework.Oculus
             if (_tracker.Handle == 0)
                 return;
 
-            _app.CheckResult(_bodyTracking!.DestroyBodyTrackerFB(_tracker), "DestroyBodyTrackerFB");
+            if (_app.Session.Handle != 0)
+                _app.CheckResult(_bodyTracking!.DestroyBodyTrackerFB(_tracker), "DestroyBodyTrackerFB");
 
             _tracker.Handle = 0;
         }

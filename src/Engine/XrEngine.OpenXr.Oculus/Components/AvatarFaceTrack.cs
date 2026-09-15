@@ -1,13 +1,14 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Components;
 using XrMath;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public class AvatarFaceTrack : Behavior<Avatar>
+    public class AvatarFaceTrack : BaseXrComponent<Avatar>
     {
         public struct JointBlend
         {
@@ -16,10 +17,9 @@ namespace XrEngine.OpenXr.Oculus
         }
 
         XrFaceTrack? _faceTrack;
-        XrApp? _xrApp;
-
         MeshMorph? _morph;
         Dictionary<string, int>? _targets;
+
         readonly Dictionary<string, float> _morphWeights = new();
         readonly List<CorrectiveMorph> _correctiveMorphs = new();
 
@@ -237,33 +237,36 @@ namespace XrEngine.OpenXr.Oculus
             }
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override void AttachXr()
         {
-            _xrApp ??= XrApp.Current;
+            _faceTrack = new XrFaceTrack(_xrApp!);
+            _faceTrack.Create();
+        }
 
-            if (_xrApp == null || !_xrApp.IsStarted)
-                return;
+        protected override void DetachXr()
+        {
+            _faceTrack!.Dispose();
+            _faceTrack = null;
+        }
+
+        protected override void UpdateWork(RenderContext ctx)
+        {
+            Debug.Assert(_xrApp != null);
 
             if (_xrApp.SessionState != SessionState.Focused)
                 return;
 
-            if (_faceTrack == null)
-            {
-                _faceTrack = new XrFaceTrack(_xrApp);
-                _faceTrack.Create();
-            }
-
             if (_morph == null || _targets == null)
                 return;
 
-            var weights = _faceTrack.GetWeigths();
+            var weights = _faceTrack!.GetWeigths();
 
             if (weights == null || !_faceTrack.IsValid)
                 return;
 
-            // Clear only weights owned by this component, including disabled approximations.
             foreach (var name in _morphWeights.Keys)
                 _morph.Weights[_targets[name]] = 0;
+
             _morphWeights.Clear();
 
             UpdateDirectMorphs(weights);
@@ -278,6 +281,7 @@ namespace XrEngine.OpenXr.Oculus
 
             _morph.InvalidateWeights();
         }
+
 
         private void UpdateDirectMorphs(XrFaceWeight[] weights)
         {

@@ -31,8 +31,10 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host != null);
 
-            var result = new ObjectGrab();
-            result.IsValid = _host.HandInput.IsActive;
+            var result = new ObjectGrab
+            {
+                IsValid = _host.HandInput.IsActive
+            };
 
             if (UseAim)
             {

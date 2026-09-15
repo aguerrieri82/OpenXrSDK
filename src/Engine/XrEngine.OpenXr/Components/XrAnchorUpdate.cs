@@ -4,58 +4,54 @@ using Silk.NET.OpenXR;
 namespace XrEngine.OpenXr
 {
 
-    public class XrAnchorUpdate : Behavior<Object3D>
+    public class XrAnchorUpdate : BaseXrComponent<Object3D>
     {
-        protected bool _isInit;
         protected bool _hasPose;
 
-        protected override void Start(RenderContext ctx)
+        protected override void AttachXr()
         {
-            OnEnabled();
+            if (IsEnabled && Space.Handle != 0)
+                _xrApp!.SpacesTracker.Add(Space, UpdateInterval);
         }
 
-        protected override void OnDisabled()
+        protected override void DetachXr()
         {
-            var xrApp = XrApp.Current;
-            xrApp?.SpacesTracker.Remove(Space);
-            _isInit = false;
-
-            base.OnDisabled();
+            _xrApp!.SpacesTracker.Remove(Space);
+            Space = new Space();
         }
 
         protected override void OnEnabled()
         {
-            var xrApp = XrApp.Current;
-
-            base.OnEnabled();
+            if (_xrApp != null)
+                AttachXr();
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override void OnDisabled()
         {
-            var xrApp = XrApp.Current;
+            if (_xrApp != null)
+                DetachXr();
+        }
 
-            if (xrApp == null)
+        protected override void UpdateWork(RenderContext ctx)
+        {
+            if (Space.Handle == 0)
                 return;
 
-            if (!_isInit)
-            {
-                xrApp.SpacesTracker.Add(Space, UpdateInterval);
-                _isInit = true;
-            }
-
-            var loc = xrApp?.SpacesTracker.GetLastLocation(Space);
+            var loc = _xrApp!.SpacesTracker.GetLastLocation(Space);
 
             if (loc == null || !loc.IsValid)
                 return;
 
             _hasPose = true;
 
-            _host?.SetWorldPoseIfChanged(loc.Pose, false, 0.005f);
+            _host!.SetWorldPoseIfChanged(loc.Pose, false, 0.005f);
 
             if (LogChanges)
             {
                 var deltaPos = (loc.Pose.Position - _host.WorldPosition).Length();
+                
                 var deltaOri = (loc.Pose.Orientation - _host.WorldOrientation).Length();
+
                 if (deltaPos > 0.005 || deltaOri > 0.005)
                     Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
             }

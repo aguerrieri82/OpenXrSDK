@@ -79,9 +79,10 @@ namespace XrEngine.OpenXr
 
                         var isTip = ((int)capsule.Joint + 1) % 5 == 0;
 
-                        var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
-
-                        capMesh.IsVisible = ShowCapsule;
+                        var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial)
+                        {
+                            IsVisible = ShowCapsule
+                        };
 
                         capMesh.AddComponent(new CapsuleCollider()
                         {

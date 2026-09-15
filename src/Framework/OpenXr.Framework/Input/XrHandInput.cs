@@ -79,6 +79,7 @@ namespace OpenXr.Framework
         public void Destroy()
         {
             _app.CheckResult(_app._handTracking!.DestroyHandTracker(_tracker), "DestroyHandTracker");
+
             _tracker.Handle = 0;
         }
 

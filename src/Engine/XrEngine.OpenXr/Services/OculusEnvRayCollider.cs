@@ -42,14 +42,23 @@ namespace XrEngine.OpenXr
             if (_app != app)
             {
                 _caster?.Dispose();
+                _app?.SessionChanged += OnSessionChanged;
 
                 _app = app;
                 _caster = new XrEnvironmentRaycaster(app);
                 _createTask = null;
             }
 
-            if (_createTask == null)
-                _createTask = _caster!.CreateAsync();
+            _createTask ??= _caster!.CreateAsync();
+        }
+
+        private void OnSessionChanged()
+        {
+            if (_app!.State == XrAppState.Stopped)
+            {
+                _caster?.Dispose();
+                _caster = null; 
+            }
         }
 
         public bool IsEnabled

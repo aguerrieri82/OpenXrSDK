@@ -253,7 +253,7 @@ namespace XrEngine.OpenXr
         {
             var sceneView = new OculusSceneView();
 
-            var factory = (DefaultSceneModelFactory)sceneView.Factory;
+            var factory = (DefaultSceneModelFactory)sceneView.Loader.Factory;
 
             Material? material = null;
             if (arMode)

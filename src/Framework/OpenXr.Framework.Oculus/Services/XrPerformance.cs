@@ -40,6 +40,7 @@ namespace OpenXr.Framework.Oculus
                 throw new NotSupportedException(MetaPerformanceMetrics.ExtensionName);
 
             _metrics = metrics;
+
             LoadCounters();
         }
 

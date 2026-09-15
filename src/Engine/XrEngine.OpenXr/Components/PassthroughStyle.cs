@@ -4,7 +4,7 @@ using Silk.NET.OpenXR;
 
 namespace XrEngine.OpenXr
 {
-    public class PassthroughStyle : Behavior<Scene3D>
+    public class PassthroughStyle : BaseXrComponent<Scene3D>
     {
         readonly Dictionary<ColorLut, XrColorLut> _xrLuts = [];
 
@@ -14,10 +14,18 @@ namespace XrEngine.OpenXr
         float _lutWeight = 1f;
         bool _styleDirty = true;
 
-        protected override void Update(RenderContext ctx)
+        protected override void AttachXr()
         {
-            _layer ??= XrApp.Current?.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+            _layer = _xrApp!.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+        }
 
+        protected override void DetachXr()
+        {
+            _layer = null;
+        }
+
+        protected override void UpdateWork(RenderContext ctx)
+        {
             if (_layer == null || !_layer.IsEnabled)
                 return;
 
@@ -34,8 +42,6 @@ namespace XrEngine.OpenXr
 
                 _styleDirty = false;
             }
-
-            base.Update(ctx);
         }
 
         private void SyncLuts()

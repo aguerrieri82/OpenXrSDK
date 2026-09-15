@@ -37,7 +37,8 @@ namespace OpenXr.Framework.Oculus
         private Pose3 _aimPose;
         protected readonly XrHandAimState[] _aimStates = new XrHandAimState[4];
 
-        public XrHandInputOculus(XrApp app) : base(app)
+        public XrHandInputOculus(XrApp app) 
+            : base(app)
         {
             _oculus = _app.Plugin<XrOculusPlugin>();
             _velocities = new HandJointVelocityEXT[XR_HAND_JOINT_COUNT_EXT];
@@ -59,7 +60,7 @@ namespace OpenXr.Framework.Oculus
             StructChain.AddNextStruct(ref info, _dataSourceInfo.Pointer);
         }
 
-        public unsafe override HandJointLocationEXT[] LocateHandJoints(Space space, long time)
+        public override HandJointLocationEXT[] LocateHandJoints(Space space, long time)
         {
             var scale = new HandTrackingScaleFB()
             {
@@ -182,7 +183,9 @@ namespace OpenXr.Framework.Oculus
                 NativeMemory.Free(_dataSources);
                 _dataSources = null;
             }
+
             _dataSourceInfo.Dispose();
+            
             base.Dispose();
         }
 

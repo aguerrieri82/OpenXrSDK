@@ -1,21 +1,18 @@
 ﻿using OpenXr.Framework;
+using System.Diagnostics;
 
 namespace XrEngine.OpenXr
 {
-    public class XrFrameCapture : Behavior<Scene3D>
+    public class XrFrameCapture : BaseXrComponent<Scene3D>
     {
-        private XrApp? _xrApp;
         private bool _captureRequest;
         private bool _isCapturing;
 
-        protected override void Update(RenderContext ctx)
+        protected override void AttachXr()
         {
-            if (_xrApp != XrApp.Current && XrApp.Current != null)
-            {
-                _xrApp = XrApp.Current;
-                _xrApp.BeginFrameEvent += OnBeginFrame;
-                _xrApp.EndFrameEvent += OnEndFrame;
-            }
+            Debug.Assert(_xrApp != null);
+            _xrApp.BeginFrameEvent += OnBeginFrame;
+            _xrApp.EndFrameEvent += OnEndFrame;
         }
 
         private void OnBeginFrame()

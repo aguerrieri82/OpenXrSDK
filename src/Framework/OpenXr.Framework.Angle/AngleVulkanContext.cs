@@ -359,10 +359,9 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
     private readonly nint _glesLibrary;
     private bool _disposed;
     private GL? _gl;
+
     private readonly Dictionary<nint, ImportedVulkanImage> _images = [];
-
     private readonly Dictionary<uint, AquiredTexture> _acquiredTextures = [];
-
     private readonly HashSet<XrSwapchain> _swapAttached = [];
 
     readonly int _sampleCount;
@@ -623,6 +622,13 @@ public sealed unsafe class AngleVulkanContext : INativeContext, IAngleContext
             AcquireTexture(result.Texture);
 
         return result;
+    }
+
+    public void Clear()
+    {
+        _swapAttached.Clear();
+        _acquiredTextures.Clear();
+        _images.Clear();
     }
 
     private void OnAfterAcquire(XrSwapchain swapchain)

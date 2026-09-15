@@ -107,7 +107,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, sampleCount: 2)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateSpatial()
+              .CreateGeoLayers()
               //.CreateDnd()
               .Build();
 

@@ -49,7 +49,15 @@ namespace XrEngine.OpenXr
         protected virtual void OnSessionChanged()
         {
             if (_xrApp.State == XrAppState.Stopped)
+            {
                 _targetPool?.Clear();
+
+                _depthCopyPass?.Clear();
+
+                GlTexture.ClearAttached();
+
+                _vulkanCtx?.Clear();
+            }
         }
 
         protected XrProjectionLayer CreateProjectionLayer()

@@ -35,13 +35,18 @@ namespace XrSamples
                 var avatar = await avatarManager.LoadAsync("8672967276120323");
 
                 var tracker = avatar.AddComponent<AvatarTracker>();
-                tracker.Height = 1.72f;
+
                 tracker.Fidelity = BodyTrackingFidelityMETA.HighMeta;
 
-                avatar.AddComponent(new AvatarFaceTrack
+                if (!XrPlatform.IsEditor)
                 {
-                    UseApproximateMorphs = true,
-                });
+                    tracker.Height = 1.72f;
+
+                    avatar.AddComponent(new AvatarFaceTrack
+                    {
+                        UseApproximateMorphs = true,
+                    });
+                }
 
                 tracker.Mirror(1f);
 

@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework;
+﻿using Microsoft.VisualBasic;
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
@@ -32,46 +33,46 @@ namespace XrEngine.OpenXr
 
         public override void Update(RenderContext ctx)
         {
+            if (_isInit && !_xrApp.IsStarted)
+                _isInit = false;
+
             if (_xrApp.IsStarted && !_isInit)
             {
-                if (!_xrApp.TryPlugin<XrOculusPlugin>(out var oculus))
-                    return;
+                _ = AddFloorAsync();
 
-                if (oculus != null)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        var anchors = await oculus.GetSpacesAsync(new XrSpaceFilter
-                        {
-                            Components = XrAnchorComponent.All,
-                            Labels = ["FLOOR"]
-                        });
+                var headAnchor = Head!.EnsureComponent<XrAnchorUpdate>();
 
-                        var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
-
-                        if (floor == null)
-                            return;
-
-                        await EngineApp.MainThread;
-
-                        SceneRoot.AddComponent(new XrAnchorUpdate()
-                        {
-                            Space = new Space(floor.Space),
-                            UpdateInterval = TimeSpan.FromMilliseconds(300),
-                            LogChanges = true
-                        });
-                    });
-                }
-
-                Head?.AddComponent(new XrAnchorUpdate()
-                {
-                    Space = _xrApp.Head
-                });
+                headAnchor.Space = _xrApp.Head;
 
                 _isInit = true;
             }
 
             base.Update(ctx);
+        }
+
+        protected async Task AddFloorAsync()
+        {
+            if (!_xrApp.TryPlugin<XrOculusPlugin>(out var oculus))
+                return;
+
+            var anchors = await oculus!.GetSpacesAsync(new XrSpaceFilter
+            {
+                Components = XrAnchorComponent.All,
+                Labels = ["FLOOR"]
+            });
+
+            var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
+
+            if (floor == null)
+                return;
+
+            await EngineApp.MainThread;
+
+            var floorUpdate = SceneRoot.EnsureComponent<XrAnchorUpdate>();
+
+            floorUpdate.Space = new Space(floor.Space);
+            floorUpdate.UpdateInterval = TimeSpan.FromMilliseconds(300);
+            floorUpdate.LogChanges = true;
         }
 
         protected Group3D AddSceneRoot()

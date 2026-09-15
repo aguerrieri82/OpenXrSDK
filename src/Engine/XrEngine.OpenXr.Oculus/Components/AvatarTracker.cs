@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public class AvatarTracker : Behavior<Avatar>, IDisposable
+    public class AvatarTracker : BaseXrComponent<Avatar>, IDisposable
     {
         private static readonly Dictionary<FullBodyJointMETA, string> _bodyMap = new()
         {
@@ -90,7 +90,6 @@ namespace XrEngine.OpenXr.Oculus
         };
 
         protected XrBodyTrack? _bodyTrack;
-        protected XrApp? _xrApp;
         protected BodySkeletonRetargeter? _bodyRetargeter;
         protected Joint3D? _xrScheleton;
         protected Dictionary<int, Joint3D>? _xrScheletonMap;
@@ -103,56 +102,57 @@ namespace XrEngine.OpenXr.Oculus
             ShowSkeleton = true;
         }
 
-        protected override void Update(RenderContext ctx)
+        protected override void AttachXr()
         {
-            _xrApp ??= XrApp.Current;
+            _bodyTrack = new XrBodyTrack(_xrApp!);
+            _bodyTrack.Create(BodyJointSetFB.FullBodyMeta);
 
-            if (_xrApp != null && _xrApp.IsStarted)
+            if (_height > 0)
+                _bodyTrack.SuggestHeight(_height);
+
+            if (_fidelity != null)
+                _bodyTrack.RequestFidelity(_fidelity.Value);
+        }
+
+        protected override void DetachXr()
+        {
+            _bodyTrack?.Dispose();
+            _bodyTrack = null;
+        }
+
+        protected override void UpdateWork(RenderContext ctx)
+        {
+            if (_xrApp!.SessionState != SessionState.Focused)
+                return;
+
+            var locations = _bodyTrack!.LocateJoints(_xrApp.ReferenceSpace, _xrApp.FramePredictedDisplayTime);
+
+            if (_bodyTrack.IsActive && _bodyTrack.Skeleton != null)
             {
-                if (_xrApp.SessionState != SessionState.Focused)
-                    return;
+                var updateScheleton = false;
 
-                if (_bodyTrack == null)
+                if (_bodyRetargeter == null)
                 {
-                    _bodyTrack = new XrBodyTrack(_xrApp);
-                    _bodyTrack.Create(BodyJointSetFB.FullBodyMeta);
-
-                    if (_height > 0)
-                        _bodyTrack.SuggestHeight(_height);
-
-                    if (_fidelity != null)
-                        _bodyTrack.RequestFidelity(_fidelity.Value);
+                    BindBody();
+                    updateScheleton = true;
+                }
+                else if (!_bodyRetargeter.IsBoundTo(_bodyTrack.Skeleton))
+                {
+                    _bodyRetargeter.Rebind(_bodyTrack.Skeleton);
+                    updateScheleton = true;
                 }
 
-                var locations = _bodyTrack.LocateJoints(_xrApp.ReferenceSpace, _xrApp.FramePredictedDisplayTime);
-
-                if (_bodyTrack.IsActive && _bodyTrack.Skeleton != null)
+                if (updateScheleton && ShowSkeleton)
                 {
-                    var updateScheleton = false;
-
-                    if (_bodyRetargeter == null)
-                    {
-                        BindBody();
-                        updateScheleton = true;
-                    }
-                    else if (!_bodyRetargeter.IsBoundTo(_bodyTrack.Skeleton))
-                    {
-                        _bodyRetargeter.Rebind(_bodyTrack.Skeleton);
-                        updateScheleton = true;
-                    }
-
-                    if (updateScheleton && ShowSkeleton)
-                    {
-                        _xrScheleton?.Remove();
-                        _xrScheleton = _host.AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrScheletonMap));
-                    }
-
-                    _bodyRetargeter!.Update(locations, BaseTransform);
+                    _xrScheleton?.Remove();
+                    _xrScheleton = _host.AddChild(_bodyTrack.Skeleton!.BuildScheleton("xr", out _xrScheletonMap));
                 }
 
-                if (_xrScheleton != null)
-                    FitScheleton(locations);
+                _bodyRetargeter!.Update(locations, BaseTransform);
             }
+
+            if (_xrScheleton != null)
+                FitScheleton(locations);
         }
 
         protected void FitScheleton(BodyJointLocationFB[] locations)
@@ -225,7 +225,9 @@ namespace XrEngine.OpenXr.Oculus
             set
             {
                 _height = value;
-                _bodyTrack?.SuggestHeight(value);
+
+                if (_height > 0)
+                    _bodyTrack?.SuggestHeight(value);
             }
         }
 

@@ -56,6 +56,7 @@ namespace XrSamples.Graffiti
             if (XrPlatform.IsEditor)
             {
                 this.AddComponent<XrInputRecorder>();
+
                 AddComponent(new XrInputPlayer
                 {
                     UseReferenceTime = true,

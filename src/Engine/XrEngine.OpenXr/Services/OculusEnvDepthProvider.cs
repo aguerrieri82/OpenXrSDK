@@ -31,10 +31,26 @@ namespace XrEngine.OpenXr
             _passTh = xrApp.Layers.List.OfType<XrPassthroughLayer>().Single();
             _passTh.UseEnvironmentDepth = true;
             _xrApp = xrApp;
+            _xrApp.SessionChanged += OnSessionChanged;
             _textures = [];
             _lastFrameTime = -1;
             _useAngle = _xrApp.Plugin<IXrGraphicDriver>() is XrAngleGraphicDriver;
             Blur = true;
+        }
+
+        private void OnSessionChanged()
+        {
+            if (_xrApp.State == XrAppState.Stopped)
+                Clear();
+        }
+
+        public void Clear()
+        {
+            _textures.Clear();
+            _outTexture = null;
+            _lastTexture = null;
+            _lastCamera = null;
+            _lastGlImage = 0;
         }
 
         public Texture2D? Acquire(Camera depthCamera, out long frameTime)
