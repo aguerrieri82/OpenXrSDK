@@ -11,7 +11,7 @@
 
 ## Simple Call
 
-dotnet-trace collect --dsrouter android --format speedscope
+dotnet-trace collect --dsrouter android --profile dotnet-sampled-thread-time  --format speedscope
 
 ## Call
 

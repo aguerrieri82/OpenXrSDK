@@ -58,7 +58,10 @@ namespace OpenXr.Framework.Android
 
             var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)a).ToString()).ToArray();
 
-            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((int)a));
+            if (_app!.IsMonado)
+                result.ColorFormat = (int)_validFormats[1];
+            else
+                result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
 
             if (result.DepthFormat == 0)
                 result.DepthFormat = (int)InternalFormat.Depth24Stencil8;

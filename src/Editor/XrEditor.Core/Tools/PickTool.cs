@@ -188,9 +188,9 @@ namespace XrEditor
 
         public bool IsCaptured => _sceneView?.ActiveTool == this;
 
-        int IRayPointer.PointerId => -100;
+        int IPointer.PointerId => -100;
 
-        string IRayPointer.Name => "Mouse";
+        string IPointer.Name => "Mouse";
 
         bool IDrawGizmos.IsEnabled => _isActive;
     }

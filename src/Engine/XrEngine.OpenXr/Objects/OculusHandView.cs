@@ -19,6 +19,8 @@ namespace XrEngine.OpenXr
             CreateRigidBody = false;
             ShowHand = true;
             UseCapsule = true;
+
+            AddComponent(new XrHandTouchPointer());
         }
 
         protected override void Start(RenderContext ctx)

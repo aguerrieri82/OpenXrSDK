@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using Microsoft.Extensions.Hosting;
 using SkiaSharp;
 using System.Numerics;
 using XrInteraction;
@@ -7,93 +8,70 @@ namespace XrEngine.UI
 {
     public class Window3D : CanvasView3D, IUiWindow
     {
-        protected RayPointerStatus _lastStatus;
         protected QuadCollider _collider;
         protected Vector2 _lastPosition;
+        protected ISurfaceInput _input;
 
         public Window3D()
         {
             _collider = this.AddComponent<QuadCollider>();
+            _input = this.AddComponent<SurfaceController>();
             _lastPosition.X = float.NaN;
         }
 
-        protected override void Start(RenderContext ctx)
-        {
-
-            Pointers ??= Scene?
-                .Components<IComponent>()
-                .OfType<IRayPointer>()
-                .ToArray();
-        }
 
         public override void Update(RenderContext ctx)
         {
-            ProcessPointers();
+            ProcessInput();
 
             base.Update(ctx);
         }
 
-        static readonly Pointer2Button[] BUTTONS = [Pointer2Button.Left, Pointer2Button.Right];
-
-        protected void ProcessPointers()
+        protected void ProcessInput()
         {
-            if (Pointers == null)
+            if (!_input.IsPointerValid)
                 return;
 
-            foreach (var pointer in Pointers)
+            DispatchPointerEvent(_input.Position, _input.MainButton.IsChanged ? Pointer2Button.Left : Pointer2Button.None, UiEventType.PointerMove);
+
+            if (_input.MainButton.IsChanged)
             {
-                var status = pointer.GetPointerStatus();
-
-                if (!status.IsActive)
-                    continue;
-
-                var collision = _collider.CollideWith(status.Ray);
-
-                //TODO infinite plane collision
-
-                if (collision != null)
-                {
-                    var pos = new Vector2(collision.LocalPoint.X + 0.5f, 1 - (collision.LocalPoint.Y + 0.5f));
-
-                    DispatchPointerEvent(pos, status.Buttons, UiEventType.PointerMove, pointer);
-
-                    _lastPosition = pos;
-                }
-
-                foreach (var button in BUTTONS)
-                {
-                    var isOn = (status.Buttons & button) == button;
-                    var wasOn = (_lastStatus.Buttons & button) == button;
-
-                    if (isOn && !wasOn)
-                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerDown, pointer);
-
-                    if (!isOn && wasOn)
-                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerUp, pointer);
-                }
-
-                _lastStatus = status;
+                if (_input.MainButton.IsDown)
+                    DispatchPointerEvent(_input.Position, Pointer2Button.Left, UiEventType.PointerDown);
+                else
+                    DispatchPointerEvent(_input.Position, Pointer2Button.Left, UiEventType.PointerUp);
             }
         }
 
-        private void DispatchPointerEvent(Vector2 surfacePos, Pointer2Button buttons, UiEventType type, IRayPointer pointer)
+
+        private void DispatchPointerEvent(Vector2 surfacePos, Pointer2Button buttons, UiEventType type)
         {
-            if (Content == null)
+            if (Content == null || _input.Pointer == null)
                 return;
 
             var pos = new Vector2(
                 _pixelSize.Width / _dpiScale * surfacePos.X,
-                _pixelSize.Height / _dpiScale * surfacePos.Y
+                _pixelSize.Height / _dpiScale * (1 - surfacePos.Y)
             );
 
+            var pointer = _input.Pointer;
+
             var capture = UiManager.GetPointerCapture(pointer.PointerId);
+
+            IUiPointer? uiPointer = null;
+
+            if (pointer is IRayPointer ray)
+                uiPointer = new UiRayPointer(ray);
+            
+            else if (pointer is ITouchPointer touch)
+                uiPointer = new UiTouchPointer(touch, buttons == Pointer2Button.Left);
 
             if (capture != null)
             {
                 var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                 uiEv.Buttons = (UiPointerButton)buttons;
-                uiEv.Pointer = new UiRayPointer(pointer);
+                uiEv.Pointer = uiPointer;
                 uiEv.WindowPosition = pos;
                 uiEv.Type = type;
                 uiEv.Source = capture;
@@ -112,7 +90,7 @@ namespace XrEngine.UI
                     var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                     uiEv.Buttons = (UiPointerButton)buttons;
-                    uiEv.Pointer = new UiRayPointer(pointer);
+                    uiEv.Pointer = uiPointer;
                     uiEv.WindowPosition = pos;
                     uiEv.Type = type;
                     uiEv.Source = hitTest;
@@ -155,7 +133,6 @@ namespace XrEngine.UI
 
         public UiElement? Content { get; set; }
 
-        public IRayPointer[]? Pointers { get; set; }
 
     }
 }

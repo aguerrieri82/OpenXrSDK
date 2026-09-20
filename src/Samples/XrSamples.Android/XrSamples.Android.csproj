@@ -16,9 +16,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(DiagnosticOn)' == 'True'">
-		<DiagnosticPort>9100</DiagnosticPort>
+		<DiagnosticPort>9000</DiagnosticPort>
 		<DiagnosticAddress>127.0.0.1</DiagnosticAddress>
-		<DiagnosticSuspend>false</DiagnosticSuspend>
+		<DiagnosticSuspend>true</DiagnosticSuspend>
 		<DiagnosticListenMode>connect</DiagnosticListenMode>
 		<EnableDiagnostics>true</EnableDiagnostics>
 		<AndroidManagedSymbols>true</AndroidManagedSymbols>
@@ -28,6 +28,10 @@
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>full</DebugType>
 	</PropertyGroup>
+
+	<ItemGroup Condition="'$(DiagnosticOn)' == 'True'">
+		<AndroidEnvironment Include="environment.txt" />
+	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>

@@ -61,7 +61,7 @@ namespace XrSamples
             {
                 SampleName = "DnD",
                 Msaa = 1,
-                Scale = 1f,
+                Scale = 0.75f,
                 ViewPlaneGrid = false,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
@@ -69,7 +69,7 @@ namespace XrSamples
                 MotionVectorMode = MotionVectorMode.None,
                 EnableDepthPass = false,
                 FrustumCulling = true,
-                TextureCompression = false,
+                TextureCompression = true,
                 ProjDepthMode = XrProjDepthMode.DepthCopyImage,
                 UseFxAA = false,
                 UseSimmetricFov = false,
@@ -77,10 +77,10 @@ namespace XrSamples
                 UseRayCollider = false,
                 UsePrimitiveBoundingBox = false,
                 ToneMap = ToneMapMode.Aces,
-                UseSharedSsbo = false,
-                UseMeshCompression = false,
+                UseSharedSsbo = true,
+                UseMeshCompression = true,
                 UseProfileOverlay = false,
-                UseAsyncShaderCompile = true,
+                UseAsyncShaderCompile = false,
                 IsBenchmark = false
             };
         }

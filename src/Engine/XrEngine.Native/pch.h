@@ -44,6 +44,7 @@
 #include "renderdoc_app.h"
 #include "MeshVoxelizer.h"
 #include "VoxelLightBaker.h"
+#include "VoxelLightBakerV2.h"
 #include "Api.h"
 
 

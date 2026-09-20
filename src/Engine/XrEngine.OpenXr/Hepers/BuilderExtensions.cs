@@ -190,15 +190,16 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddRightPointer(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
-            var inputs = e.Inputs;
+            var inputs = e.Inputs!;
 
             e.App.ActiveScene!.AddComponent(new XrInputPointer
             {
-                PoseInput = inputs!.Right!.AimPose,
-                RightButton = inputs!.Right!.SqueezeClick!,
-                LeftButton = inputs!.Right!.TriggerClick!,
-                AButton = inputs!.Right!.Button!.AClick!,
-                BButton = inputs!.Right!.Button!.BClick!,
+                PoseInput = inputs.Right.AimPose,
+                RightButton = inputs.Right.SqueezeClick,
+                LeftButton = inputs.Right.TriggerClick,
+                AButton = inputs.Right.Button.AClick,
+                BButton = inputs.Right.Button.BClick,
+                IsValid = () => e.XrApp.RightIntProfile != null && !e.XrApp.RightIntProfile.Contains("hand"),
                 Name = "RightController"
             });
         });

@@ -18,6 +18,8 @@ namespace OpenXr.Framework
         {
             public bool IsMetaSimulator => self.RuntimeName == "Meta XR Simulator";
 
+            public bool IsMonado => self.RuntimeName!.Contains("monado", StringComparison.OrdinalIgnoreCase);
+
             public bool IsMetaLink => self.RuntimeName == "Oculus" && OperatingSystem.IsWindows();
 
             public Posef FromReferenceFrame(Pose3 pose)

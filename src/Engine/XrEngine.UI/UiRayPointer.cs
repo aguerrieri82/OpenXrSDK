@@ -15,16 +15,47 @@ namespace XrEngine.UI
         public readonly void Capture(UiElement element)
         {
             UiManager.SetPointerCapture(Id, element);
-            _pointer.CapturePointer();
+
+            if (_pointer is IRayPointer ray)
+                ray.CapturePointer();
         }
 
         public readonly void Release()
         {
             UiManager.SetPointerCapture(Id, null);
-            _pointer.ReleasePointer();
+
+            if (_pointer is IRayPointer ray)
+                ray.ReleasePointer();
         }
 
         public UiPointerButton Buttons => (UiPointerButton)_pointer.GetPointerStatus().Buttons;
+
+        public readonly int Id => _pointer.PointerId;
+    }
+
+
+    public readonly struct UiTouchPointer : IUiPointer
+    {
+        readonly ITouchPointer _pointer;
+        readonly bool _isDown;
+
+        public UiTouchPointer(ITouchPointer rayPointer, bool isDown)
+        {
+            _pointer = rayPointer;
+            _isDown = isDown;
+        }
+
+        public readonly void Capture(UiElement element)
+        {
+            UiManager.SetPointerCapture(Id, element);
+        }
+
+        public readonly void Release()
+        {
+            UiManager.SetPointerCapture(Id, null);
+        }
+
+        public UiPointerButton Buttons => _isDown ? UiPointerButton.Left : UiPointerButton.None;
 
         public readonly int Id => _pointer.PointerId;
     }

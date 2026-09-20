@@ -13,7 +13,9 @@ namespace XrInteraction
     {
         bool IsPointerValid { get; }
 
-        public Vector2 Pointer { get; }
+        IPointer? Pointer { get; }
+
+        public Vector2 Position { get; }
 
         public InputButton MainButton { get; }
 

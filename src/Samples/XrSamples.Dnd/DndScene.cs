@@ -91,7 +91,7 @@ namespace XrSamples.Dnd
 
             token.VttToken = _vttScene?.Tokens?.First(a => a.Id == vttTokenId);
 
-            OnTokenUpdate(token.VttToken!);
+            OnTokenUpdate(token.VttToken);
 
             return token;
         }
@@ -162,8 +162,10 @@ namespace XrSamples.Dnd
             //Player.Component<XrPlayer>().Teleport(Vector3.Zero);
         }
 
-        public void OnTokenUpdate(VttToken token)
+        public void OnTokenUpdate(VttToken? token)
         {
+            if (token == null)
+                return;
             var gameToken = _map?.Children.OfType<Token>().Where(a => a.VttToken?.Id == token.Id).FirstOrDefault();
             if (gameToken != null)
                 gameToken.VttToken = token;

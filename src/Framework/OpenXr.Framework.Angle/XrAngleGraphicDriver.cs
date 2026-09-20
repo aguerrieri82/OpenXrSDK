@@ -55,7 +55,11 @@ namespace OpenXr.Framework.Angle
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
+            if (_app!.IsMonado)
+                result.ColorFormat =(int) _validFormats[1];
+            else
+                result.ColorFormat = (int)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((int)a));
+
             result.DepthFormat = (int)Format.D24UnormS8Uint;
         }
 

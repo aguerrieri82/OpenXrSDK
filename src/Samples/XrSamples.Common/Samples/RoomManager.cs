@@ -13,6 +13,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .UseRayCollider("Mouse")
+                .UseHands()
                 .AddFloorShadow(4, false)
                 .AddPassthrough()
 

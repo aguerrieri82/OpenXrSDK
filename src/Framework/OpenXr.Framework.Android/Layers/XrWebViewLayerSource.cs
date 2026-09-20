@@ -158,7 +158,7 @@ namespace OpenXr.Framework.Android
                     }
                 }
 
-                var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
+                var pos = _surfaceInput.Position * new Vector2(webView.Width, webView.Height);
 
                 _pointerProps ??=
                 [

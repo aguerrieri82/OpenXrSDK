@@ -20,7 +20,7 @@
             _uncheckedContent = new Icon() { IconName = IconName.IconCheckBoxOutlineBlank };
 
             _content = this.AddChild<UiContentView>();
-            _content.PointerUp += OnContentPointerUp;
+            _content.PointerDown += OnContentPointerDown;
             _content.Style.Margin = UnitRectValue.Set(4);
 
             Style.Layout = UiLayoutType.Flex;
@@ -31,7 +31,7 @@
             _toggle.Content = _uncheckedContent;
         }
 
-        private void OnContentPointerUp(UiElement sender, UiPointerEvent uiEvent)
+        private void OnContentPointerDown(UiElement sender, UiPointerEvent uiEvent)
         {
             _toggle.IsChecked = !_toggle.IsChecked;
         }

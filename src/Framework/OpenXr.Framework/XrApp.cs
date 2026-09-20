@@ -1764,10 +1764,7 @@ namespace OpenXr.Framework
             Debug.Assert(viewInfo.BlendModes != null);
 
             if (!viewInfo.BlendModes.Contains(result.BlendMode))
-            {
-                _logger.LogWarning("xxx");
                 result.BlendMode = EnvironmentBlendMode.Opaque;
-            }
 
             result.Size = viewInfo.RecommendedImageRect;
             result.Size = new Extent2Di

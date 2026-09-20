@@ -464,7 +464,7 @@ namespace CanvasUI.Components
             _plotter.PointerMove += OnPointerMove;
             _plotter.PointerUp += OnPointerUp;
 
-            uiEvent.Pointer!.Capture(_plotter);
+            uiEvent.Pointer?.Capture(_plotter);
 
             _plotter._activeTool = this;
         }
@@ -478,7 +478,7 @@ namespace CanvasUI.Components
             _plotter.PointerUp -= OnPointerUp;
             _isCapture = false;
 
-            uiEvent.Pointer!.Release();
+            uiEvent.Pointer?.Release();
 
             _plotter._activeTool = null;
         }

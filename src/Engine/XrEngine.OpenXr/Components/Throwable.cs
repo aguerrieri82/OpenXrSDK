@@ -37,11 +37,11 @@ namespace XrEngine.OpenXr
         public Throwable()
         {
             _poseList = [];
-            MaxSamples = 4;
-            MinDeltaTime = 0.020f;
+            MaxSamples = 5;
+            MinDeltaTime = 0.025f;
             SamplesToSkip = 0;
-            Amplification = 1.5f;
-            SamplingMode = AvgMode.WeightedExponential;
+            Amplification = 2.5f;
+            SamplingMode = AvgMode.Weighted;
         }
 
         static float[] GenerateWeights(int count, AvgMode mode)
@@ -69,8 +69,8 @@ namespace XrEngine.OpenXr
                             rawValue = rawValue * rawValue;
 
                         weights[i] = rawValue;
-
                     }
+
                     totalSum += weights[i];
                 }
 
@@ -81,11 +81,77 @@ namespace XrEngine.OpenXr
             return weights;
         }
 
-        static Vector3 CalculateAngularVelocity(in Quaternion from, in Quaternion to, float deltaTime)
+        static Vector3 CalculateLinearVelocity(List<PoseSample> samples, int count, float[] weights)
         {
-            if (deltaTime <= 0f)
+            var refTime = samples[count - 1].Time;
+
+            var meanTime = 0d;
+            var meanPosition = Vector3.Zero;
+
+            for (var i = 0; i < count; i++)
+            {
+                var time = samples[i].Time - refTime;
+
+                meanTime += time * weights[i];
+                meanPosition += samples[i].Pose.Position * weights[i];
+            }
+
+            var numerator = Vector3.Zero;
+            var denominator = 0d;
+
+            for (var i = 0; i < count; i++)
+            {
+                var time = samples[i].Time - refTime;
+                var dt = time - meanTime;
+
+                numerator += (samples[i].Pose.Position - meanPosition) * (float)(weights[i] * dt);
+                denominator += weights[i] * dt * dt;
+            }
+
+            if (denominator < 1e-8)
                 return Vector3.Zero;
 
+            return numerator / (float)denominator;
+        }
+
+        static Vector3 CalculateAngularVelocity(List<PoseSample> samples, int count, float[] weights)
+        {
+            var refTime = samples[count - 1].Time;
+            var refOrientation = samples[count - 1].Pose.Orientation;
+
+            var meanTime = 0d;
+            var meanRotation = Vector3.Zero;
+
+            for (var i = 0; i < count; i++)
+            {
+                var time = samples[i].Time - refTime;
+                var rotation = CalculateRotationVector(refOrientation, samples[i].Pose.Orientation);
+
+                meanTime += time * weights[i];
+                meanRotation += rotation * weights[i];
+            }
+
+            var numerator = Vector3.Zero;
+            var denominator = 0d;
+
+            for (var i = 0; i < count; i++)
+            {
+                var time = samples[i].Time - refTime;
+                var dt = time - meanTime;
+                var rotation = CalculateRotationVector(refOrientation, samples[i].Pose.Orientation);
+
+                numerator += (rotation - meanRotation) * (float)(weights[i] * dt);
+                denominator += weights[i] * dt * dt;
+            }
+
+            if (denominator < 1e-8)
+                return Vector3.Zero;
+
+            return numerator / (float)denominator;
+        }
+
+        static Vector3 CalculateRotationVector(in Quaternion from, in Quaternion to)
+        {
             var dq = to * Quaternion.Inverse(from);
             dq = Quaternion.Normalize(dq);
 
@@ -97,15 +163,12 @@ namespace XrEngine.OpenXr
             var sinHalf = MathF.Sin(halfAngle);
 
             if (sinHalf < 1e-6f)
-            {
-                var v = new Vector3(dq.X, dq.Y, dq.Z);
-                return (2f / deltaTime) * v;
-            }
+                return new Vector3(dq.X, dq.Y, dq.Z) * 2f;
 
             var axis = new Vector3(dq.X, dq.Y, dq.Z) / sinHalf;
             var angle = 2f * halfAngle;
 
-            return (angle / deltaTime) * axis;
+            return axis * angle;
         }
 
         private Vector3 CompensateForCenterOfMass(Vector3 pivotVelocity, Vector3 angularVelocity, Vector3 worldPivot)
@@ -121,12 +184,25 @@ namespace XrEngine.OpenXr
             return pivotVelocity + tangentialVelocity;
         }
 
+        private void EndThrow()
+        {
+            _lastTool = null;
+            _isMoving = false;
+            _poseList.Clear();
+        }
+
         protected override void Update(RenderContext ctx)
         {
+            Debug.Assert(_host != null);
+
+            _manager ??= _host.Scene!.Component<PhysicsManager>();
+
+            _body ??= _host.Component<RigidBody>();
+
+            _body.TrackVelocityOnTool = TrackVelocity;
+
             if (AutoThrow)
                 return;
-
-            Debug.Assert(_host != null);
 
             var tool = _host.GetActiveTool();
 
@@ -142,12 +218,6 @@ namespace XrEngine.OpenXr
                 _curPivot = _host.Transform.LocalPivot;
                 _isMoving = true;
             }
-
-            _manager ??= _host.Scene!.Component<PhysicsManager>();
-
-            _body ??= _host.Component<RigidBody>();
-
-            _body.TrackVelocityOnTool = AutoThrow;
 
             var mustThrow = false;
 
@@ -166,7 +236,7 @@ namespace XrEngine.OpenXr
                     mustThrow = true;
             }
 
-            if (!UseInput && (_lastKinematic || mustThrow))
+            if (_lastKinematic || mustThrow)
             {
                 var deltaTime = curTime - _lastSampleTime;
 
@@ -193,49 +263,41 @@ namespace XrEngine.OpenXr
             {
                 var velocity = Vector3.Zero;
                 var angVel = Vector3.Zero;
-                Vector3 lastWordPos;
+                Vector3 lastWorldPos;
 
                 if (UseInput && _lastTool?.Input?.LinearVelocity != null && _lastTool.Input?.AngularVelocity != null)
                 {
                     Log.Info(this, "-----THROW INPUT-----");
                     velocity = _lastTool.Input.LinearVelocity.Value;
                     angVel = _lastTool.Input.AngularVelocity.Value;
-                    lastWordPos = _lastTool.Input.Value.Position;
+                    lastWorldPos = _lastTool.Input.Value.Position;
                 }
                 else
                 {
-                    var pointCount = _poseList.Count - SamplesToSkip - 1;
+                    var sampleCount = _poseList.Count - SamplesToSkip;
 
-                    if (pointCount < 2)
-                        return;
-
-                    if (_weights == null || _weights.Length != pointCount || SamplingMode != _curSampleMode)
+                    if (sampleCount < 2)
                     {
-                        _weights = GenerateWeights(pointCount, SamplingMode);
+                        EndThrow();
+                        return;
+                    }
+
+                    if (_weights == null || _weights.Length != sampleCount || SamplingMode != _curSampleMode)
+                    {
+                        _weights = GenerateWeights(sampleCount, SamplingMode);
                         _curSampleMode = SamplingMode;
                     }
 
-                    for (var i = 0; i < pointCount; i++)
-                    {
-                        var dt = (float)(_poseList[i + 1].Time - _poseList[i].Time);
-                        var dv = _poseList[i + 1].Pose.Position - _poseList[i].Pose.Position;
-                        var curVel = dv / dt;
-                        var curVelAng = CalculateAngularVelocity(
-                             _poseList[i].Pose.Orientation,
-                             _poseList[i + 1].Pose.Orientation,
-                             dt);
+                    velocity = CalculateLinearVelocity(_poseList, sampleCount, _weights);
+                    angVel = CalculateAngularVelocity(_poseList, sampleCount, _weights);
 
-                        velocity += curVel * _weights[i];
-                        angVel += curVelAng * _weights[i];
-                    }
-
-                    lastWordPos = _poseList[_poseList.Count - 1].Pose.Position;
-
+                    lastWorldPos = _poseList[_poseList.Count - 1].Pose.Position;
                 }
+
                 var finalVelocity = CompensateForCenterOfMass(
                     velocity,
                     angVel,
-                    lastWordPos
+                    lastWorldPos
                 );
 
                 finalVelocity *= Amplification;
@@ -250,8 +312,7 @@ namespace XrEngine.OpenXr
                 _body.DynamicActor.LinearVelocity = finalVelocity;
                 _body.DynamicActor.AngularVelocity = angVel;
 
-                _lastTool = null;
-                _isMoving = false;
+                EndThrow();
             }
         }
 
@@ -268,6 +329,8 @@ namespace XrEngine.OpenXr
         public AvgMode SamplingMode { get; set; }
 
         public bool UseInput { get; set; }
+
+        public bool TrackVelocity { get; set; }
     }
 
 }

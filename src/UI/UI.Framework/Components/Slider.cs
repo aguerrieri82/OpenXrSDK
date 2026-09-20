@@ -88,7 +88,7 @@ namespace CanvasUI
 
             if ((ev.WindowPosition - pos).Length() < _style.ThumbRadius)
             {
-                ev.Pointer!.Capture(this);
+                ev.Pointer?.Capture(this);
                 _isMoving = true;
             }
             else if (ev.WindowPosition.Y >= rect.Top && ev.WindowPosition.Y <= rect.Bottom)
@@ -111,7 +111,7 @@ namespace CanvasUI
             if (_isMoving)
             {
                 _isMoving = false;
-                ev.Pointer!.Release();
+                ev.Pointer?.Release();
             }
 
             base.OnPointerUp(ev);

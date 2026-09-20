@@ -17,22 +17,25 @@ namespace XrEngine.OpenXr
         {
             var result = new RayPointerStatus();
 
-            if (LeftButton != null && LeftButton.IsActive && LeftButton.Value)
-                result.Buttons |= Pointer2Button.Left;
-
-            if (RightButton != null && RightButton.IsActive && RightButton.Value)
-                result.Buttons |= Pointer2Button.Right;
-
-            if (AButton != null && AButton.IsActive && AButton.Value)
-                result.Buttons |= Pointer2Button.A;
-
-            if (BButton != null && BButton.IsActive && BButton.Value)
-                result.Buttons |= Pointer2Button.B;
-
-            if (PoseInput != null && PoseInput.IsActive)
+            if (IsValid == null || IsValid())
             {
-                result.Ray = PoseInput.Value.ToRay();
-                result.IsActive = true;
+                if (LeftButton != null && LeftButton.IsActive && LeftButton.Value)
+                    result.Buttons |= Pointer2Button.Left;
+
+                if (RightButton != null && RightButton.IsActive && RightButton.Value)
+                    result.Buttons |= Pointer2Button.Right;
+
+                if (AButton != null && AButton.IsActive && AButton.Value)
+                    result.Buttons |= Pointer2Button.A;
+
+                if (BButton != null && BButton.IsActive && BButton.Value)
+                    result.Buttons |= Pointer2Button.B;
+
+                if (PoseInput != null && PoseInput.IsActive)
+                {
+                    result.Ray = PoseInput.Value.ToRay();
+                    result.IsActive = true;
+                }
             }
 
             return result;
@@ -48,6 +51,7 @@ namespace XrEngine.OpenXr
             _captureCount = 0;
         }
 
+
         public XrInput<Pose3>? PoseInput { get; set; }
 
         public XrInput<bool>? LeftButton { get; set; }
@@ -58,10 +62,13 @@ namespace XrEngine.OpenXr
 
         public XrInput<bool>? BButton { get; set; }
 
+        public Func<bool>? IsValid { get; set; }
+
         public int PointerId => _host.Id.Value.GetHashCode();
 
         public bool IsCaptured => _captureCount > 0;
 
         public string Name { get; set; }
+
     }
 }

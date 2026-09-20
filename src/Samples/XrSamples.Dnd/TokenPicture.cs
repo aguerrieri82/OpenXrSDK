@@ -41,12 +41,14 @@ namespace XrSamples.Dnd
 
             protected override void Draw(SKCanvas canvas, RenderContext? ctx, int activeEye)
             {
+                if (_vttToken?.Imgsrc == null)
+                    return;
 
                 if (_image == null)
                 {
                     _loadTask ??= Task.Run(async () =>
                     {
-                        _image = await ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!);
+                        _image = await ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken.Imgsrc);
                     });
 
                     if (!_loadTask.IsCompleted)

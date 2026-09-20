@@ -180,6 +180,7 @@ namespace XrEngine.OpenGL
                         multiView.FrameBuffer.Check();
                     }
 
+                    multiView.Flags |= TargetFlags;
                     target = multiView;
                 }
                 else
@@ -189,6 +190,7 @@ namespace XrEngine.OpenGL
                     var useRenderTarget = !options.UseDepthPass &&
                                           !options.ContactShadow.Use;
 
+                    singleView.Flags |= TargetFlags;
 
 #warning TEMPORARY DISABLED
                     useRenderTarget = false;
@@ -232,6 +234,7 @@ namespace XrEngine.OpenGL
 
                 glDepth?.SetLabel((Name ?? "RT Pool") + " - Depth");
 
+
                 _targets[targetId] = target;
             }
 
@@ -259,6 +262,8 @@ namespace XrEngine.OpenGL
             Clear();
             GC.SuppressFinalize(this);
         }
+
+        public GlRenderTargetFlags TargetFlags { get; set; }
 
         public bool UseIntermediateColor { get; set; }
 

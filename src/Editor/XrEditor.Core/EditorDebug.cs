@@ -1,5 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
+using XrSamples.Dnd;
+
 
 #if DEVELOPMENT
 
@@ -107,8 +109,8 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, sampleCount: 2)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateKeyboard()
-              //.CreateDnd()
+             // .CreateRoomManager()
+              .CreateDnd()
               .Build();
 
 #else

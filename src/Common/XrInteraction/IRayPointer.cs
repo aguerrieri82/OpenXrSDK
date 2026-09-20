@@ -11,17 +11,13 @@ namespace XrInteraction
         public bool IsActive;
     }
 
-    public interface IRayPointer
+    public interface IRayPointer : IPointer
     {
         RayPointerStatus GetPointerStatus();
 
         void CapturePointer();
 
         void ReleasePointer();
-
-        int PointerId { get; }
-
-        string Name { get; }
 
         bool IsCaptured { get; }
     }

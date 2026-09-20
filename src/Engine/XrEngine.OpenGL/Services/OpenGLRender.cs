@@ -637,12 +637,15 @@ namespace XrEngine.OpenGL
                 _glState.EnableDebug = _isDebug;
 #endif
 
-            _profiler.Collect();
-
-            if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 1)
+            if (_profiler.IsEnabled)
             {
-                Log.Debug(this, _profiler.GetStatsLog());
-                _lastProfileOutTime = DateTime.Now;
+                _profiler.Collect();
+
+                if ((DateTime.Now - _lastProfileOutTime).TotalSeconds > 1)
+                {
+                    Log.Debug(this, _profiler.GetStatsLog());
+                    _lastProfileOutTime = DateTime.Now;
+                }
             }
         }
 

@@ -113,7 +113,7 @@ namespace XrEngine.Browser.Windows
 
             var viewPos = pos * new Vector2(Size.Width, Size.Height);
 
-            _host.SendTouchEvent(new CefSharp.Structs.TouchEvent
+            _host!.SendTouchEvent(new CefSharp.Structs.TouchEvent
             {
                 Id = id,
                 PointerType = PointerType.Touch,

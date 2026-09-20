@@ -34,7 +34,7 @@ namespace XrEngine
         Physics = 0x1,
         Collisions = 0x2,
         All = Physics | Collisions
-    }
+    }   
 
     public interface ICollider3D : IComponent
     {

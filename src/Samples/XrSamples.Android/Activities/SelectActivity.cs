@@ -43,7 +43,7 @@ namespace XrSamples.Android.Activities
             if (!string.IsNullOrWhiteSpace(_settings.SampleName) && savedInstanceState == null)
             {
                 StartGame();
-                FinishAndRemoveTask();
+                //FinishAndRemoveTask();
                 return;
             }
 

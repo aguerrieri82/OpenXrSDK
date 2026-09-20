@@ -5,6 +5,7 @@ using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
+using static XrEngine.OpenXr.Throwable;
 using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
@@ -14,13 +15,13 @@ namespace XrSamples
 
         public ThrowSettings()
         {
-            Amplification = 1f;
             AutoThrow = false;
-            SimFps = 0;
-            MinDeltaTime = 25;
+            SimFps = 72;
+            SampleCount = 5;
+            MinDeltaTime = 25f;
             SamplesToSkip = 0;
-            SampleCount = 3;
-            Mode = Throwable.AvgMode.WeightedExponential;
+            Amplification = 2.5f;
+            Mode = AvgMode.Weighted;
         }
 
         public override void Apply(Object3D obj)
@@ -36,6 +37,7 @@ namespace XrSamples
             tracker.SamplesToSkip = (int)SamplesToSkip;
             tracker.MaxSamples = (int)SampleCount;
             tracker.UseInput = UseInput;
+            tracker.TrackVelocity = TrackVelocity;
 
             obj.Scene!.Component<PhysicsManager>().StepSizeSecs = SimFps == 0 ? 0 : 1f / SimFps;
 
@@ -54,11 +56,13 @@ namespace XrSamples
 
         public bool AutoThrow { get; set; }
 
+        public bool TrackVelocity { get; set; }
+
         public bool UseInput { get; set; }
 
         public bool DisableLog { get; set; }
 
-        public Throwable.AvgMode Mode { get; set; }
+        public AvgMode Mode { get; set; }
 
         public float SampleCount { get; set; }
 
@@ -93,8 +97,8 @@ namespace XrSamples
                 .BackgroundColor("#050505AF")
              )
             .BeginColumn(s => s.RowGap(16))
-                .AddInputRange("Amplification", 0f, 2f, binder.Prop(a => a.Amplification))
-                .AddInputRange("Min Delta Time", 0f, 1000f, binder.Prop(a => a.MinDeltaTime))
+                .AddInputRange("Amplification", 0f, 5f, binder.Prop(a => a.Amplification))
+                .AddInputRange("Min Delta Time", 0f, 200f, binder.Prop(a => a.MinDeltaTime))
                 .AddInputRange("Sim Fps", 30f, 200f, binder.Prop(a => a.SimFps))
                 .AddInputRange("Sample count", 2, 10, binder.Prop(a => a.SampleCount), 1)
                 .AddInputRange("Sample to skip", 0, 10, binder.Prop(a => a.SamplesToSkip), 1)
@@ -106,6 +110,7 @@ namespace XrSamples
                 .BeginRow(s => s.ColGap(16))
                     .AddInput("Disable Log", new CheckBox(), binder.Prop(a => a.DisableLog))
                     .AddInput("Auto Throw", new CheckBox(), binder.Prop(a => a.AutoThrow))
+                    .AddInput("Track Velocity", new CheckBox(), binder.Prop(a => a.TrackVelocity))
                     .AddInput("Use Input", new CheckBox(), binder.Prop(a => a.UseInput))
                 .EndChild()
             .EndChild()
