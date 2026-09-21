@@ -9,6 +9,8 @@
         public static readonly ResourceSlot SkinMatrices = new(19, nameof(SkinMatrices));
         public static readonly ResourceSlot Morph = new(20, nameof(Morph));
 
+        public static readonly ResourceSlot LightFieldLoockup = new(21, nameof(LightFieldLoockup));
+
         public static readonly SlotMask Reserved = ResourceSlot.FillMask(typeof(BufferSlots));
     }
 }

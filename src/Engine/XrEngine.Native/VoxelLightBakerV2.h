@@ -1,16 +1,5 @@
 #pragma once
 
-#include "VoxelLightBaker.h"
-
-
-struct VoxelLightBakeParamsV2 : VoxelLightBakeParams
-{
-	VoxelLightBakeParamsV2();
-
-	float AngularTolerance;
-	float RelativeEnergyTolerance;
-};
-
 struct VoxelLightSample
 {
 	int32_t Index;
@@ -24,10 +13,41 @@ struct VoxelLightLookup
 	uint32_t Count;
 };
 
+
 struct alignas(16) VoxelLightGpuContribution
 {
 	Vec4 Direction;
 	Vec4 Color;
+};
+
+
+struct VoxelLightContributionViewV2
+{
+	VoxelLightSample* Samples;
+	int32_t SampleCount;
+	int32_t SampleCapacity;
+};
+
+struct VoxelLightFieldViewV2
+{
+	Vec3I Size;
+
+	VoxelLightLookup* Lookup;
+	int32_t LookupCount;
+	int32_t LookupCapacity;
+
+	VoxelLightGpuContribution* Contributions;
+	int32_t ContributionCount;
+	int32_t ContributionCapacity;
+};
+
+
+struct VoxelLightBakeParamsV2 : VoxelLightBakeParams
+{
+	VoxelLightBakeParamsV2();
+
+	float AngularTolerance;
+	float RelativeEnergyTolerance;
 };
 
 struct VoxelLightContributionV2
@@ -97,19 +117,21 @@ public:
 	void TraceRange(int32_t startRay, int32_t endRay, int32_t generation);
 	void GetDebugState(VoxelRayDebugState& state) const;
 
+	bool CreateRay(const VoxelLightRay& ray, int32_t generation);
+	bool StepImpl() { return (this->*_step)(); }
+	void ClearContribution();
+
+	const RayState& Ray() const { return _ray; }
 	const VoxelLightContributionV2& Contribution() const { return _local.Contribution; }
+	std::vector<VoxelLightRay>& NextRays() { return _nextRays; }
 	const std::vector<VoxelLightRay>& NextRays() const { return _nextRays; }
 
 private:
-	bool CreateRay(const VoxelLightRay& ray, int32_t generation);
 	bool MoveToNextVoxel();
 	StepFn SelectStep(LightTrackMode mode);
 
 	template<LightTrackMode Mode>
 	bool Step();
-
-	bool StepImpl() { return (this->*_step)(); }
-	void ClearContribution();
 
 	VoxelLightBakerV2* _baker;
 	int32_t _workerIndex;
@@ -118,6 +140,7 @@ private:
 	std::vector<VoxelLightRay> _nextRays;
 	StepFn _step;
 };
+
 
 class VoxelLightBakerV2
 {
@@ -145,6 +168,10 @@ public:
 
 	VoxelLightFieldV2& GetLightField();
 	void BuildLightField(VoxelLightFieldV2& field, float angularTolerance, float relativeEnergyTolerance);
+
+	std::vector<VoxelData>* GetScene() { return &_scene; }
+	const std::vector<VoxelData>* GetScene() const { return &_scene; }
+	int32_t GetVoxelCount() const { return _voxelCount; }
 
 private:
 	void BakeGeneratedRays(VoxelLightContributionV2& contribution);
@@ -181,3 +208,6 @@ private:
 	bool _lightSamplesSorted;
 	VoxelLightFieldV2 _field;
 };
+
+
+

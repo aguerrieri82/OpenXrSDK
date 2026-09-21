@@ -200,7 +200,107 @@ extern "C"
     EXPORT int32_t APIENTRY VoxelRayMarcherGetContribution(
         VoxelRayMarcher* marcher,
         VoxelLightContributionView* contribution);
+}
 
 
+extern "C"
+{
+    EXPORT VoxelLightBakerV2* APIENTRY VoxelLightBakerV2Create();
 
+    EXPORT void APIENTRY VoxelLightBakerV2Destroy(
+        VoxelLightBakerV2* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerV2SetParams(
+        VoxelLightBakerV2* baker,
+        const VoxelLightBakeParamsV2* params);
+
+    EXPORT void APIENTRY VoxelLightBakerV2SetGrid(
+        VoxelLightBakerV2* baker,
+        const VoxelGridDesc* grid);
+
+    EXPORT void APIENTRY VoxelLightBakerV2ClearScene(
+        VoxelLightBakerV2* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerV2AddMesh(
+        VoxelLightBakerV2* baker,
+        const Vec3I* origin,
+        const Vec3I* size,
+        const VoxelData* voxels,
+        const VoxelMeshResolvedFace* faces,
+        int32_t faceCount);
+
+    EXPORT void APIENTRY VoxelLightBakerV2AddGpuMeshFaces(
+        VoxelLightBakerV2* baker,
+        const GpuVoxelFaceData* faces,
+        int32_t faceCount);
+
+    EXPORT VoxelData* APIENTRY VoxelLightBakerV2GetScene(
+        VoxelLightBakerV2* baker,
+        int32_t* count);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2BakePointLight(
+        VoxelLightBakerV2* baker,
+        const PointLight* light,
+        VoxelLightContributionViewV2* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2BakeAreaLight(
+        VoxelLightBakerV2* baker,
+        const AreaLight* light,
+        VoxelLightContributionViewV2* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2BakeDirectionalLight(
+        VoxelLightBakerV2* baker,
+        const DirectionalLight* light,
+        VoxelLightContributionViewV2* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2BakeSpotLight(
+        VoxelLightBakerV2* baker,
+        const SpotLight* light,
+        VoxelLightContributionViewV2* contribution);
+
+    EXPORT void APIENTRY VoxelLightBakerV2ClearLightField(
+        VoxelLightBakerV2* baker);
+
+    EXPORT void APIENTRY VoxelLightBakerV2AccumulateLight(
+        VoxelLightBakerV2* baker,
+        const VoxelLightContributionViewV2* contribution);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2GetLightField(
+        VoxelLightBakerV2* baker,
+        VoxelLightFieldViewV2* field);
+
+    EXPORT int32_t APIENTRY VoxelLightBakerV2BuildLightField(
+        VoxelLightBakerV2* baker,
+        float angularTolerance,
+        float relativeEnergyTolerance,
+        VoxelLightFieldViewV2* field);
+
+
+    EXPORT VoxelRayMarcherV2* APIENTRY VoxelRayMarcherV2Create(
+        VoxelLightBakerV2* baker);
+
+    EXPORT void APIENTRY VoxelRayMarcherV2Destroy(
+        VoxelRayMarcherV2* marcher);
+
+    EXPORT bool APIENTRY VoxelRayMarcherV2CreateRay(
+        VoxelRayMarcherV2* marcher,
+        const VoxelLightRay* ray);
+
+    EXPORT bool APIENTRY VoxelRayMarcherV2Step(
+        VoxelRayMarcherV2* marcher);
+
+    EXPORT void APIENTRY VoxelRayMarcherV2GetState(
+        VoxelRayMarcherV2* marcher,
+        VoxelRayDebugState* state);
+
+    EXPORT int32_t APIENTRY VoxelRayMarcherV2GetContribution(
+        VoxelRayMarcherV2* marcher,
+        VoxelLightContributionViewV2* contribution);
+
+
+    EXPORT void APIENTRY FreeLightFieldViewV2(
+        VoxelLightFieldViewV2* view);
+
+    EXPORT void APIENTRY FreeContributionViewV2(
+        VoxelLightContributionViewV2* view);
 }

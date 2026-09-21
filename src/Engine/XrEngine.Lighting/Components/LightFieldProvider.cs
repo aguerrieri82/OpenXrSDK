@@ -351,6 +351,11 @@ namespace XrEngine.Lighting
             _fieldData.Textures = textures.ToArray();
         }
 
+        public LightFieldDataV2 GetLightFieldV2()
+        {
+            throw new NotSupportedException();
+        }
+
         public VoxelLightBaker Baker => _backer;
 
         public float MaxUpdateInterval { get; set; }
@@ -376,5 +381,7 @@ namespace XrEngine.Lighting
             get => _fieldData.DiffuseStrength;
             set => _fieldData.DiffuseStrength = value;
         }
+
+        public LightFieldVersion Versions => LightFieldVersion.V1;
     }
 }

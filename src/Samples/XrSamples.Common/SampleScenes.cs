@@ -56,7 +56,7 @@ namespace XrSamples
 
             var pl1 = scene.AddChild(new PointLight());
             pl1.Name = "point-light-1";
-            pl1.Transform.Position = new Vector3(0, 2, 0);
+            pl1.Transform.Position = new Vector3(0, 1.8f, 0);
             pl1.Intensity = 0.3f;
 
             var pl2 = scene.AddChild(new PointLight());

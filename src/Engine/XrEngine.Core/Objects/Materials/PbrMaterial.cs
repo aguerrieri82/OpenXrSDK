@@ -421,35 +421,66 @@ namespace XrEngine
 
                     if (_lightFieldProvider != null)
                     {
-                        var lightField = _lightFieldProvider.GetLightField();
+                        var versions = _lightFieldProvider.Versions;
 
-                        if (lightField.UseAllFaces)
-                            bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
-
-                        var baseSlot = bld.GetTextureSlots(TextureSlots.LightFieldBase, 12);
-
-                        bld.ExecuteAction((ctx, up) =>
+                        if ((versions & LightFieldVersion.V2) != 0)
                         {
-                            lightField = _lightFieldProvider.GetLightField();
+                            var lightField = _lightFieldProvider.GetLightFieldV2();
 
-                            if (lightField.Textures == null || lightField.Textures.Count == 0)
-                                return;
+                            bld.AddFeature("USE_LIGHT_FIELD_V2");
 
-                            var i = 0;
+                            bld.LoadTexture(() => lightField.LookupTexture, TextureSlots.LightFieldLoockup);
 
-                            foreach (var tex in lightField.Textures)
+                            bld.LoadBufferArray(ctx =>
                             {
-                                up.LoadTexture(tex, i + baseSlot);
-                                //up.SetUniform($"uLightField[{i}]", i + 10);
-                                i++;
-                            }
+                                var curVersion = lightField.Version;
 
-                            up.SetUniform("uLightFieldOrigin", lightField.Origin);
-                            up.SetUniform("uLightFieldSize", lightField.Size);
-                            up.SetUniform("uVoxelSize", lightField.VoxelSize);
-                            up.SetUniform("uLightFieldDifStrength", lightField.DiffuseStrength);
-                            up.SetUniform("uLightFieldSpecStrength", lightField.SpecularStrength);
-                        });
+                                if (ctx.CurrentBuffer!.Version == curVersion)
+                                    return null;
+
+                                ctx.CurrentBuffer.Version = curVersion;
+
+                                return lightField.Contributions;
+
+                            }, BufferSlots.LightFieldLoockup, BufferStore.Shader, BufferUsage.SSbo);
+
+                            bld.ExecuteAction((ctx, up) =>
+                            {
+                                up.SetUniform("uLightFieldOrigin", lightField.Origin);
+                                up.SetUniform("uLightFieldSize", lightField.Size);
+                                up.SetUniform("uVoxelSize", lightField.VoxelSize);
+                                up.SetUniform("uLightFieldDifStrength", lightField.DiffuseStrength);
+                                up.SetUniform("uLightFieldSpecStrength", lightField.SpecularStrength);
+                            });
+                        }
+                        else if ((versions & LightFieldVersion.V1) != 0)
+                        {
+                            var lightField = _lightFieldProvider.GetLightField();
+
+                            if (lightField.UseAllFaces)
+                                bld.AddFeature("USE_LIGHT_FIELD_ALL_FACES");
+
+                            var baseSlot = bld.GetTextureSlots(TextureSlots.LightFieldBase, 12);
+
+                            bld.ExecuteAction((ctx, up) =>
+                            {
+                                lightField = _lightFieldProvider.GetLightField();
+
+                                if (lightField.Textures == null || lightField.Textures.Count == 0)
+                                    return;
+
+                                var i = 0;
+
+                                foreach (var tex in lightField.Textures)
+                                    up.LoadTexture(tex, i++ + baseSlot);
+
+                                up.SetUniform("uLightFieldOrigin", lightField.Origin);
+                                up.SetUniform("uLightFieldSize", lightField.Size);
+                                up.SetUniform("uVoxelSize", lightField.VoxelSize);
+                                up.SetUniform("uLightFieldDifStrength", lightField.DiffuseStrength);
+                                up.SetUniform("uLightFieldSpecStrength", lightField.SpecularStrength);
+                            });
+                        }
                     }
                 }
 
@@ -778,7 +809,7 @@ namespace XrEngine
 
             if (UseLightField != UseLightFieldMode.None && ((PbrShader)_shader!).UseLightField)
             {
-                bld.AddFeature("USE_LIGHT_FIELD");
+                //bld.AddFeature("USE_LIGHT_FIELD");
 
                 bld.AddFeature(UseLightField switch
                 {

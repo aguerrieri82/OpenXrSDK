@@ -71,6 +71,9 @@
     <ClCompile Include="VoxelLightBakerV2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LightFieldApiV2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="android-build.cmd" />

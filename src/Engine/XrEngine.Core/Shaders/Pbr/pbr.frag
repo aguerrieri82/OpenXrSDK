@@ -478,6 +478,10 @@ vec3 evaluateDirectTransmission(vec3 L, vec3 radiance)
 	#include "../Shared/light_field.glsl"
 #endif
 
+#ifdef USE_LIGHT_FIELD_V2
+	#include "../Shared/light_field_v2.glsl"
+#endif
+
 vec3 evaluatePunctualLighting(out vec3 shadowLightDir, out vec3 clearCoatLighting)
 {
 	vec3 directLighting = vec3(0.0);
@@ -485,6 +489,28 @@ vec3 evaluatePunctualLighting(out vec3 shadowLightDir, out vec3 clearCoatLightin
 	shadowLightDir = vec3(0.0, 1.0, 0.0);
 
 #ifdef USE_LIGHT_FIELD
+
+	#ifdef LIGHT_FIELD_FULL
+		directLighting += evaluateLightField(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#else
+		directLighting += evaluateLightFieldSelf(
+			frag.position,
+			frag.albedo,
+			frag.metalness,
+			frag.roughness,
+			frag.normal,
+			frag.viewDir);
+	#endif
+
+#endif
+
+#ifdef USE_LIGHT_FIELD_V2
 
 	#ifdef LIGHT_FIELD_FULL
 		directLighting += evaluateLightField(
