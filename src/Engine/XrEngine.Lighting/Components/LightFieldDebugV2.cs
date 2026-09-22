@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XrEngine.OpenGL;
@@ -17,9 +18,14 @@ namespace XrEngine.Lighting
         readonly VoxelLightBakerV2 _baker;
         readonly GpuMeshVoxelizer _gpuVoxelizer;
         readonly LightFieldDataV2 _fieldData;
+        readonly HashSet<LightFieldEmitter> _activeEmitters = [];
+        readonly HashSet<LightFieldReceiver> _activeOccluders = [];
 
         TriangleMesh[]? _walls;
         VoxelGridDesc _grid;
+        VoxelLightBakeParamsV2 _lastParams;
+        VoxelLightBakeParams _lastBakeParams;
+        bool _hasParams;
 
         public LightFieldDebugV2(VoxelGridDesc grid)
         {
@@ -186,9 +192,9 @@ namespace XrEngine.Lighting
         {
         }
 
-        void UpdateParams()
+        (bool BakeDirty, bool BuildDirty) UpdateParams()
         {
-            _baker.SetParams(new VoxelLightBakeParamsV2
+            var parameters = new VoxelLightBakeParamsV2
             {
                 Base = new VoxelLightBakeParams
                 {
@@ -234,11 +240,50 @@ namespace XrEngine.Lighting
                 },
                 AngularTolerance = AngularTolerance,
                 RelativeEnergyTolerance = RelativeEnergyTolerance
-            });
+            };
+
+            var bakeParams = parameters.Base;
+            bakeParams.Blur = default;
+
+            var bakeDirty = !_hasParams || !bakeParams.Equals(_lastBakeParams);
+            var buildDirty = !_hasParams || !parameters.Equals(_lastParams);
+
+            _baker.SetParams(parameters);
+
+            _lastParams = parameters;
+            _lastBakeParams = bakeParams;
+            _hasParams = true;
+
+            return (bakeDirty, buildDirty);
         }
 
-        void UpdateScene()
+        bool UpdateScene()
         {
+            var meshDirty = false;
+
+            foreach (var mesh in _host.Descendants<TriangleMesh>())
+            {
+                if (!mesh.TryComponent<LightFieldReceiver>(out var rec))
+                    continue;
+
+                if (!rec.IsEnabled || !rec.IsOccluder)
+                {
+                    if (_activeOccluders.Remove(rec))
+                        meshDirty = true;
+
+                    continue;
+                }
+
+                if (_activeOccluders.Add(rec))
+                    meshDirty = true;
+
+                if (rec.NeedUpdate)
+                    meshDirty = true;
+            }
+
+            if (!meshDirty)
+                return false;
+
             _baker.ClearScene();
 
             foreach (var mesh in _host.Descendants<TriangleMesh>())
@@ -246,72 +291,48 @@ namespace XrEngine.Lighting
                 if (!mesh.TryComponent<LightFieldReceiver>(out var rec) || !rec.IsEnabled || !rec.IsOccluder)
                     continue;
 
-                rec.UpdateVoxels(_gpuVoxelizer);
+                if (rec.NeedUpdate || rec.Voxels == null)
+                    rec.UpdateVoxels(_gpuVoxelizer);
+
                 Debug.Assert(rec.Voxels != null);
                 _baker.AddMesh(rec.Voxels);
             }
+
+            return true;
         }
 
-        LightContributionV2? BakeLight(Light light)
+
+
+        bool BakeLights(bool force)
         {
-            if (light is PointLight point)
+            var lightDirty = force;
+
+            foreach (var light in _host.Descendants<Light>())
             {
-                return _baker.BakeLight(new VoxPointLight
+                if (!light.TryComponent<LightFieldEmitter>(out var emitter))
+                    continue;
+
+                if (force)
+                    emitter.InvalidateV2();
+
+                if (!emitter.IsEnabled)
                 {
-                    Color = point.Color.ToVector3(),
-                    Falloff = new LightCurve { Factor = 1, Range = point.Range, Type = LightCurveType.Quadratic },
-                    Intensity = point.Intensity,
-                    Position = point.WorldPosition
-                });
+                    if (_activeEmitters.Remove(emitter))
+                        lightDirty = true;
+
+                    continue;
+                }
+
+                if (_activeEmitters.Add(emitter))
+                    lightDirty = true;
+
+                if (emitter.NeedUpdateV2 || emitter.ContributionsV2 == null)
+                    lightDirty = true;
             }
 
-            if (light is AreaLight area)
-            {
-                return _baker.BakeLight(new VoxAreaLight
-                {
-                    Color = area.Color.ToVector3(),
-                    Falloff = new LightCurve { Factor = 1, Range = area.Range, Type = LightCurveType.Quadratic },
-                    Intensity = area.Intensity,
-                    Direction = area.Direction,
-                    Position = area.WorldPosition,
-                    Height = area.PlaneSize.Y,
-                    Width = area.PlaneSize.X,
-                    Normal = area.PlaneNormal,
-                    Up = area.PlaneUp
-                });
-            }
+            if (!lightDirty)
+                return false;
 
-            if (light is DirectionalLight dir)
-            {
-                return _baker.BakeLight(new VoxDirectionalLight
-                {
-                    Color = dir.Color.ToVector3(),
-                    Falloff = new LightCurve { Factor = 1, Range = 100, Type = LightCurveType.Quadratic },
-                    Direction = dir.Direction,
-                    Position = dir.WorldPosition,
-                    Intensity = dir.Intensity
-                });
-            }
-
-            if (light is SpotLight spot)
-            {
-                return _baker.BakeLight(new VoxSpotLight
-                {
-                    Color = spot.Color.ToVector3(),
-                    Falloff = new LightCurve { Factor = 1, Range = spot.Range, Type = LightCurveType.Quadratic },
-                    InnerCos = MathF.Cos(spot.InnerConeAngle),
-                    OuterCos = MathF.Cos(spot.OuterConeAngle),
-                    Intensity = spot.Intensity,
-                    Direction = spot.Direction,
-                    Position = spot.WorldPosition
-                });
-            }
-
-            return null;
-        }
-
-        void BakeLights()
-        {
             _baker.ClearLightField();
 
             foreach (var light in _host.Descendants<Light>())
@@ -321,14 +342,17 @@ namespace XrEngine.Lighting
                 if (!light.TryComponent<LightFieldEmitter>(out var emitter) || !emitter.IsEnabled)
                     continue;
 
-                using var contribution = BakeLight(light);
+                if (emitter.NeedUpdateV2 || emitter.ContributionsV2 == null)
+                    emitter.UpdateLight(_baker);
 
-                if (contribution == null)
-                    continue;
-
-                Log.Info(this, "Accumulate {0}", light.Name ?? light.GetType().Name);
-                _baker.AccumulateLight(contribution);
+                if (emitter.ContributionsV2 != null)
+                {
+                    Log.Info(this, "Accumulate {0}", light.Name ?? light.GetType().Name);
+                    _baker.AccumulateLight(emitter.ContributionsV2);
+                }
             }
+
+            return true;
         }
 
         void BuildField()
@@ -336,23 +360,16 @@ namespace XrEngine.Lighting
             var field = _baker.BuildLightField(AngularTolerance, RelativeEnergyTolerance);
             var source = _baker.GetContributions();
 
-            var lobes = new LightFieldLobe[source.Length];
-
-            for (var i = 0; i < source.Length; i++)
-            {
-                lobes[i].Direction = source[i].Direction;
-                lobes[i].Color = source[i].Color;
-            }
+            var lobes = MemoryMarshal.Cast<VoxelLightGpuContribution, LightFieldLobe>(source);
 
             var lookup = _baker.CreateLookupTexture(TextureFormat.RgUInt32);
 
             _fieldData.LookupTexture?.Dispose();
             _fieldData.LookupTexture = lookup;
-            _fieldData.Contributions = lobes;
+            _fieldData.Contributions = lobes.ToArray();
             _fieldData.Origin = _grid.Origin;
             _fieldData.Size = field.Size;
             _fieldData.VoxelSize = _grid.VoxelSize;
-
             _fieldData.Version++;
 
             Log.Info(this, "Light field V2 built: {0} lobes", lobes.Length);
@@ -388,21 +405,31 @@ namespace XrEngine.Lighting
         public void Backe()
         {
             Init();
-            UpdateParams();
-            UpdateScene();
-            UpdateMeshView();
-            BakeLights();
-            BuildField();
 
-            PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
+            var paramState = UpdateParams();
+            var meshDirty = UpdateScene();
+
+            if (meshDirty)
+                UpdateMeshView();
+
+            var lightDirty = BakeLights(meshDirty || paramState.BakeDirty);
+
+            if (lightDirty || paramState.BuildDirty)
+            {
+                BuildField();
+                PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
+            }
         }
 
         [Action]
         public void Extract()
         {
-            UpdateParams();
-            BuildField();
+            var paramState = UpdateParams();
 
+            if (paramState.BakeDirty)
+                BakeLights(true);
+
+            BuildField();
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
         }
 

@@ -29,49 +29,44 @@ namespace
 		if (view == nullptr)
 			return 0;
 
-		const int32_t count =
-			static_cast<int32_t>(source.Samples.size());
+		const int32_t cellCount = static_cast<int32_t>(source.Cells.size());
+		const int32_t sampleCount = static_cast<int32_t>(source.Samples.size());
 
-		if (!EnsureCapacity(
-			view->Samples,
-			view->SampleCapacity,
-			count))
+		if (!EnsureCapacity(view->Cells, view->CellCapacity, cellCount))
 		{
+			view->CellCount = 0;
 			view->SampleCount = 0;
 			return 0;
 		}
 
-		if (count > 0)
+		if (!EnsureCapacity(view->Samples, view->SampleCapacity, sampleCount))
+		{
+			view->CellCount = 0;
+			view->SampleCount = 0;
+			return 0;
+		}
+
+		if (cellCount > 0)
+		{
+			std::memcpy(
+				view->Cells,
+				source.Cells.data(),
+				sizeof(VoxelLightContributionCellV2) * static_cast<size_t>(cellCount));
+		}
+
+		if (sampleCount > 0)
 		{
 			std::memcpy(
 				view->Samples,
 				source.Samples.data(),
-				sizeof(VoxelLightSample) * static_cast<size_t>(count));
+				sizeof(VoxelLightContributionSampleV2) * static_cast<size_t>(sampleCount));
 		}
 
-		view->SampleCount = count;
-		return count;
+		view->CellCount = cellCount;
+		view->SampleCount = sampleCount;
+		return sampleCount;
 	}
 
-
-	VoxelLightContributionV2 CopyContributionFromView(
-		const VoxelLightContributionViewV2* view)
-	{
-		VoxelLightContributionV2 result;
-
-		if (view == nullptr ||
-			view->Samples == nullptr ||
-			view->SampleCount <= 0)
-		{
-			return result;
-		}
-
-		result.Samples.assign(
-			view->Samples,
-			view->Samples + view->SampleCount);
-
-		return result;
-	}
 
 
 	int32_t CopyLightFieldToView(
@@ -313,10 +308,14 @@ EXPORT void APIENTRY VoxelLightBakerV2AccumulateLight(
 	if (baker == nullptr)
 		return;
 
-	VoxelLightContributionV2 value =
-		CopyContributionFromView(contribution);
+	if (contribution == nullptr)
+		return;
 
-	baker->AccumulateLight(value);
+	baker->AccumulateLight(
+		contribution->Cells,
+		contribution->CellCount,
+		contribution->Samples,
+		contribution->SampleCount);
 }
 
 
@@ -342,12 +341,7 @@ EXPORT int32_t APIENTRY VoxelLightBakerV2BuildLightField(
 	if (baker == nullptr || field == nullptr)
 		return 0;
 
-	VoxelLightFieldV2 result;
-
-	baker->BuildLightField(
-		result,
-		angularTolerance,
-		relativeEnergyTolerance);
+	const auto& result = baker->BuildLightField(angularTolerance, relativeEnergyTolerance);
 
 	return CopyLightFieldToView(result, field);
 }
@@ -430,9 +424,10 @@ EXPORT int32_t APIENTRY VoxelRayMarcherV2GetContribution(
 	if (marcher == nullptr)
 		return 0;
 
-	return CopyContributionToView(
-		marcher->Contribution(),
-		contribution);
+	VoxelLightContributionV2 result;
+	marcher->GetContribution(result);
+
+	return CopyContributionToView(result, contribution);
 }
 
 
@@ -463,7 +458,12 @@ EXPORT void APIENTRY FreeContributionViewV2(
 	if (view == nullptr)
 		return;
 
+	std::free(view->Cells);
 	std::free(view->Samples);
+
+	view->Cells = nullptr;
+	view->CellCount = 0;
+	view->CellCapacity = 0;
 
 	view->Samples = nullptr;
 	view->SampleCount = 0;

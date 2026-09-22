@@ -14,11 +14,18 @@ namespace XrEngine.Lighting
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct VoxelLightSample
+    public struct VoxelLightContributionSampleV2
     {
-        public int Index;
         public Vector3 Direction;
         public Vector3 Energy;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct VoxelLightContributionCellV2
+    {
+        public int Index;
+        public uint Offset;
+        public uint Count;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -38,7 +45,11 @@ namespace XrEngine.Lighting
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct VoxelLightContributionViewV2
     {
-        public VoxelLightSample* Samples;
+        public VoxelLightContributionCellV2* Cells;
+        public int CellCount;
+        public int CellCapacity;
+
+        public VoxelLightContributionSampleV2* Samples;
         public int SampleCount;
         public int SampleCapacity;
     }

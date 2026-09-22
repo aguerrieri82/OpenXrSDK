@@ -8,13 +8,17 @@ namespace XrEngine.Lighting
     {
         internal VoxelLightContributionViewV2 View;
 
-        public Span<VoxelLightSample> Samples => View.SampleCount == 0 ? [] : new Span<VoxelLightSample>(View.Samples, View.SampleCount);
+        public Span<VoxelLightContributionCellV2> Cells => View.CellCount == 0 ? [] : new Span<VoxelLightContributionCellV2>(View.Cells, View.CellCount);
+
+        public Span<VoxelLightContributionSampleV2> Samples => View.SampleCount == 0 ? [] : new Span<VoxelLightContributionSampleV2>(View.Samples, View.SampleCount);
+
+        public int CellCount => View.CellCount;
 
         public int Count => View.SampleCount;
 
         public void Dispose()
         {
-            if (View.Samples == null)
+            if (View.Cells == null && View.Samples == null)
                 return;
 
             EngineNativeLibV2.FreeContributionViewV2(ref View);
@@ -103,42 +107,54 @@ namespace XrEngine.Lighting
 
         public LightContributionV2 BakeLight(in VoxPointLight light)
         {
-            var lightValue = light;
             var result = new LightContributionV2();
-
-            EngineNativeLibV2.VoxelLightBakerV2BakePointLight(_handle, ref lightValue, ref result.View);
-
+            BakeLight(light, result);
             return result;
+        }
+
+        public void BakeLight(in VoxPointLight light, LightContributionV2 result)
+        {
+            var lightValue = light;
+            EngineNativeLibV2.VoxelLightBakerV2BakePointLight(_handle, ref lightValue, ref result.View);
         }
 
         public LightContributionV2 BakeLight(in VoxDirectionalLight light)
         {
-            var lightValue = light;
             var result = new LightContributionV2();
-
-            EngineNativeLibV2.VoxelLightBakerV2BakeDirectionalLight(_handle, ref lightValue, ref result.View);
-
+            BakeLight(light, result);
             return result;
+        }
+
+        public void BakeLight(in VoxDirectionalLight light, LightContributionV2 result)
+        {
+            var lightValue = light;
+            EngineNativeLibV2.VoxelLightBakerV2BakeDirectionalLight(_handle, ref lightValue, ref result.View);
         }
 
         public LightContributionV2 BakeLight(in VoxSpotLight light)
         {
-            var lightValue = light;
             var result = new LightContributionV2();
-
-            EngineNativeLibV2.VoxelLightBakerV2BakeSpotLight(_handle, ref lightValue, ref result.View);
-
+            BakeLight(light, result);
             return result;
+        }
+
+        public void BakeLight(in VoxSpotLight light, LightContributionV2 result)
+        {
+            var lightValue = light;
+            EngineNativeLibV2.VoxelLightBakerV2BakeSpotLight(_handle, ref lightValue, ref result.View);
         }
 
         public LightContributionV2 BakeLight(in VoxAreaLight light)
         {
-            var lightValue = light;
             var result = new LightContributionV2();
-
-            EngineNativeLibV2.VoxelLightBakerV2BakeAreaLight(_handle, ref lightValue, ref result.View);
-
+            BakeLight(light, result);
             return result;
+        }
+
+        public void BakeLight(in VoxAreaLight light, LightContributionV2 result)
+        {
+            var lightValue = light;
+            EngineNativeLibV2.VoxelLightBakerV2BakeAreaLight(_handle, ref lightValue, ref result.View);
         }
 
         public void ClearLightField()
@@ -227,11 +243,9 @@ namespace XrEngine.Lighting
             return texture;
         }
 
-        public Span<VoxelLightLookup> Lookup => _view.LookupCount == 0 ? [] : 
-            new Span<VoxelLightLookup>(_view.Lookup, _view.LookupCount);
+        public Span<VoxelLightLookup> Lookup => _view.LookupCount == 0 ? [] : new Span<VoxelLightLookup>(_view.Lookup, _view.LookupCount);
 
-        public Span<VoxelLightGpuContribution> Contributions => _view.ContributionCount == 0 ? [] : 
-            new Span<VoxelLightGpuContribution>(_view.Contributions, _view.ContributionCount);
+        public Span<VoxelLightGpuContribution> Contributions => _view.ContributionCount == 0 ? [] : new Span<VoxelLightGpuContribution>(_view.Contributions, _view.ContributionCount);
 
         public void Dispose()
         {

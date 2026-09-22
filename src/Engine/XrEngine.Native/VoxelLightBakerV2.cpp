@@ -215,20 +215,27 @@ namespace {
 		Vec3 Direction;
 		Vec3 Color;
 		float Weight;
-		float Radius;
+
+		// Radius is kept as sin/cos so the constrained merge test never
+		// needs acos(). While processing strong samples Radius <= tolerance.
+		float RadiusCos;
+		float RadiusSin;
 	};
 
-	FORCE_INLINE float DirectionAngle(const Vec3& a, const Vec3& b)
+	struct VoxelLightClusterMerge
 	{
-		return std::acos(std::clamp(Dot(a, b), -1.0f, 1.0f));
-	}
+		Vec3 DirectionSum;
+		Vec3 Direction;
+		float RadiusCos;
+		float RadiusSin;
+	};
 
 	FORCE_INLINE float ContributionWeight(const Vec3& color)
 	{
 		return std::max(EnergyScore(color), Epsilon);
 	}
 
-	void InitCluster(VoxelLightBuildCluster& cluster, const VoxelLightSample& sample)
+	void InitCluster(VoxelLightBuildCluster& cluster, const VoxelLightContributionSampleV2& sample)
 	{
 		const float weight = ContributionWeight(sample.Energy);
 
@@ -236,61 +243,131 @@ namespace {
 		cluster.Direction = sample.Direction;
 		cluster.Color = sample.Energy;
 		cluster.Weight = weight;
-		cluster.Radius = 0.0f;
+		cluster.RadiusCos = 1.0f;
+		cluster.RadiusSin = 0.0f;
 	}
 
-	bool TryMergeCluster(
-		VoxelLightBuildCluster& cluster,
-		const VoxelLightSample& sample,
-		float angularTolerance)
+	FORCE_INLINE bool TryMergeCluster(
+		const VoxelLightBuildCluster& cluster,
+		const VoxelLightContributionSampleV2& sample,
+		float sampleWeight,
+		float toleranceCos,
+		float toleranceSin,
+		float doubleToleranceCos,
+		bool useDoubleToleranceReject,
+		VoxelLightClusterMerge& result)
 	{
-		const float weight = ContributionWeight(sample.Energy);
+		// Safe broad phase: if the current representative direction and the
+		// sample are farther apart than 2*tolerance, no possible shifted
+		// representative can keep both inside tolerance.
+		if (useDoubleToleranceReject &&
+			Dot(cluster.Direction, sample.Direction) < doubleToleranceCos)
+		{
+			return false;
+		}
+
 		const Vec3 directionSum =
 			cluster.DirectionSum +
-			sample.Direction * weight;
+			sample.Direction * sampleWeight;
 
-		if (Dot(directionSum, directionSum) <= Epsilon)
+		const float lengthSq = Dot(directionSum, directionSum);
+
+		if (lengthSq <= Epsilon)
 			return false;
 
-		const Vec3 direction = directionSum.Normalized();
-		const float shift = DirectionAngle(cluster.Direction, direction);
-		const float sampleAngle = DirectionAngle(sample.Direction, direction);
-		const float radius = std::max(cluster.Radius + shift, sampleAngle);
+		const float invLength = 1.0f / std::sqrt(lengthSq);
+		const Vec3 direction = directionSum * invLength;
 
-		if (radius > angularTolerance)
+		const float shiftCos =
+			std::clamp(Dot(cluster.Direction, direction), -1.0f, 1.0f);
+
+		const float sampleCos =
+			std::clamp(Dot(sample.Direction, direction), -1.0f, 1.0f);
+
+		// sampleAngle <= tolerance
+		if (sampleCos < toleranceCos)
 			return false;
 
-		cluster.DirectionSum = directionSum;
-		cluster.Direction = direction;
-		cluster.Color += sample.Energy;
-		cluster.Weight += weight;
-		cluster.Radius = radius;
+		// shift <= tolerance - currentRadius
+		// cos(tolerance - radius) =
+		// cos(tolerance)*cos(radius) + sin(tolerance)*sin(radius)
+		const float remainingCos =
+			toleranceCos * cluster.RadiusCos +
+			toleranceSin * cluster.RadiusSin;
+
+		if (shiftCos < remainingCos)
+			return false;
+
+		const float shiftSin =
+			std::sqrt(std::max(0.0f, 1.0f - shiftCos * shiftCos));
+
+		const float expandedRadiusCos =
+			cluster.RadiusCos * shiftCos -
+			cluster.RadiusSin * shiftSin;
+
+		const float expandedRadiusSin =
+			cluster.RadiusSin * shiftCos +
+			cluster.RadiusCos * shiftSin;
+
+		result.DirectionSum = directionSum;
+		result.Direction = direction;
+
+		// max(radius + shift, sampleAngle). On [0, PI], the larger angle
+		// is the one with the smaller cosine.
+		if (expandedRadiusCos <= sampleCos)
+		{
+			result.RadiusCos =
+				std::clamp(expandedRadiusCos, -1.0f, 1.0f);
+
+			result.RadiusSin =
+				std::clamp(expandedRadiusSin, 0.0f, 1.0f);
+		}
+		else
+		{
+			result.RadiusCos = sampleCos;
+			result.RadiusSin =
+				std::sqrt(std::max(0.0f, 1.0f - sampleCos * sampleCos));
+		}
 
 		return true;
 	}
 
-	void MergeClusterUnbounded(
+	FORCE_INLINE void CommitClusterMerge(
 		VoxelLightBuildCluster& cluster,
-		const VoxelLightSample& sample)
+		const VoxelLightContributionSampleV2& sample,
+		float sampleWeight,
+		const VoxelLightClusterMerge& merge)
+	{
+		cluster.DirectionSum = merge.DirectionSum;
+		cluster.Direction = merge.Direction;
+		cluster.Color += sample.Energy;
+		cluster.Weight += sampleWeight;
+		cluster.RadiusCos = merge.RadiusCos;
+		cluster.RadiusSin = merge.RadiusSin;
+	}
+
+	FORCE_INLINE void MergeClusterUnbounded(
+		VoxelLightBuildCluster& cluster,
+		const VoxelLightContributionSampleV2& sample)
 	{
 		const float weight = ContributionWeight(sample.Energy);
 		const Vec3 directionSum =
 			cluster.DirectionSum +
 			sample.Direction * weight;
 
-		if (Dot(directionSum, directionSum) > Epsilon)
-		{
-			const Vec3 direction = directionSum.Normalized();
-			const float shift = DirectionAngle(cluster.Direction, direction);
-			const float sampleAngle = DirectionAngle(sample.Direction, direction);
+		const float lengthSq = Dot(directionSum, directionSum);
 
-			cluster.Radius = std::max(cluster.Radius + shift, sampleAngle);
+		if (lengthSq > Epsilon)
+		{
 			cluster.DirectionSum = directionSum;
-			cluster.Direction = direction;
+			cluster.Direction = directionSum * (1.0f / std::sqrt(lengthSq));
 		}
 
 		cluster.Color += sample.Energy;
 		cluster.Weight += weight;
+
+		// No radius update is needed here: unbounded merges are only used
+		// for the weak tail, after all constrained merges are finished.
 	}
 
 	FORCE_INLINE bool SelectVoxelHitFace(
@@ -705,6 +782,19 @@ void VoxelRayMarcherV2::GetDebugState(
 	state.LastVoxel = _baker->_scene[_ray.LastAffectedVoxel];
 }
 
+void VoxelRayMarcherV2::GetContribution(VoxelLightContributionV2& contribution) const
+{
+	if (_baker == nullptr)
+	{
+		contribution.Cells.clear();
+		contribution.Samples.clear();
+		return;
+	}
+
+	_baker->FinalizeContribution(_local.Contribution, contribution);
+}
+
+
 FORCE_INLINE bool VoxelRayMarcherV2::MoveToNextVoxel()
 {
 	Vec3I old = _ray.Cell;
@@ -1016,7 +1106,6 @@ VoxelLightBakerV2::VoxelLightBakerV2(const VoxelLightBakeParamsV2& params)
 {
 	_grid = {};
 	_voxelCount = 0;
-	_lightSamplesSorted = false;
 
 	SetParams(params);
 }
@@ -1032,8 +1121,14 @@ void VoxelLightBakerV2::SetGrid(const VoxelGridDesc& grid)
 	_voxelCount = grid.Size.X * grid.Size.Y * grid.Size.Z;
 
 	_scene.assign(_voxelCount, VoxelData{});
+
 	_lightSamples.clear();
-	_lightSamplesSorted = false;
+	_lightRanges.clear();
+	_voxelRangeHeads.assign(_voxelCount, -1);
+
+	_contributionCounts.assign(_voxelCount, 0);
+	_contributionOffsets.assign(size_t(_voxelCount) + 1, 0);
+	_contributionCursor.assign(_voxelCount, 0);
 
 	_currentMerge.CellSlots.assign(_voxelCount, -1);
 	_currentMerge.TouchedVoxels.clear();
@@ -1147,7 +1242,7 @@ void VoxelLightBakerV2::AddGpuMeshFaces(
 	}
 }
 
-void VoxelLightBakerV2::BakeGeneratedRays(VoxelLightContributionV2& contribution)
+void VoxelLightBakerV2::BakeGeneratedRays(VoxelLightRawContributionV2& contribution)
 {
 	int32_t threadCount = _params.ThreadCount;
 
@@ -1167,7 +1262,7 @@ void VoxelLightBakerV2::BakeGeneratedRays(VoxelLightContributionV2& contribution
 		if (_rays.empty())
 			break;
 
-		VoxelLightContributionV2 generationContribution;
+		VoxelLightRawContributionV2 generationContribution;
 
 		TraceRays(
 			generationContribution,
@@ -1192,14 +1287,15 @@ void VoxelLightBakerV2::BakeAreaLight(
 	const AreaLight& light,
 	VoxelLightContributionV2& contribution)
 {
+	contribution.Cells.clear();
 	contribution.Samples.clear();
 	ClearMergeState(_currentMerge);
 
+	VoxelLightRawContributionV2 raw;
+
 	Vec3 normal = light.Normal.Normalized();
 	Vec3 direction = light.Direction.Normalized();
-	Vec3 up =
-		(light.Up - normal * Dot(light.Up, normal)).Normalized();
-
+	Vec3 up = (light.Up - normal * Dot(light.Up, normal)).Normalized();
 	Vec3 energy = light.Color * light.Intensity;
 
 	if (Dot(normal, normal) <= Epsilon ||
@@ -1214,22 +1310,23 @@ void VoxelLightBakerV2::BakeAreaLight(
 	}
 
 	if (_params.InitiateLightField)
-		PrefillAreaLightContribution(light, contribution);
+		PrefillAreaLightContribution(light, raw);
 
 	if (_params.Bounce.MaxCount > 0)
 	{
 		GenerateAreaLightRays(light);
-		BakeGeneratedRays(contribution);
+		BakeGeneratedRays(raw);
 	}
 
+	FinalizeContribution(raw, contribution);
 	ClearMergeState(_currentMerge);
 }
 
 void VoxelLightBakerV2::PrefillAreaLightContribution(
 	const AreaLight& light,
-	VoxelLightContributionV2& contribution)
+	VoxelLightRawContributionV2& contribution)
 {
-	VoxelLightContributionV2 directContribution;
+	VoxelLightRawContributionV2 directContribution;
 	directContribution.Samples.reserve(_voxelCount);
 
 	Vec3 normal = light.Normal.Normalized();
@@ -1402,9 +1499,11 @@ void VoxelLightBakerV2::BakePointLight(
 	const PointLight& light,
 	VoxelLightContributionV2& contribution)
 {
+	contribution.Cells.clear();
 	contribution.Samples.clear();
 	ClearMergeState(_currentMerge);
 
+	VoxelLightRawContributionV2 raw;
 	Vec3 energy = light.Color * light.Intensity;
 
 	if (!HasEnergy(energy, _params.EnergyThreshold))
@@ -1414,20 +1513,21 @@ void VoxelLightBakerV2::BakePointLight(
 	}
 
 	if (_params.InitiateLightField)
-		PrefillPointLightContribution(light, contribution);
+		PrefillPointLightContribution(light, raw);
 
 	if (_params.Bounce.MaxCount > 0)
 	{
 		GeneratePointLightRays(light, false);
-		BakeGeneratedRays(contribution);
+		BakeGeneratedRays(raw);
 
 		if (_currentMerge.TouchedVoxels.size() < size_t(_voxelCount))
 		{
 			GeneratePointLightRays(light, true);
-			BakeGeneratedRays(contribution);
+			BakeGeneratedRays(raw);
 		}
 	}
 
+	FinalizeContribution(raw, contribution);
 	ClearMergeState(_currentMerge);
 }
 
@@ -1435,9 +1535,11 @@ void VoxelLightBakerV2::BakeDirectionalLight(
 	const DirectionalLight& light,
 	VoxelLightContributionV2& contribution)
 {
+	contribution.Cells.clear();
 	contribution.Samples.clear();
 	ClearMergeState(_currentMerge);
 
+	VoxelLightRawContributionV2 raw;
 	Vec3 direction = light.Direction.Normalized();
 	Vec3 energy = light.Color * light.Intensity;
 
@@ -1449,14 +1551,15 @@ void VoxelLightBakerV2::BakeDirectionalLight(
 	}
 
 	if (_params.InitiateLightField)
-		PrefillDirectionalLightContribution(light, contribution);
+		PrefillDirectionalLightContribution(light, raw);
 
 	if (_params.Bounce.MaxCount > 0)
 	{
 		GenerateDirectionalLightRays(light);
-		BakeGeneratedRays(contribution);
+		BakeGeneratedRays(raw);
 	}
 
+	FinalizeContribution(raw, contribution);
 	ClearMergeState(_currentMerge);
 }
 
@@ -1464,9 +1567,11 @@ void VoxelLightBakerV2::BakeSpotLight(
 	const SpotLight& light,
 	VoxelLightContributionV2& contribution)
 {
+	contribution.Cells.clear();
 	contribution.Samples.clear();
 	ClearMergeState(_currentMerge);
 
+	VoxelLightRawContributionV2 raw;
 	Vec3 direction = light.Direction.Normalized();
 	Vec3 energy = light.Color * light.Intensity;
 
@@ -1480,34 +1585,73 @@ void VoxelLightBakerV2::BakeSpotLight(
 	}
 
 	if (_params.InitiateLightField)
-		PrefillSpotLightContribution(light, contribution);
+		PrefillSpotLightContribution(light, raw);
 
 	if (_params.Bounce.MaxCount > 0)
 	{
 		GenerateSpotLightRays(light);
-		BakeGeneratedRays(contribution);
+		BakeGeneratedRays(raw);
 	}
 
+	FinalizeContribution(raw, contribution);
 	ClearMergeState(_currentMerge);
 }
 
 void VoxelLightBakerV2::ClearLightField()
 {
 	_lightSamples.clear();
-	_lightSamplesSorted = false;
+	_lightRanges.clear();
+	std::fill(_voxelRangeHeads.begin(), _voxelRangeHeads.end(), -1);
 
 	_field.Lookup.clear();
 	_field.Contributions.clear();
 }
 
-void VoxelLightBakerV2::AccumulateLight(const VoxelLightContributionV2& contribution) {
+void VoxelLightBakerV2::AccumulateLight(const VoxelLightContributionV2& contribution)
+{
+	AccumulateLight(
+		contribution.Cells.data(),
+		int32_t(contribution.Cells.size()),
+		contribution.Samples.data(),
+		int32_t(contribution.Samples.size()));
+}
 
-	_lightSamples.insert(
-		_lightSamples.end(),
-		contribution.Samples.begin(),
-		contribution.Samples.end());
+void VoxelLightBakerV2::AccumulateLight(
+	const VoxelLightContributionCellV2* cells,
+	int32_t cellCount,
+	const VoxelLightContributionSampleV2* samples,
+	int32_t sampleCount)
+{
+	if (cells == nullptr || cellCount <= 0 || samples == nullptr || sampleCount <= 0)
+		return;
 
-	_lightSamplesSorted = false;
+	if (uint64_t(_lightSamples.size()) + uint64_t(sampleCount) > uint64_t(UINT32_MAX))
+		return;
+
+	const uint32_t sampleBase = uint32_t(_lightSamples.size());
+
+	_lightSamples.insert(_lightSamples.end(), samples, samples + sampleCount);
+
+	for (int32_t i = 0; i < cellCount; ++i)
+	{
+		const VoxelLightContributionCellV2& cell = cells[i];
+
+		if (cell.Index < 0 || cell.Index >= _voxelCount || cell.Count == 0)
+			continue;
+
+		const uint64_t end = uint64_t(cell.Offset) + uint64_t(cell.Count);
+
+		if (end > uint64_t(sampleCount))
+			continue;
+
+		VoxelLightSampleRangeV2 range{};
+		range.Offset = sampleBase + cell.Offset;
+		range.Count = cell.Count;
+		range.Next = _voxelRangeHeads[cell.Index];
+
+		_voxelRangeHeads[cell.Index] = int32_t(_lightRanges.size());
+		_lightRanges.push_back(range);
+	}
 }
 
 VoxelLightFieldV2& VoxelLightBakerV2::GetLightField()
@@ -1518,9 +1662,9 @@ VoxelLightFieldV2& VoxelLightBakerV2::GetLightField()
 
 void VoxelLightBakerV2::PrefillPointLightContribution(
 	const PointLight& light,
-	VoxelLightContributionV2& contribution)
+	VoxelLightRawContributionV2& contribution)
 {
-	VoxelLightContributionV2 directContribution;
+	VoxelLightRawContributionV2 directContribution;
 	directContribution.Samples.reserve(_voxelCount);
 
 	Vec3 lightEnergy = light.Color * light.Intensity;
@@ -1565,9 +1709,9 @@ void VoxelLightBakerV2::PrefillPointLightContribution(
 
 void VoxelLightBakerV2::PrefillDirectionalLightContribution(
 	const DirectionalLight& light,
-	VoxelLightContributionV2& contribution)
+	VoxelLightRawContributionV2& contribution)
 {
-	VoxelLightContributionV2 directContribution;
+	VoxelLightRawContributionV2 directContribution;
 	directContribution.Samples.reserve(_voxelCount);
 
 	Vec3 direction = light.Direction.Normalized();
@@ -1616,9 +1760,9 @@ void VoxelLightBakerV2::PrefillDirectionalLightContribution(
 
 void VoxelLightBakerV2::PrefillSpotLightContribution(
 	const SpotLight& light,
-	VoxelLightContributionV2& contribution)
+	VoxelLightRawContributionV2& contribution)
 {
-	VoxelLightContributionV2 directContribution;
+	VoxelLightRawContributionV2 directContribution;
 	directContribution.Samples.reserve(_voxelCount);
 
 	Vec3 lightEnergy = light.Color * light.Intensity;
@@ -2170,13 +2314,13 @@ void VoxelLightBakerV2::GenerateSpotLightRays(const SpotLight& light)
 	}
 }
 
-void VoxelLightBakerV2::CleanupUnvisitedFaces(VoxelLightContributionV2& contribution)
+void VoxelLightBakerV2::CleanupUnvisitedFaces(VoxelLightRawContributionV2& contribution)
 {
 	(void)contribution;
 }
 
 void VoxelLightBakerV2::TraceRays(
-	VoxelLightContributionV2& contribution,
+	VoxelLightRawContributionV2& contribution,
 	std::vector<VoxelLightRay>& nextRays,
 	int32_t generation)
 {
@@ -2194,7 +2338,7 @@ void VoxelLightBakerV2::TraceRays(
 	{
 		_marchers[0].TraceRange(0, rayCount, generation);
 
-		const VoxelLightContributionV2& workerContribution =
+		const VoxelLightRawContributionV2& workerContribution =
 			_marchers[0].Contribution();
 
 		contribution.Samples.insert(
@@ -2244,7 +2388,7 @@ void VoxelLightBakerV2::TraceRays(
 
 	for (int32_t i = 0; i < threadCount; ++i)
 	{
-		const VoxelLightContributionV2& workerContribution =
+		const VoxelLightRawContributionV2& workerContribution =
 			_marchers[i].Contribution();
 
 		contribution.Samples.insert(
@@ -2258,9 +2402,9 @@ void VoxelLightBakerV2::TraceRays(
 }
 
 void VoxelLightBakerV2::MergeContribution(
-	VoxelLightContributionV2& target,
+	VoxelLightRawContributionV2& target,
 	ContributionMergeStateV2& mergeState,
-	const VoxelLightContributionV2& source)
+	const VoxelLightRawContributionV2& source)
 {
 
 	target.Samples.insert(
@@ -2289,13 +2433,409 @@ void VoxelLightBakerV2::ClearMergeState(ContributionMergeStateV2& mergeState) {
 }
 
 
+void VoxelLightBakerV2::FinalizeContribution(
+	const VoxelLightRawContributionV2& source,
+	VoxelLightContributionV2& target)
+{
+	target.Cells.clear();
+	target.Samples.clear();
 
-void VoxelLightBakerV2::BuildLightField() {
+	if (source.Samples.empty() || _voxelCount <= 0)
+		return;
 
-	BuildLightField(
-		_field,
-		_params.AngularTolerance,
-		_params.RelativeEnergyTolerance);
+	_contributionCounts.assign(_voxelCount, 0);
+
+	uint32_t validCount = 0;
+
+	for (const VoxelLightSample& sample : source.Samples)
+	{
+		if (sample.Index < 0 || sample.Index >= _voxelCount)
+			continue;
+
+		++_contributionCounts[sample.Index];
+		++validCount;
+	}
+
+	if (validCount == 0)
+		return;
+
+	_contributionOffsets.resize(size_t(_voxelCount) + 1);
+	_contributionOffsets[0] = 0;
+
+	for (int32_t i = 0; i < _voxelCount; ++i)
+		_contributionOffsets[size_t(i) + 1] = _contributionOffsets[i] + _contributionCounts[i];
+
+	_contributionCursor.resize(_voxelCount);
+
+	for (int32_t i = 0; i < _voxelCount; ++i)
+		_contributionCursor[i] = _contributionOffsets[i];
+
+	target.Samples.resize(validCount);
+
+	for (const VoxelLightSample& sample : source.Samples)
+	{
+		if (sample.Index < 0 || sample.Index >= _voxelCount)
+			continue;
+
+		const uint32_t dst = _contributionCursor[sample.Index]++;
+
+		target.Samples[dst] = {
+			sample.Direction,
+			sample.Energy
+		};
+	}
+
+	target.Cells.reserve(std::min<size_t>(source.Samples.size(), size_t(_voxelCount)));
+
+	for (int32_t index = 0; index < _voxelCount; ++index)
+	{
+		const uint32_t count = _contributionCounts[index];
+
+		if (count == 0)
+			continue;
+
+		const uint32_t offset = _contributionOffsets[index];
+		auto begin = target.Samples.begin() + offset;
+		auto end = begin + count;
+
+		std::sort(
+			begin,
+			end,
+			[](const VoxelLightContributionSampleV2& a, const VoxelLightContributionSampleV2& b)
+			{
+				return EnergyScore(a.Energy) > EnergyScore(b.Energy);
+			});
+
+		target.Cells.push_back({
+			index,
+			offset,
+			count
+			});
+	}
+}
+
+
+
+void VoxelLightBakerV2::AppendClusteredVoxel(
+	VoxelLightFieldV2& field,
+	int32_t voxelIndex,
+	std::vector<VoxelLightContributionSampleV2>& samples,
+	float angularTolerance,
+	float relativeEnergyTolerance) const
+{
+	if (samples.empty())
+		return;
+
+	float totalEnergy = 0.0f;
+
+	for (const VoxelLightContributionSampleV2& sample : samples)
+		totalEnergy += ContributionWeight(sample.Energy);
+
+	const float weakBudget = totalEnergy * relativeEnergyTolerance;
+
+	float weakEnergy = 0.0f;
+	size_t strongEnd = samples.size();
+
+	while (strongEnd > 0)
+	{
+		const float weight = ContributionWeight(samples[strongEnd - 1].Energy);
+
+		if (weakEnergy + weight > weakBudget)
+			break;
+
+		weakEnergy += weight;
+		--strongEnd;
+	}
+
+	thread_local std::vector<VoxelLightBuildCluster> clusters;
+	clusters.clear();
+
+	const size_t reserveCount = std::min<size_t>(samples.size(), 16);
+	if (clusters.capacity() < reserveCount)
+		clusters.reserve(reserveCount);
+
+	// angularTolerance is constant for the whole field build. Cache the
+	// derived values per thread so AppendClusteredVoxel does not execute
+	// trig functions once per voxel.
+	thread_local float cachedTolerance = -1.0f;
+	thread_local float toleranceCos = 1.0f;
+	thread_local float toleranceSin = 0.0f;
+	thread_local float doubleToleranceCos = -1.0f;
+	thread_local bool useDoubleToleranceReject = false;
+
+	if (cachedTolerance != angularTolerance)
+	{
+		cachedTolerance = angularTolerance;
+		toleranceCos = std::cos(angularTolerance);
+		toleranceSin =
+			std::sqrt(std::max(0.0f, 1.0f - toleranceCos * toleranceCos));
+
+		useDoubleToleranceReject = angularTolerance < (Pi * 0.5f);
+
+		if (useDoubleToleranceReject)
+			doubleToleranceCos =
+			2.0f * toleranceCos * toleranceCos - 1.0f;
+		else
+			doubleToleranceCos = -1.0f;
+	}
+
+	for (size_t i = 0; i < strongEnd; ++i)
+	{
+		const VoxelLightContributionSampleV2& sample = samples[i];
+		const float sampleWeight = ContributionWeight(sample.Energy);
+
+		int32_t bestCluster = -1;
+		float bestDot = -2.0f;
+		VoxelLightClusterMerge bestMerge{};
+
+		for (int32_t ci = 0; ci < int32_t(clusters.size()); ++ci)
+		{
+			const float d = Dot(clusters[ci].Direction, sample.Direction);
+
+			// Since best selection uses this same dot product, there is no
+			// reason to execute the full merge test for a candidate that
+			// cannot beat an already accepted one.
+			if (d <= bestDot)
+				continue;
+
+			VoxelLightClusterMerge merge{};
+
+			if (!TryMergeCluster(
+				clusters[ci],
+				sample,
+				sampleWeight,
+				toleranceCos,
+				toleranceSin,
+				doubleToleranceCos,
+				useDoubleToleranceReject,
+				merge))
+			{
+				continue;
+			}
+
+			bestDot = d;
+			bestCluster = ci;
+			bestMerge = merge;
+		}
+
+		if (bestCluster < 0)
+		{
+			VoxelLightBuildCluster cluster{};
+			InitCluster(cluster, sample);
+			clusters.push_back(cluster);
+		}
+		else
+		{
+			CommitClusterMerge(
+				clusters[bestCluster],
+				sample,
+				sampleWeight,
+				bestMerge);
+		}
+	}
+
+	for (size_t i = strongEnd; i < samples.size(); ++i)
+	{
+		const VoxelLightContributionSampleV2& sample = samples[i];
+
+		if (clusters.empty())
+		{
+			VoxelLightBuildCluster cluster{};
+			InitCluster(cluster, sample);
+			clusters.push_back(cluster);
+			continue;
+		}
+
+		int32_t bestCluster = 0;
+		float bestDot = Dot(clusters[0].Direction, sample.Direction);
+
+		for (int32_t ci = 1; ci < int32_t(clusters.size()); ++ci)
+		{
+			const float d = Dot(clusters[ci].Direction, sample.Direction);
+
+			if (d > bestDot)
+			{
+				bestDot = d;
+				bestCluster = ci;
+			}
+		}
+
+		MergeClusterUnbounded(clusters[bestCluster], sample);
+	}
+
+	VoxelLightLookup& lookup = field.Lookup[voxelIndex];
+	lookup.Offset = uint32_t(field.Contributions.size());
+	lookup.Count = uint32_t(clusters.size());
+
+	for (const VoxelLightBuildCluster& cluster : clusters)
+	{
+		VoxelLightGpuContribution contribution{};
+
+		contribution.Direction = {
+			cluster.Direction.X,
+			cluster.Direction.Y,
+			cluster.Direction.Z,
+			0.0f
+		};
+
+		contribution.Color = {
+			cluster.Color.X,
+			cluster.Color.Y,
+			cluster.Color.Z,
+			0.0f
+		};
+
+		field.Contributions.push_back(contribution);
+	}
+}
+
+void VoxelLightBakerV2::BlurLightFieldAxis(
+	const VoxelLightFieldV2& source,
+	VoxelLightFieldV2& target,
+	int32_t axis,
+	float angularTolerance,
+	float relativeEnergyTolerance,
+	float blurStrength,
+	const VoxelLightFieldV2* blendSource) const
+{
+	target.Size = source.Size;
+	target.Lookup.assign(_voxelCount, VoxelLightLookup{});
+	target.Contributions.clear();
+
+	static constexpr float Kernel[3] = { 1.0f, 2.0f, 1.0f };
+
+	std::vector<VoxelLightContributionSampleV2> samples;
+
+	auto appendCell = [&](const VoxelLightFieldV2& field, int32_t index, float weight)
+		{
+			if (weight <= 0.0f)
+				return;
+
+			const VoxelLightLookup& lookup = field.Lookup[index];
+			const uint64_t end = uint64_t(lookup.Offset) + uint64_t(lookup.Count);
+
+			if (end > field.Contributions.size())
+				return;
+
+			samples.reserve(samples.size() + lookup.Count);
+
+			for (uint32_t i = 0; i < lookup.Count; ++i)
+			{
+				const VoxelLightGpuContribution& src = field.Contributions[lookup.Offset + i];
+
+				samples.push_back({
+					{ src.Direction.X, src.Direction.Y, src.Direction.Z },
+					{ src.Color.X * weight, src.Color.Y * weight, src.Color.Z * weight }
+					});
+			}
+		};
+
+	for (int32_t index = 0; index < _voxelCount; ++index)
+	{
+		samples.clear();
+
+		const Vec3I cell = VoxelCell(_grid, index);
+		float weightSum = 0.0f;
+
+		for (int32_t k = -1; k <= 1; ++k)
+		{
+			Vec3I neighbor = cell;
+
+			if (axis == 0)
+				neighbor.X += k;
+			else if (axis == 1)
+				neighbor.Y += k;
+			else
+				neighbor.Z += k;
+
+			if (!IsInsideGrid(_grid, neighbor))
+				continue;
+
+			weightSum += Kernel[k + 1];
+		}
+
+		const float sourceScale = blendSource == nullptr ? 1.0f : blurStrength;
+
+		if (weightSum > Epsilon && sourceScale > 0.0f)
+		{
+			for (int32_t k = -1; k <= 1; ++k)
+			{
+				Vec3I neighbor = cell;
+
+				if (axis == 0)
+					neighbor.X += k;
+				else if (axis == 1)
+					neighbor.Y += k;
+				else
+					neighbor.Z += k;
+
+				if (!IsInsideGrid(_grid, neighbor))
+					continue;
+
+				const float weight = Kernel[k + 1] / weightSum * sourceScale;
+				appendCell(source, VoxelIndex(_grid, neighbor), weight);
+			}
+		}
+
+		if (blendSource != nullptr && blurStrength < 1.0f)
+			appendCell(*blendSource, index, 1.0f - blurStrength);
+
+		if (samples.empty())
+			continue;
+
+		std::sort(
+			samples.begin(),
+			samples.end(),
+			[](const VoxelLightContributionSampleV2& a, const VoxelLightContributionSampleV2& b)
+			{
+				return EnergyScore(a.Energy) > EnergyScore(b.Energy);
+			});
+
+		AppendClusteredVoxel(target, index, samples, angularTolerance, relativeEnergyTolerance);
+	}
+}
+
+void VoxelLightBakerV2::BlurLightField(
+	VoxelLightFieldV2& field,
+	float angularTolerance,
+	float relativeEnergyTolerance)
+{
+	const float strength = std::clamp(_params.Blur.Strength, 0.0f, 1.0f);
+	const int32_t passes = std::max(0, _params.Blur.Passes);
+
+	if (strength <= 0.0f || passes <= 0 || field.Contributions.empty())
+		return;
+
+	VoxelLightFieldV2 xField;
+	VoxelLightFieldV2 yField;
+	VoxelLightFieldV2 zField;
+
+	for (int32_t pass = 0; pass < passes; ++pass)
+	{
+		BlurLightFieldAxis(field, xField, 0, angularTolerance, relativeEnergyTolerance, 1.0f, nullptr);
+		BlurLightFieldAxis(xField, yField, 1, angularTolerance, relativeEnergyTolerance, 1.0f, nullptr);
+		BlurLightFieldAxis(yField, zField, 2, angularTolerance, relativeEnergyTolerance, strength, &field);
+
+		field = std::move(zField);
+
+		xField.Lookup.clear();
+		xField.Contributions.clear();
+		yField.Lookup.clear();
+		yField.Contributions.clear();
+	}
+}
+
+void VoxelLightBakerV2::BuildLightField()
+{
+	BuildLightField(_field, _params.AngularTolerance, _params.RelativeEnergyTolerance);
+}
+
+VoxelLightFieldV2& VoxelLightBakerV2::BuildLightField(
+	float angularTolerance,
+	float relativeEnergyTolerance)
+{
+	BuildLightField(_field, angularTolerance, relativeEnergyTolerance);
+	return _field;
 }
 
 void VoxelLightBakerV2::BuildLightField(
@@ -2307,181 +2847,101 @@ void VoxelLightBakerV2::BuildLightField(
 	field.Lookup.assign(_voxelCount, VoxelLightLookup{});
 	field.Contributions.clear();
 
-	if (_lightSamples.empty())
+	if (_lightSamples.empty() || _lightRanges.empty())
 		return;
 
-	if (!_lightSamplesSorted)
-	{
-		std::sort(
-			_lightSamples.begin(),
-			_lightSamples.end(),
-			[](const VoxelLightSample& a, const VoxelLightSample& b)
-			{
-				if (a.Index != b.Index)
-					return a.Index < b.Index;
-
-				return EnergyScore(a.Energy) > EnergyScore(b.Energy);
-			});
-
-		_lightSamplesSorted = true;
-	}
-
 	angularTolerance = std::clamp(angularTolerance, 0.0f, Pi);
-	relativeEnergyTolerance =
-		std::clamp(relativeEnergyTolerance, 0.0f, 1.0f);
+	relativeEnergyTolerance = std::clamp(relativeEnergyTolerance, 0.0f, 1.0f);
 
-	std::vector<VoxelLightBuildCluster> clusters;
-
-	size_t start = 0;
-
-	while (start < _lightSamples.size())
+	struct RangeCursor
 	{
-		const int32_t voxelIndex = _lightSamples[start].Index;
+		const VoxelLightContributionSampleV2* Current;
+		const VoxelLightContributionSampleV2* End;
+	};
 
-		size_t end = start + 1;
+	struct HeapItem
+	{
+		float Weight;
+		int32_t Cursor;
+	};
 
-		while (end < _lightSamples.size() &&
-			_lightSamples[end].Index == voxelIndex)
+	auto heapLess = [](const HeapItem& a, const HeapItem& b)
 		{
-			++end;
-		}
+			return a.Weight < b.Weight;
+		};
 
-		if (voxelIndex < 0 || voxelIndex >= _voxelCount)
+	std::vector<RangeCursor> cursors;
+	std::vector<HeapItem> heap;
+	std::vector<VoxelLightContributionSampleV2> samples;
+
+	for (int32_t voxelIndex = 0; voxelIndex < _voxelCount; ++voxelIndex)
+	{
+		cursors.clear();
+		heap.clear();
+		samples.clear();
+
+		size_t totalCount = 0;
+
+		for (int32_t rangeIndex = _voxelRangeHeads[voxelIndex];
+			rangeIndex >= 0;
+			rangeIndex = _lightRanges[rangeIndex].Next)
 		{
-			start = end;
-			continue;
-		}
+			const VoxelLightSampleRangeV2& range = _lightRanges[rangeIndex];
+			const uint64_t end = uint64_t(range.Offset) + uint64_t(range.Count);
 
-		float totalEnergy = 0.0f;
-
-		for (size_t i = start; i < end; ++i)
-			totalEnergy += ContributionWeight(_lightSamples[i].Energy);
-
-		const float weakBudget =
-			totalEnergy * relativeEnergyTolerance;
-
-		float weakEnergy = 0.0f;
-		size_t strongEnd = end;
-
-		while (strongEnd > start)
-		{
-			const float weight =
-				ContributionWeight(_lightSamples[strongEnd - 1].Energy);
-
-			if (weakEnergy + weight > weakBudget)
-				break;
-
-			weakEnergy += weight;
-			--strongEnd;
-		}
-
-		clusters.clear();
-
-		for (size_t i = start; i < strongEnd; ++i)
-		{
-			const VoxelLightSample& sample = _lightSamples[i];
-
-			int32_t bestCluster = -1;
-			float bestDot = -2.0f;
-
-			for (int32_t ci = 0; ci < int32_t(clusters.size()); ++ci)
-			{
-				VoxelLightBuildCluster candidate = clusters[ci];
-
-				if (!TryMergeCluster(
-					candidate,
-					sample,
-					angularTolerance))
-				{
-					continue;
-				}
-
-				const float d = Dot(
-					clusters[ci].Direction,
-					sample.Direction);
-
-				if (d > bestDot)
-				{
-					bestDot = d;
-					bestCluster = ci;
-				}
-			}
-
-			if (bestCluster < 0)
-			{
-				VoxelLightBuildCluster cluster{};
-				InitCluster(cluster, sample);
-				clusters.push_back(cluster);
-			}
-			else
-			{
-				TryMergeCluster(
-					clusters[bestCluster],
-					sample,
-					angularTolerance);
-			}
-		}
-
-		for (size_t i = strongEnd; i < end; ++i)
-		{
-			const VoxelLightSample& sample = _lightSamples[i];
-
-			if (clusters.empty())
-			{
-				VoxelLightBuildCluster cluster{};
-				InitCluster(cluster, sample);
-				clusters.push_back(cluster);
+			if (range.Count == 0 || end > _lightSamples.size())
 				continue;
-			}
 
-			int32_t bestCluster = 0;
-			float bestDot = Dot(
-				clusters[0].Direction,
-				sample.Direction);
+			const VoxelLightContributionSampleV2* begin = _lightSamples.data() + range.Offset;
 
-			for (int32_t ci = 1; ci < int32_t(clusters.size()); ++ci)
-			{
-				const float d = Dot(
-					clusters[ci].Direction,
-					sample.Direction);
+			cursors.push_back({
+				begin,
+				begin + range.Count
+				});
 
-				if (d > bestDot)
-				{
-					bestDot = d;
-					bestCluster = ci;
-				}
-			}
-
-			MergeClusterUnbounded(
-				clusters[bestCluster],
-				sample);
+			totalCount += range.Count;
 		}
 
-		VoxelLightLookup& lookup = field.Lookup[voxelIndex];
-		lookup.Offset = uint32_t(field.Contributions.size());
-		lookup.Count = uint32_t(clusters.size());
+		if (cursors.empty())
+			continue;
 
-		for (const VoxelLightBuildCluster& cluster : clusters)
+		samples.reserve(totalCount);
+		heap.reserve(cursors.size());
+
+		for (int32_t i = 0; i < int32_t(cursors.size()); ++i)
 		{
-			VoxelLightGpuContribution contribution{};
-
-			contribution.Direction = {
-				cluster.Direction.X,
-				cluster.Direction.Y,
-				cluster.Direction.Z,
-				0.0f
-			};
-
-			contribution.Color = {
-				cluster.Color.X,
-				cluster.Color.Y,
-				cluster.Color.Z,
-				0.0f
-			};
-
-			field.Contributions.push_back(contribution);
+			heap.push_back({
+				ContributionWeight(cursors[i].Current->Energy),
+				i
+				});
 		}
 
-		start = end;
+		std::make_heap(heap.begin(), heap.end(), heapLess);
+
+		while (!heap.empty())
+		{
+			std::pop_heap(heap.begin(), heap.end(), heapLess);
+			const HeapItem item = heap.back();
+			heap.pop_back();
+
+			RangeCursor& cursor = cursors[item.Cursor];
+			samples.push_back(*cursor.Current);
+			++cursor.Current;
+
+			if (cursor.Current < cursor.End)
+			{
+				heap.push_back({
+					ContributionWeight(cursor.Current->Energy),
+					item.Cursor
+					});
+
+				std::push_heap(heap.begin(), heap.end(), heapLess);
+			}
+		}
+
+		AppendClusteredVoxel(field, voxelIndex, samples, angularTolerance, relativeEnergyTolerance);
 	}
+
+	BlurLightField(field, angularTolerance, relativeEnergyTolerance);
 }
+

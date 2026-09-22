@@ -7,12 +7,27 @@ struct VoxelLightSample
 	Vec3 Energy;
 };
 
+struct VoxelLightContributionSampleV2
+{
+	Vec3 Direction;
+	Vec3 Energy;
+};
+
+struct VoxelLightContributionCellV2
+{
+	int32_t Index;
+	uint32_t Offset;
+	uint32_t Count;
+};
+
+static_assert(sizeof(VoxelLightContributionSampleV2) == 24);
+static_assert(sizeof(VoxelLightContributionCellV2) == 12);
+
 struct VoxelLightLookup
 {
 	uint32_t Offset;
 	uint32_t Count;
 };
-
 
 struct alignas(16) VoxelLightGpuContribution
 {
@@ -20,10 +35,13 @@ struct alignas(16) VoxelLightGpuContribution
 	Vec4 Color;
 };
 
-
 struct VoxelLightContributionViewV2
 {
-	VoxelLightSample* Samples;
+	VoxelLightContributionCellV2* Cells;
+	int32_t CellCount;
+	int32_t CellCapacity;
+
+	VoxelLightContributionSampleV2* Samples;
 	int32_t SampleCount;
 	int32_t SampleCapacity;
 };
@@ -41,7 +59,6 @@ struct VoxelLightFieldViewV2
 	int32_t ContributionCapacity;
 };
 
-
 struct VoxelLightBakeParamsV2 : VoxelLightBakeParams
 {
 	VoxelLightBakeParamsV2();
@@ -50,9 +67,15 @@ struct VoxelLightBakeParamsV2 : VoxelLightBakeParams
 	float RelativeEnergyTolerance;
 };
 
-struct VoxelLightContributionV2
+struct VoxelLightRawContributionV2
 {
 	std::vector<VoxelLightSample> Samples;
+};
+
+struct VoxelLightContributionV2
+{
+	std::vector<VoxelLightContributionCellV2> Cells;
+	std::vector<VoxelLightContributionSampleV2> Samples;
 };
 
 struct VoxelLightFieldV2
@@ -64,12 +87,17 @@ struct VoxelLightFieldV2
 
 struct ContributionMergeStateV2
 {
-	VoxelLightContributionV2 Contribution;
+	VoxelLightRawContributionV2 Contribution;
 	std::vector<int32_t> CellSlots;
 	std::vector<int32_t> TouchedVoxels;
 };
 
-
+struct VoxelLightSampleRangeV2
+{
+	uint32_t Offset;
+	uint32_t Count;
+	int32_t Next;
+};
 
 class VoxelLightBakerV2;
 
@@ -106,6 +134,7 @@ class VoxelRayMarcherV2
 
 		bool IsAlive;
 	};
+
 public:
 	using StepFn = bool (VoxelRayMarcherV2::*)();
 
@@ -116,13 +145,14 @@ public:
 	void TraceRay(const VoxelLightRay& ray, int32_t generation);
 	void TraceRange(int32_t startRay, int32_t endRay, int32_t generation);
 	void GetDebugState(VoxelRayDebugState& state) const;
+	void GetContribution(VoxelLightContributionV2& contribution) const;
 
 	bool CreateRay(const VoxelLightRay& ray, int32_t generation);
 	bool StepImpl() { return (this->*_step)(); }
 	void ClearContribution();
 
 	const RayState& Ray() const { return _ray; }
-	const VoxelLightContributionV2& Contribution() const { return _local.Contribution; }
+	const VoxelLightRawContributionV2& Contribution() const { return _local.Contribution; }
 	std::vector<VoxelLightRay>& NextRays() { return _nextRays; }
 	const std::vector<VoxelLightRay>& NextRays() const { return _nextRays; }
 
@@ -140,7 +170,6 @@ private:
 	std::vector<VoxelLightRay> _nextRays;
 	StepFn _step;
 };
-
 
 class VoxelLightBakerV2
 {
@@ -165,8 +194,10 @@ public:
 	void BakeSpotLight(const SpotLight& light, VoxelLightContributionV2& contribution);
 
 	void AccumulateLight(const VoxelLightContributionV2& contribution);
+	void AccumulateLight(const VoxelLightContributionCellV2* cells, int32_t cellCount, const VoxelLightContributionSampleV2* samples, int32_t sampleCount);
 
 	VoxelLightFieldV2& GetLightField();
+	VoxelLightFieldV2& BuildLightField(float angularTolerance, float relativeEnergyTolerance);
 	void BuildLightField(VoxelLightFieldV2& field, float angularTolerance, float relativeEnergyTolerance);
 
 	std::vector<VoxelData>* GetScene() { return &_scene; }
@@ -174,23 +205,28 @@ public:
 	int32_t GetVoxelCount() const { return _voxelCount; }
 
 private:
-	void BakeGeneratedRays(VoxelLightContributionV2& contribution);
+	void BakeGeneratedRays(VoxelLightRawContributionV2& contribution);
 
-	void PrefillAreaLightContribution(const AreaLight& light, VoxelLightContributionV2& contribution);
-	void PrefillPointLightContribution(const PointLight& light, VoxelLightContributionV2& contribution);
-	void PrefillDirectionalLightContribution(const DirectionalLight& light, VoxelLightContributionV2& contribution);
-	void PrefillSpotLightContribution(const SpotLight& light, VoxelLightContributionV2& contribution);
+	void PrefillAreaLightContribution(const AreaLight& light, VoxelLightRawContributionV2& contribution);
+	void PrefillPointLightContribution(const PointLight& light, VoxelLightRawContributionV2& contribution);
+	void PrefillDirectionalLightContribution(const DirectionalLight& light, VoxelLightRawContributionV2& contribution);
+	void PrefillSpotLightContribution(const SpotLight& light, VoxelLightRawContributionV2& contribution);
 
 	void GenerateAreaLightRays(const AreaLight& light);
 	void GeneratePointLightRays(const PointLight& light, bool fillMode);
 	void GenerateDirectionalLightRays(const DirectionalLight& light);
 	void GenerateSpotLightRays(const SpotLight& light);
 
-	void CleanupUnvisitedFaces(VoxelLightContributionV2& contribution);
+	void CleanupUnvisitedFaces(VoxelLightRawContributionV2& contribution);
 
-	void TraceRays(VoxelLightContributionV2& contribution, std::vector<VoxelLightRay>& nextRays, int32_t generation);
-	void MergeContribution(VoxelLightContributionV2& target, ContributionMergeStateV2& mergeState, const VoxelLightContributionV2& source);
+	void TraceRays(VoxelLightRawContributionV2& contribution, std::vector<VoxelLightRay>& nextRays, int32_t generation);
+	void MergeContribution(VoxelLightRawContributionV2& target, ContributionMergeStateV2& mergeState, const VoxelLightRawContributionV2& source);
 	void ClearMergeState(ContributionMergeStateV2& mergeState);
+	void FinalizeContribution(const VoxelLightRawContributionV2& source, VoxelLightContributionV2& target);
+
+	void AppendClusteredVoxel(VoxelLightFieldV2& field, int32_t voxelIndex, std::vector<VoxelLightContributionSampleV2>& samples, float angularTolerance, float relativeEnergyTolerance) const;
+	void BlurLightField(VoxelLightFieldV2& field, float angularTolerance, float relativeEnergyTolerance);
+	void BlurLightFieldAxis(const VoxelLightFieldV2& source, VoxelLightFieldV2& target, int32_t axis, float angularTolerance, float relativeEnergyTolerance, float blurStrength, const VoxelLightFieldV2* blendSource) const;
 	void BuildLightField();
 
 	VoxelLightBakeParamsV2 _params;
@@ -204,10 +240,13 @@ private:
 
 	ContributionMergeStateV2 _currentMerge;
 
-	std::vector<VoxelLightSample> _lightSamples;
-	bool _lightSamplesSorted;
+	std::vector<VoxelLightContributionSampleV2> _lightSamples;
+	std::vector<VoxelLightSampleRangeV2> _lightRanges;
+	std::vector<int32_t> _voxelRangeHeads;
+
+	std::vector<uint32_t> _contributionCounts;
+	std::vector<uint32_t> _contributionOffsets;
+	std::vector<uint32_t> _contributionCursor;
+
 	VoxelLightFieldV2 _field;
 };
-
-
-

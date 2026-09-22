@@ -59,9 +59,9 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "DnD",
+               // SampleName = "DnD",
                 Msaa = 1,
-                Scale = 0.75f,
+                Scale = 1f,
                 ViewPlaneGrid = false,
                 DepthScale = 0.25f,
                 Driver = GraphicDriver.OpenGL,
