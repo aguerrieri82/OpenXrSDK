@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "VoxelLightBakerV2.h"
+#include <bit>
 
 namespace {
 
@@ -216,8 +217,7 @@ namespace {
 		Vec3 Color;
 		float Weight;
 
-		// Radius is kept as sin/cos so the constrained merge test never
-		// needs acos(). While processing strong samples Radius <= tolerance.
+		// Radius as sin/cos avoids acos in the clustering hot path.
 		float RadiusCos;
 		float RadiusSin;
 	};
@@ -247,96 +247,63 @@ namespace {
 		cluster.RadiusSin = 0.0f;
 	}
 
-	FORCE_INLINE bool TryMergeCluster(
-		const VoxelLightBuildCluster& cluster,
-		const VoxelLightContributionSampleV2& sample,
-		float sampleWeight,
-		float toleranceCos,
-		float toleranceSin,
-		float doubleToleranceCos,
-		bool useDoubleToleranceReject,
-		VoxelLightClusterMerge& result)
+	FORCE_INLINE bool TryMergeCluster(const VoxelLightBuildCluster& cluster, const VoxelLightContributionSampleV2& sample,
+		float sampleWeight, float toleranceCos, float toleranceSin, float doubleToleranceCos,
+		bool useDoubleToleranceReject, VoxelLightClusterMerge& result)
 	{
-		// Safe broad phase: if the current representative direction and the
-		// sample are farther apart than 2*tolerance, no possible shifted
-		// representative can keep both inside tolerance.
-		if (useDoubleToleranceReject &&
-			Dot(cluster.Direction, sample.Direction) < doubleToleranceCos)
+		// A representative/sample separation above 2*tolerance cannot merge.
+		if (useDoubleToleranceReject && Dot(cluster.Direction, sample.Direction) < doubleToleranceCos)
 		{
 			return false;
 		}
 
-		const Vec3 directionSum =
-			cluster.DirectionSum +
-			sample.Direction * sampleWeight;
+		const Vec3 directionSum = cluster.DirectionSum + sample.Direction * sampleWeight;
 
-		const float lengthSq = Dot(directionSum, directionSum);
+		// Use the weighted mean so cancellation is independent of brightness.
+		const Vec3 meanDirection = directionSum / (cluster.Weight + sampleWeight);
+		const float lengthSq = Dot(meanDirection, meanDirection);
 
-		if (lengthSq <= Epsilon)
+		if (lengthSq <= Epsilon * Epsilon)
 			return false;
 
 		const float invLength = 1.0f / std::sqrt(lengthSq);
-		const Vec3 direction = directionSum * invLength;
+		const Vec3 direction = meanDirection * invLength;
+		const float shiftCos = std::clamp(Dot(cluster.Direction, direction), -1.0f, 1.0f);
+		const float sampleCos = std::clamp(Dot(sample.Direction, direction), -1.0f, 1.0f);
 
-		const float shiftCos =
-			std::clamp(Dot(cluster.Direction, direction), -1.0f, 1.0f);
-
-		const float sampleCos =
-			std::clamp(Dot(sample.Direction, direction), -1.0f, 1.0f);
-
-		// sampleAngle <= tolerance
 		if (sampleCos < toleranceCos)
 			return false;
 
 		// shift <= tolerance - currentRadius
-		// cos(tolerance - radius) =
-		// cos(tolerance)*cos(radius) + sin(tolerance)*sin(radius)
-		const float remainingCos =
-			toleranceCos * cluster.RadiusCos +
-			toleranceSin * cluster.RadiusSin;
+		const float remainingCos = toleranceCos * cluster.RadiusCos + toleranceSin * cluster.RadiusSin;
 
 		if (shiftCos < remainingCos)
 			return false;
 
-		const float shiftSin =
-			std::sqrt(std::max(0.0f, 1.0f - shiftCos * shiftCos));
-
-		const float expandedRadiusCos =
-			cluster.RadiusCos * shiftCos -
-			cluster.RadiusSin * shiftSin;
-
-		const float expandedRadiusSin =
-			cluster.RadiusSin * shiftCos +
-			cluster.RadiusCos * shiftSin;
+		const float shiftSin = std::sqrt(std::max(0.0f, 1.0f - shiftCos * shiftCos));
+		const float expandedRadiusCos = cluster.RadiusCos * shiftCos - cluster.RadiusSin * shiftSin;
+		const float expandedRadiusSin = cluster.RadiusSin * shiftCos + cluster.RadiusCos * shiftSin;
 
 		result.DirectionSum = directionSum;
 		result.Direction = direction;
 
-		// max(radius + shift, sampleAngle). On [0, PI], the larger angle
-		// is the one with the smaller cosine.
+		// max(radius + shift, sampleAngle) => smaller cosine.
 		if (expandedRadiusCos <= sampleCos)
 		{
-			result.RadiusCos =
-				std::clamp(expandedRadiusCos, -1.0f, 1.0f);
-
-			result.RadiusSin =
-				std::clamp(expandedRadiusSin, 0.0f, 1.0f);
+			result.RadiusCos = std::clamp(expandedRadiusCos, -1.0f, 1.0f);
+			result.RadiusSin = std::clamp(expandedRadiusSin, 0.0f, 1.0f);
 		}
 		else
 		{
 			result.RadiusCos = sampleCos;
-			result.RadiusSin =
-				std::sqrt(std::max(0.0f, 1.0f - sampleCos * sampleCos));
+			result.RadiusSin = std::sqrt(std::max(0.0f, 1.0f - sampleCos * sampleCos));
 		}
 
 		return true;
 	}
 
-	FORCE_INLINE void CommitClusterMerge(
-		VoxelLightBuildCluster& cluster,
-		const VoxelLightContributionSampleV2& sample,
-		float sampleWeight,
-		const VoxelLightClusterMerge& merge)
+	FORCE_INLINE void CommitClusterMerge(VoxelLightBuildCluster& cluster, const VoxelLightContributionSampleV2& sample,
+		float sampleWeight, const VoxelLightClusterMerge& merge)
 	{
 		cluster.DirectionSum = merge.DirectionSum;
 		cluster.Direction = merge.Direction;
@@ -346,28 +313,25 @@ namespace {
 		cluster.RadiusSin = merge.RadiusSin;
 	}
 
-	FORCE_INLINE void MergeClusterUnbounded(
-		VoxelLightBuildCluster& cluster,
-		const VoxelLightContributionSampleV2& sample)
+	FORCE_INLINE void MergeClusterUnbounded(VoxelLightBuildCluster& cluster, const VoxelLightContributionSampleV2& sample)
 	{
 		const float weight = ContributionWeight(sample.Energy);
-		const Vec3 directionSum =
-			cluster.DirectionSum +
-			sample.Direction * weight;
+		const Vec3 directionSum = cluster.DirectionSum + sample.Direction * weight;
+		const Vec3 meanDirection = directionSum / (cluster.Weight + weight);
+		const float lengthSq = Dot(meanDirection, meanDirection);
 
-		const float lengthSq = Dot(directionSum, directionSum);
+		// Keep the real accumulated sum even when directions cancel out.
+		cluster.DirectionSum = directionSum;
 
-		if (lengthSq > Epsilon)
+		if (lengthSq > Epsilon * Epsilon)
 		{
-			cluster.DirectionSum = directionSum;
-			cluster.Direction = directionSum * (1.0f / std::sqrt(lengthSq));
+			cluster.Direction = meanDirection * (1.0f / std::sqrt(lengthSq));
 		}
 
 		cluster.Color += sample.Energy;
 		cluster.Weight += weight;
 
-		// No radius update is needed here: unbounded merges are only used
-		// for the weak tail, after all constrained merges are finished.
+		// Radius is unused after the strong-sample pass.
 	}
 
 	FORCE_INLINE bool SelectVoxelHitFace(
@@ -685,40 +649,78 @@ bool VoxelRayMarcherV2::CreateRay(const VoxelLightRay& ray, int32_t generation)
 	_ray.LastAffectedFace = -1;
 	_ray.BounceCount = generation;
 	_ray.IsAlive = true;
+	_ray.TravelDistance = 0.0;
+	_ray.OcclusionDistance = 0.0;
 
-	if (!WorldToVoxel(_baker->_grid, _ray.Origin, _ray.Cell))
+	const VoxelGridDesc& grid = _baker->_grid;
+	const float origins[3] = { ray.Position.X, ray.Position.Y, ray.Position.Z };
+	const float directions[3] = { ray.Direction.X, ray.Direction.Y, ray.Direction.Z };
+	const float gridOrigins[3] = { grid.Origin.X, grid.Origin.Y, grid.Origin.Z };
+	const int32_t sizes[3] = { grid.Size.X, grid.Size.Y, grid.Size.Z };
+
+	if (!(grid.VoxelSize > 0.0f) || !std::isfinite(grid.VoxelSize) || Dot(ray.Direction, ray.Direction) == 0.0f)
+		return _ray.IsAlive = false;
+
+	double enter = 0.0;
+	double exit = INFINITY;
+
+	for (int axis = 0; axis < 3; ++axis)
 	{
-		Vec3 gridMax{
-			_baker->_grid.Origin.X + float(_baker->_grid.Size.X) * _baker->_grid.VoxelSize,
-			_baker->_grid.Origin.Y + float(_baker->_grid.Size.Y) * _baker->_grid.VoxelSize,
-			_baker->_grid.Origin.Z + float(_baker->_grid.Size.Z) * _baker->_grid.VoxelSize
-		};
+		if (sizes[axis] <= 0 || !std::isfinite(origins[axis]) ||
+			!std::isfinite(directions[axis]) || !std::isfinite(gridOrigins[axis]))
+			return _ray.IsAlive = false;
 
-		float enterT;
-		float exitT;
+		const double low = gridOrigins[axis];
+		const double high = low + double(sizes[axis]) * grid.VoxelSize;
 
-		if (!RayAabbInterval(
-			_baker->_grid.Origin,
-			gridMax,
-			_ray.Origin,
-			_ray.Direction,
-			enterT,
-			exitT) ||
-			exitT < 0.0f)
-			return false;
+		_ray.InverseDirection[axis] = directions[axis] == 0.0f ? 0.0 : 1.0 / double(directions[axis]);
 
-		enterT = std::max(enterT, 0.0f);
+		if (directions[axis] == 0.0f)
+		{
+			if (origins[axis] < low || origins[axis] >= high)
+				return _ray.IsAlive = false;
 
-		_ray.Position = _ray.Origin + _ray.Direction * (enterT + Epsilon);
+			continue;
+		}
 
-		if (!WorldToVoxel(_baker->_grid, _ray.Position, _ray.Cell))
-			return false;
+		double t0 = (low - origins[axis]) * _ray.InverseDirection[axis];
+		double t1 = (high - origins[axis]) * _ray.InverseDirection[axis];
 
-		_ray.Distance = (_ray.Position - _ray.Origin).Length();
+		if (t0 > t1)
+			std::swap(t0, t1);
+
+		enter = std::max(enter, t0);
+		exit = std::min(exit, t1);
 	}
 
+	if (enter >= exit)
+		return _ray.IsAlive = false;
 
-	return true;
+	int32_t cells[3];
+	bool atOrigin = enter == 0.0;
+
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		const double coordinate =
+			(double(origins[axis]) + double(directions[axis]) * enter - gridOrigins[axis]) / grid.VoxelSize;
+
+		double cell = std::floor(coordinate);
+
+		// On a boundary, use the cell on the outgoing side.
+		if (coordinate == cell && directions[axis] != 0.0f)
+		{
+			atOrigin = false;
+
+			if (directions[axis] < 0.0f)
+				--cell;
+		}
+
+		cells[axis] = int32_t(std::clamp(cell, 0.0, double(sizes[axis] - 1)));
+	}
+
+	_ray.Cell = { cells[0], cells[1], cells[2] };
+
+	return SetCellInterval(enter, atOrigin);
 }
 
 void VoxelRayMarcherV2::TraceRay(const VoxelLightRay& ray, int32_t generation) {
@@ -760,7 +762,7 @@ void VoxelRayMarcherV2::GetDebugState(
 	}
 
 	state.Origin = _ray.Origin;
-	state.Position = _ray.Origin + _ray.Direction * _ray.Distance;
+	state.Position = _ray.Position;
 	state.Direction = _ray.Direction;
 
 	state.Distance = _ray.Distance;
@@ -795,44 +797,93 @@ void VoxelRayMarcherV2::GetContribution(VoxelLightContributionV2& contribution) 
 }
 
 
+bool VoxelRayMarcherV2::SetCellInterval(double entryDistance, bool atOrigin)
+{
+	const VoxelGridDesc& grid = _baker->_grid;
+	const float origins[3] = { _ray.Origin.X, _ray.Origin.Y, _ray.Origin.Z };
+	const float gridOrigins[3] = { grid.Origin.X, grid.Origin.Y, grid.Origin.Z };
+	const float directions[3] = { _ray.Direction.X, _ray.Direction.Y, _ray.Direction.Z };
+
+	while (IsInsideGrid(grid, _ray.Cell))
+	{
+		const int32_t cells[3] = { _ray.Cell.X, _ray.Cell.Y, _ray.Cell.Z };
+
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			const double boundary =
+				double(gridOrigins[axis]) +
+				(double(cells[axis]) + (directions[axis] > 0.0f ? 1.0 : 0.0)) * grid.VoxelSize;
+
+			_ray.CellExit[axis] = directions[axis] == 0.0f
+				? INFINITY
+				: (boundary - origins[axis]) * _ray.InverseDirection[axis];
+		}
+
+		const double exitDistance = std::min({ _ray.CellExit[0], _ray.CellExit[1], _ray.CellExit[2] });
+
+		if (exitDistance > entryDistance)
+		{
+			// Sample inside the interval rather than on a voxel boundary.
+			const float distance =
+				atOrigin ? 0.0f : float(entryDistance + (exitDistance - entryDistance) * 0.5);
+
+			const Vec3 position = _ray.Origin + _ray.Direction * distance;
+			Vec3I evaluatedCell;
+
+			if (WorldToVoxel(grid, position, evaluatedCell) &&
+				evaluatedCell.X == _ray.Cell.X &&
+				evaluatedCell.Y == _ray.Cell.Y &&
+				evaluatedCell.Z == _ray.Cell.Z)
+			{
+				_ray.TravelDistance = distance;
+				_ray.Position = position;
+				_ray.Distance = float(_ray.TravelDistance - _ray.OcclusionDistance);
+				return true;
+			}
+
+			if (atOrigin)
+			{
+				atOrigin = false;
+				continue;
+			}
+		}
+
+		// Skip grazing intervals that cannot be represented reliably in float world coordinates.
+		if (_ray.CellExit[0] == exitDistance)
+			_ray.Cell.X += directions[0] > 0.0f ? 1 : -1;
+
+		if (_ray.CellExit[1] == exitDistance)
+			_ray.Cell.Y += directions[1] > 0.0f ? 1 : -1;
+
+		if (_ray.CellExit[2] == exitDistance)
+			_ray.Cell.Z += directions[2] > 0.0f ? 1 : -1;
+
+		entryDistance = exitDistance;
+		atOrigin = false;
+	}
+
+	return _ray.IsAlive = false;
+}
+
 FORCE_INLINE bool VoxelRayMarcherV2::MoveToNextVoxel()
 {
-	Vec3I old = _ray.Cell;
-	int32_t oldIndex = VoxelIndex(_baker->_grid, old);
+	const double crossing = std::min({ _ray.CellExit[0], _ray.CellExit[1], _ray.CellExit[2] });
 
-	float voxelStep = _baker->_grid.VoxelSize * 0.5f;
+	if (_ray.CellExit[0] == crossing)
+		_ray.Cell.X += _ray.Direction.X > 0.0f ? 1 : -1;
 
-	Vec3 origin = _ray.LightState == VoxelLightState::Occlusion
-		? _ray.OcclusionOrigin
-		: _ray.Origin;
+	if (_ray.CellExit[1] == crossing)
+		_ray.Cell.Y += _ray.Direction.Y > 0.0f ? 1 : -1;
 
-	while (true)
-	{
-		float nextDistance = _ray.Distance + voxelStep;
-		Vec3 position = origin + _ray.Direction * nextDistance;
+	if (_ray.CellExit[2] == crossing)
+		_ray.Cell.Z += _ray.Direction.Z > 0.0f ? 1 : -1;
 
-		Vec3I next;
-		if (!WorldToVoxel(_baker->_grid, position, next))
-		{
-			_ray.IsAlive = false;
-			return false;
-		}
+	if (!IsInsideGrid(_baker->_grid, _ray.Cell))
+		return _ray.IsAlive = false;
 
-		int32_t nextIndex = VoxelIndex(_baker->_grid, next);
+	++_ray.OriginStep;
 
-		if (nextIndex == oldIndex)
-		{
-			_ray.Distance = nextDistance;
-			continue;
-		}
-
-		_ray.Position = position;
-		_ray.Distance = nextDistance;
-		_ray.OriginStep++;
-		_ray.Cell = next;
-
-		return true;
-	}
+	return SetCellInterval(crossing, false);
 }
 
 VoxelRayMarcherV2::StepFn VoxelRayMarcherV2::SelectStep(LightTrackMode mode)
@@ -928,6 +979,7 @@ bool VoxelRayMarcherV2::Step()
 			_ray.MaxEnergy = Min(_ray.OcclusionEnergy, exitEnergy);
 
 			_ray.Distance = 0.0f;
+			_ray.OcclusionDistance = _ray.TravelDistance;
 			_ray.OcclusionOrigin = _ray.Position;
 			_ray.OcclusionEnergy = stepEnergy;
 		}
@@ -961,17 +1013,15 @@ bool VoxelRayMarcherV2::Step()
 
 				Vec3 bounceOrigin;
 
-				if (!RayVoxelSurfacePoint(
-					_ray.Position,
-					grid.VoxelSize,
-					_ray.Origin,
-					_ray.Direction,
-					bounceOrigin))
+				if (!RayVoxelSurfacePoint(VoxelCenter(grid, _ray.Cell), grid.VoxelSize, _ray.Origin, _ray.Direction, bounceOrigin))
 				{
 					bounceOrigin = _ray.Position;
 				}
 
 				_ray.Position = bounceOrigin;
+				_ray.Distance = (bounceOrigin - _ray.Origin).Length();
+				_ray.TravelDistance = _ray.Distance;
+				stepEnergy = _ray.Energy * LightFalloffAtDistance(_ray.Falloff, _ray.Distance);
 
 				const Vec3 bounceEnergy =
 					SurfaceBounceEnergy(stepEnergy, faceData);
@@ -1026,12 +1076,11 @@ bool VoxelRayMarcherV2::Step()
 						bounceEnergy *
 						((1.0f - centerWeight) / float(sideCount));
 
-					uint32_t coneSeed =
-						Hash(
-							uint32_t(bounceOrigin.X) * 73856093u ^
-							uint32_t(bounceOrigin.Y) * 19349663u ^
-							uint32_t(bounceOrigin.Z) * 83492791u ^
-							uint32_t(_ray.BounceCount) * 2654435761u);
+					uint32_t coneSeed = Hash(
+						std::bit_cast<uint32_t>(bounceOrigin.X) * 73856093u ^
+						std::bit_cast<uint32_t>(bounceOrigin.Y) * 19349663u ^
+						std::bit_cast<uint32_t>(bounceOrigin.Z) * 83492791u ^
+						uint32_t(_ray.BounceCount) * 2654435761u);
 
 					for (int32_t i = 0; i < sideCount; ++i)
 					{
@@ -2065,9 +2114,6 @@ void VoxelLightBakerV2::GenerateDirectionalLightRays(const DirectionalLight& lig
 			if (entryDistance > distanceToPlane + Epsilon)
 				return;
 
-			Vec3 entry =
-				emissionPoint + direction * entryDistance;
-
 			Vec3 energy =
 				rayEnergy *
 				LightFalloffAtDistance(light.Falloff, entryDistance);
@@ -2076,10 +2122,12 @@ void VoxelLightBakerV2::GenerateDirectionalLightRays(const DirectionalLight& lig
 				return;
 
 			VoxelLightRay ray{};
-			ray.Position = entry;
+
+			// CreateRay clips to the grid; Step evaluates falloff from the emission origin.
+			ray.Position = emissionPoint;
 			ray.Direction = direction;
 			ray.DirectionNormal = direction;
-			ray.Energy = energy;
+			ray.Energy = rayEnergy;
 			ray.Falloff = light.Falloff;
 			ray.Recovery = _params.Recovery;
 
@@ -2514,14 +2562,8 @@ void VoxelLightBakerV2::FinalizeContribution(
 	}
 }
 
-
-
-void VoxelLightBakerV2::AppendClusteredVoxel(
-	VoxelLightFieldV2& field,
-	int32_t voxelIndex,
-	std::vector<VoxelLightContributionSampleV2>& samples,
-	float angularTolerance,
-	float relativeEnergyTolerance) const
+void VoxelLightBakerV2::AppendClusteredVoxel(VoxelLightFieldV2& field, int32_t voxelIndex,
+	std::vector<VoxelLightContributionSampleV2>& samples, float angularTolerance, float relativeEnergyTolerance) const
 {
 	if (samples.empty())
 		return;
@@ -2551,12 +2593,11 @@ void VoxelLightBakerV2::AppendClusteredVoxel(
 	clusters.clear();
 
 	const size_t reserveCount = std::min<size_t>(samples.size(), 16);
+
 	if (clusters.capacity() < reserveCount)
 		clusters.reserve(reserveCount);
 
-	// angularTolerance is constant for the whole field build. Cache the
-	// derived values per thread so AppendClusteredVoxel does not execute
-	// trig functions once per voxel.
+	// angularTolerance is constant during the field build.
 	thread_local float cachedTolerance = -1.0f;
 	thread_local float toleranceCos = 1.0f;
 	thread_local float toleranceSin = 0.0f;
@@ -2567,14 +2608,11 @@ void VoxelLightBakerV2::AppendClusteredVoxel(
 	{
 		cachedTolerance = angularTolerance;
 		toleranceCos = std::cos(angularTolerance);
-		toleranceSin =
-			std::sqrt(std::max(0.0f, 1.0f - toleranceCos * toleranceCos));
-
+		toleranceSin = std::sqrt(std::max(0.0f, 1.0f - toleranceCos * toleranceCos));
 		useDoubleToleranceReject = angularTolerance < (Pi * 0.5f);
 
 		if (useDoubleToleranceReject)
-			doubleToleranceCos =
-			2.0f * toleranceCos * toleranceCos - 1.0f;
+			doubleToleranceCos = 2.0f * toleranceCos * toleranceCos - 1.0f;
 		else
 			doubleToleranceCos = -1.0f;
 	}
@@ -2592,23 +2630,13 @@ void VoxelLightBakerV2::AppendClusteredVoxel(
 		{
 			const float d = Dot(clusters[ci].Direction, sample.Direction);
 
-			// Since best selection uses this same dot product, there is no
-			// reason to execute the full merge test for a candidate that
-			// cannot beat an already accepted one.
 			if (d <= bestDot)
 				continue;
 
 			VoxelLightClusterMerge merge{};
 
-			if (!TryMergeCluster(
-				clusters[ci],
-				sample,
-				sampleWeight,
-				toleranceCos,
-				toleranceSin,
-				doubleToleranceCos,
-				useDoubleToleranceReject,
-				merge))
+			if (!TryMergeCluster(clusters[ci], sample, sampleWeight, toleranceCos, toleranceSin, doubleToleranceCos,
+				useDoubleToleranceReject, merge))
 			{
 				continue;
 			}
@@ -2626,11 +2654,7 @@ void VoxelLightBakerV2::AppendClusteredVoxel(
 		}
 		else
 		{
-			CommitClusterMerge(
-				clusters[bestCluster],
-				sample,
-				sampleWeight,
-				bestMerge);
+			CommitClusterMerge(clusters[bestCluster], sample, sampleWeight, bestMerge);
 		}
 	}
 
@@ -2688,6 +2712,7 @@ void VoxelLightBakerV2::AppendClusteredVoxel(
 		field.Contributions.push_back(contribution);
 	}
 }
+
 
 void VoxelLightBakerV2::BlurLightFieldAxis(
 	const VoxelLightFieldV2& source,
@@ -2944,4 +2969,3 @@ void VoxelLightBakerV2::BuildLightField(
 
 	BlurLightField(field, angularTolerance, relativeEnergyTolerance);
 }
-

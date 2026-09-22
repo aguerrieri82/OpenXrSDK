@@ -115,6 +115,10 @@ class VoxelRayMarcherV2
 		Vec3 OcclusionEnergy;
 
 		float Distance;
+		double TravelDistance;
+		double OcclusionDistance;
+		double InverseDirection[3];
+		double CellExit[3];
 
 		LightCurve Falloff;
 		LightCurve Recovery;
@@ -158,6 +162,7 @@ public:
 
 private:
 	bool MoveToNextVoxel();
+	bool SetCellInterval(double entryDistance, bool atOrigin);
 	StepFn SelectStep(LightTrackMode mode);
 
 	template<LightTrackMode Mode>
