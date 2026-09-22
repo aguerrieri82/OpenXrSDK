@@ -37,6 +37,9 @@
 #include <cstdint>
 #include <vector>
 #include <mutex>
+#include <bit>
+#include <cstring>
+#include <type_traits>
 
 #include "Config.h"
 #include "XrMath.h"

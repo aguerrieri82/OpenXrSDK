@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Common.Interop;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -21,6 +22,10 @@ namespace XrEngine.Lighting
         readonly HashSet<LightFieldEmitter> _activeEmitters = [];
         readonly HashSet<LightFieldReceiver> _activeOccluders = [];
 
+        const uint FieldFileMagic = 0x32464C58; // XLF2
+        const int FieldFileVersion = 1;
+
+        VoxelLightLookup[]? _lookup;
         TriangleMesh[]? _walls;
         VoxelGridDesc _grid;
         VoxelLightBakeParamsV2 _lastParams;
@@ -62,10 +67,6 @@ namespace XrEngine.Lighting
             InitiateLightField = false;
             ThreadCount = 10;
 
-            RayMergeMode = VoxelLightMergeMode.MaxSample;
-            LightMergeMode = VoxelLightMergeMode.Add;
-            GenMergeMode = VoxelLightMergeMode.AddPreserveDir;
-
             BlurPasses = 3;
             BlurStrength = 1f;
 
@@ -74,11 +75,6 @@ namespace XrEngine.Lighting
             BounceCenterWeight = 0.5f;
             BounceNormalWeight = 0.5f;
             BounceConeMaxAngle = MathF.PI * (70f / 180f);
-
-            SmoothDirIterations = 32;
-            SmoothDirMaxSlope = 1f;
-            SmoothDirRelaxation = 0.75f;
-            SmoothDirSmoothness = 0.05f;
 
             RecoveryRange = 2;
 
@@ -203,17 +199,10 @@ namespace XrEngine.Lighting
                     ThreadCount = ThreadCount,
                     RaySubsample = RaySubsample,
                     InitiateLightField = InitiateLightField,
-                    RayMergeMode = RayMergeMode,
-                    GenMergeMode = GenMergeMode,
-                    LightMergeMode = LightMergeMode,
-                    DirCollapseMode = DirCollapseMode,
-                    IntersectMode = IntersectionMode,
-                    NormalizeDir = false,
                     Blur = new BlurParams
                     {
                         Strength = BlurStrength,
-                        Passes = BlurPasses,
-                        ColorOnly = BlurColorOnly
+                        Passes = BlurPasses
                     },
                     Bounce = new BounceParams
                     {
@@ -223,13 +212,6 @@ namespace XrEngine.Lighting
                         CenterWeight = BounceCenterWeight,
                         NormalWeight = BounceNormalWeight,
                         ConeMaxAngle = BounceConeMaxAngle
-                    },
-                    SmoothDir = new SmoothDirParams
-                    {
-                        Iterations = SmoothDirIterations,
-                        MaxSlope = SmoothDirMaxSlope,
-                        Relaxation = SmoothDirRelaxation,
-                        Smoothness = SmoothDirSmoothness
                     },
                     Recovery = new LightCurve
                     {
@@ -302,7 +284,6 @@ namespace XrEngine.Lighting
         }
 
 
-
         bool BakeLights(bool force)
         {
             var lightDirty = force;
@@ -361,6 +342,7 @@ namespace XrEngine.Lighting
             var source = _baker.GetContributions();
 
             var lobes = MemoryMarshal.Cast<VoxelLightGpuContribution, LightFieldLobe>(source);
+            _lookup = _baker.GetLookup().ToArray();
 
             var lookup = _baker.CreateLookupTexture(TextureFormat.RgUInt32);
 
@@ -433,6 +415,200 @@ namespace XrEngine.Lighting
             PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
         }
 
+        Texture3D CreateLookupTexture(ReadOnlySpan<VoxelLightLookup> lookup, Vector3I size)
+        {
+            var bytes = MemoryMarshal.AsBytes(lookup);
+            var buffer = MemoryBuffer.Create<byte>((uint)bytes.Length);
+            bytes.CopyTo(buffer.AsSpan());
+
+            var texture = new Texture3D
+            {
+                Format = TextureFormat.RgUInt32,
+                MipLevelCount = 0,
+                MinFilter = ScaleFilter.Nearest,
+                MagFilter = ScaleFilter.Nearest,
+                WrapS = WrapMode.ClampToEdge,
+                WrapT = WrapMode.ClampToEdge,
+                WrapR = WrapMode.ClampToEdge,
+                NeverCompress = true
+            };
+
+            texture.LoadData(new TextureData
+            {
+                Content = buffer,
+                Width = (uint)size.X,
+                Height = (uint)size.Y,
+                Depth = (uint)size.Z,
+                Format = TextureFormat.RgUInt32
+            });
+
+            return texture;
+        }
+
+        [Action]
+        public void Export()
+        {
+            if (StorePath == null || _lookup == null || _fieldData.Contributions == null)
+                return;
+
+            var dir = Path.Combine(StorePath, "LightField");
+            var path = Path.Combine(dir, "LightFieldV2.bin");
+
+            Directory.CreateDirectory(dir);
+
+            using var stream = File.Create(path);
+            using var writer = new BinaryWriter(stream);
+
+            writer.Write(FieldFileMagic);
+            writer.Write(FieldFileVersion);
+
+            writer.Write(_fieldData.Origin.X);
+            writer.Write(_fieldData.Origin.Y);
+            writer.Write(_fieldData.Origin.Z);
+
+            writer.Write(_fieldData.Size.X);
+            writer.Write(_fieldData.Size.Y);
+            writer.Write(_fieldData.Size.Z);
+
+            writer.Write(_fieldData.VoxelSize);
+            writer.Write(_lookup.Length);
+            writer.Write(_fieldData.Contributions.Length);
+
+            stream.Write(MemoryMarshal.AsBytes(_lookup.AsSpan()));
+            stream.Write(MemoryMarshal.AsBytes(_fieldData.Contributions.AsSpan()));
+
+            Log.Info(this, "Light field V2 exported: {0}", path);
+        }
+
+        [Action]
+        public void Import()
+        {
+            if (StorePath == null)
+                return;
+
+            var path = Path.Combine(StorePath, "LightField", "LightFieldV2.bin");
+
+            if (!File.Exists(path))
+            {
+                Log.Warn(this, "Light field V2 not found: {0}", path);
+                return;
+            }
+
+            Init();
+
+            using var stream = File.OpenRead(path);
+            using var reader = new BinaryReader(stream);
+
+            if (reader.ReadUInt32() != FieldFileMagic)
+                throw new InvalidDataException("Invalid light field V2 file.");
+
+            var version = reader.ReadInt32();
+
+            if (version != FieldFileVersion)
+                throw new InvalidDataException($"Unsupported light field V2 version: {version}.");
+
+            var origin = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            var size = new Vector3I(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+            var voxelSize = reader.ReadSingle();
+            var lookupCount = reader.ReadInt32();
+            var lobeCount = reader.ReadInt32();
+
+            var expectedLookupCount = checked(size.X * size.Y * size.Z);
+
+            if (lookupCount != expectedLookupCount || lobeCount < 0)
+                throw new InvalidDataException("Invalid light field V2 dimensions.");
+
+            var lookup = new VoxelLightLookup[lookupCount];
+            var lobes = new LightFieldLobe[lobeCount];
+
+            stream.ReadExactly(MemoryMarshal.AsBytes(lookup.AsSpan()));
+            stream.ReadExactly(MemoryMarshal.AsBytes(lobes.AsSpan()));
+
+            foreach (var cell in lookup)
+            {
+                if ((ulong)cell.Offset + cell.Count > (ulong)lobes.Length)
+                    throw new InvalidDataException("Invalid light field V2 lookup range.");
+            }
+
+            _lookup = lookup;
+            _grid.Origin = origin;
+            _grid.Size = size;
+            _grid.VoxelSize = voxelSize;
+
+            _fieldData.LookupTexture?.Dispose();
+            _fieldData.LookupTexture = CreateLookupTexture(lookup, size);
+            _fieldData.Contributions = lobes;
+            _fieldData.Origin = origin;
+            _fieldData.Size = size;
+            _fieldData.VoxelSize = voxelSize;
+            _fieldData.Version++;
+
+            _baker.SetGrid(_grid);
+            _gpuVoxelizer.SetGrid(_grid);
+            _activeEmitters.Clear();
+            _activeOccluders.Clear();
+            _curVoxel.Transform.SetScale(voxelSize);
+
+
+            foreach (var light in _host.Descendants<Light>())
+                light.IsVisible = false;
+
+            PbrMaterial.SHADER.NotifyChanged(ChangeType.Render);
+
+            Log.Info(this, "Light field V2 imported: {0} lobes", lobes.Length);
+
+            Stats();
+        }
+
+        [Action]
+        public void Stats()
+        {
+            if (_lookup == null || _lookup.Length == 0)
+            {
+                Log.Info(this, "Light field V2 is empty");
+                return;
+            }
+
+            uint maxHits = 0;
+            long totalHits = 0;
+
+            foreach (var cell in _lookup)
+            {
+                maxHits = Math.Max(maxHits, cell.Count);
+                totalHits += cell.Count;
+            }
+
+            var buckets = new int[checked((int)maxHits + 1)];
+
+            foreach (var cell in _lookup)
+                buckets[(int)cell.Count]++;
+
+            var voxelCount = _lookup.Length;
+            var hitVoxels = voxelCount - buckets[0];
+
+            Log.Info(this, "Light field V2: {0} voxels, {1} hit ({2:F2}%), {3} lobes, avg {4:F2} per hit voxel",
+                voxelCount,
+                hitVoxels,
+                hitVoxels * 100.0 / voxelCount,
+                totalHits,
+                hitVoxels == 0 ? 0.0 : (double)totalHits / hitVoxels);
+
+            for (var hits = 0; hits < buckets.Length; ++hits)
+            {
+                var count = buckets[hits];
+
+                if (count == 0)
+                    continue;
+
+                Log.Info(this, "{0} hit{1}: {2} voxel{3} ({4:F2}%)",
+                    hits,
+                    hits == 1 ? "" : "s",
+                    count,
+                    count == 1 ? "" : "s",
+                    count * 100.0 / voxelCount);
+            }
+        }
+
         [Action]
         public void CopyPreset()
         {
@@ -479,19 +655,7 @@ namespace XrEngine.Lighting
         public int RaySubsample { get; set; }
 
         [Category("Trace")]
-        public VoxelLightMergeMode RayMergeMode { get; set; }
-
-        [Category("Trace")]
-        public VoxelLightMergeMode GenMergeMode { get; set; }
-
-        [Category("Trace")]
-        public VoxelLightMergeMode LightMergeMode { get; set; }
-
-        [Category("Trace")]
         public float RecoveryRange { get; set; }
-
-        [Category("Trace")]
-        public RayIntersectionMode IntersectionMode { get; set; }
 
         [Category("Misc")]
         public int ThreadCount { get; set; }
@@ -506,9 +670,6 @@ namespace XrEngine.Lighting
 
         [Category("Blur")]
         public int BlurPasses { get; set; }
-
-        [Category("Blur")]
-        public bool BlurColorOnly { get; set; }
 
         [Category("Bounce")]
         public int MaxBounceCount { get; set; }
@@ -528,21 +689,6 @@ namespace XrEngine.Lighting
         [Category("Bounce")]
         [ValueType(ValueType.Radiant)]
         public float BounceConeMaxAngle { get; set; }
-
-        [Category("Field Dir")]
-        public DirectionCollapseMode DirCollapseMode { get; set; }
-
-        [Category("Field Dir")]
-        public int SmoothDirIterations { get; set; }
-
-        [Category("Field Dir")]
-        public float SmoothDirMaxSlope { get; set; }
-
-        [Category("Field Dir")]
-        public float SmoothDirRelaxation { get; set; }
-
-        [Category("Field Dir")]
-        public float SmoothDirSmoothness { get; set; }
 
         [Category("Field V2")]
         [ValueType(ValueType.Radiant)]

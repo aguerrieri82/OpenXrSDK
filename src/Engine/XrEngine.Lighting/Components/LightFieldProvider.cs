@@ -288,68 +288,67 @@ namespace XrEngine.Lighting
             }
         }
 
-        public void Import(string path)
+        public void Import(string path, in VoxelGridDesc grid)
+{
+    if (!Directory.Exists(path))
+        return;
+
+    _grid = grid;
+    _backer.SetGrid(_grid);
+    _gpuVoxelizer.SetGrid(_grid);
+
+    var reader = PvrTranscoder.Instance;
+    var textures = new List<Texture3D>();
+
+    var files = Directory.GetFiles(path, "*.pvr")
+        .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
+        .ToArray();
+
+    foreach (var file in files)
+    {
+        using var fs = File.OpenRead(file);
+        var data = reader.LoadTexture(fs);
+
+        if (textures.Count == 0)
         {
-            if (!Directory.Exists(path))
-                return;
+            var size = new Vector3I((int)data[0].Width, (int)data[0].Height, (int)data[0].Depth);
 
-            var reader = PvrTranscoder.Instance;
-
-            var textures = new List<Texture3D>();
-
-            var files = Directory.GetFiles(path, "*.pvr")
-                .OrderBy(a => int.Parse(Path.GetFileNameWithoutExtension(a).Split('_')[1]))
-                .ToArray();
-
-            foreach (var file in files)
-            {
-                using var fs = File.OpenRead(file);
-                var data = reader.LoadTexture(fs);
-
-                if (textures.Count == 0)
-                {
-                    _grid.Size = new Vector3I((int)data[0].Width, (int)data[0].Height, (int)data[0].Depth);
-
-                    if (_grid.VoxelSize == 0)
-                        _grid.VoxelSize = VoxelSize;
-
-                    _fieldData.Origin = _grid.Origin;
-                    _fieldData.Size = _grid.Size;
-                    _fieldData.VoxelSize = _grid.VoxelSize;
-                }
-
-                TextureFormat format;
-                var type = TextureType.Unspecified;
-                var face = (VoxelFace)(textures.Count / 2);
-                var textureType = "Color";
-
-                if ((textures.Count % 2) == 0)
-                    format = TextureFormat.Rgb9e5Float;
-                else
-                {
-                    textureType = "Direction";
-                    type = TextureType.NormalMap;
-                    format = TextureFormat.RgbFloat16;
-                }
-
-                var tex = new Texture3D()
-                {
-                    Name = $"LightField {face} {textureType}",
-                    Format = format,
-                    MipLevelCount = 0,
-                    MinFilter = ScaleFilter.Nearest,
-                    MagFilter = ScaleFilter.Linear,
-                    NeverCompress = true,
-                    Type = type
-                };
-
-                tex.LoadData(data);
-
-                textures.Add(tex);
-            }
-
-            _fieldData.Textures = textures.ToArray();
+            _fieldData.Origin = _grid.Origin;
+            _fieldData.Size = _grid.Size;
+            _fieldData.VoxelSize = _grid.VoxelSize;
         }
+
+        TextureFormat format;
+        var type = TextureType.Unspecified;
+        var face = (VoxelFace)(textures.Count / 2);
+        var textureType = "Color";
+
+        if ((textures.Count % 2) == 0)
+            format = TextureFormat.Rgb9e5Float;
+        else
+        {
+            textureType = "Direction";
+            type = TextureType.NormalMap;
+            format = TextureFormat.RgbFloat16;
+        }
+
+        var tex = new Texture3D
+        {
+            Name = $"LightField {face} {textureType}",
+            Format = format,
+            MipLevelCount = 0,
+            MinFilter = ScaleFilter.Nearest,
+            MagFilter = ScaleFilter.Linear,
+            NeverCompress = true,
+            Type = type
+        };
+
+        tex.LoadData(data);
+        textures.Add(tex);
+    }
+
+    _fieldData.Textures = textures.ToArray();
+}
 
         public LightFieldDataV2 GetLightFieldV2()
         {

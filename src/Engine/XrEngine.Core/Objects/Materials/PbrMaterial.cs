@@ -462,6 +462,8 @@ namespace XrEngine
 
                             var baseSlot = bld.GetTextureSlots(TextureSlots.LightFieldBase, 12);
 
+                            bld.AddFeature("USE_LIGHT_FIELD");
+
                             bld.ExecuteAction((ctx, up) =>
                             {
                                 lightField = _lightFieldProvider.GetLightField();

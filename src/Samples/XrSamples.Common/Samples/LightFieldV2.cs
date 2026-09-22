@@ -58,7 +58,6 @@ namespace XrSamples
             XrEngine.MeshOptimizer.Optimize(mesh.Geometry!);
 
 
-
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
@@ -78,7 +77,7 @@ namespace XrSamples
 
                     if (XrPlatform.IsAndroid)
                     {
-                        //lightField.Import();
+                        lightField.Import();
                     }
 
                     scene.AddBehavior((_, _) =>

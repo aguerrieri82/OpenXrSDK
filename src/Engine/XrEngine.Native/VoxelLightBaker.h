@@ -348,6 +348,11 @@ private:
         Vec3 OcclusionEnergy;
 
         float Distance;
+        
+        double TravelDistance;
+        double OcclusionDistance;
+        double InverseDirection[3];
+        double CellExit[3];
 
         LightCurve Falloff;
         LightCurve Recovery;
@@ -427,6 +432,8 @@ private:
     void TraceRay(
         const VoxelLightRay& ray,
         int32_t generation);
+
+    bool SetCellInterval(double entryDistance, bool atOrigin);
 
     bool MoveToNextVoxel();
 

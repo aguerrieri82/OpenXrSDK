@@ -478,7 +478,7 @@ namespace XrEngine.Lighting
 
             var path = Path.Combine(StorePath, "LightField");
 
-            _provider!.Import(path);
+            _provider!.Import(path, _grid);
 
             UpdateMaterials();
         }
