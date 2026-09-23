@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<NativeFolder>Release</NativeFolder>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(IsPacking)' != 'true'">
+		<ProjectReference Include="..\XrEngine.IK.Native\XrEngine.IK.Native.vcxproj" />
+	</ItemGroup>
+
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content PackagePath="runtimes/win-x64/native/" Include="..\XrEngine.IK.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" UseLink="True" Visible="False" Link="%(Filename)%(Extension)" />
+	</ItemGroup>
+
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.IK.Native\libs\arm64-v8a\*.so" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+
+</Project>

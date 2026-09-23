@@ -26,7 +26,7 @@
 	#ifdef _DEBUG
 		#define BL_LIB(name) STR(BULLET_BASE_DIR/BUSSIK_LIB_DIR/name##_Debug.lib)
 	#else
-		#define BL_LIB(name) STR(BULLET_BASE_DIR/BUSSIK_LIB_DIR/name##_RelWithDebugInfo.lib)
+		#define BL_LIB(name) STR(BULLET_BASE_DIR/BUSSIK_LIB_DIR/name##.lib)
 	#endif
 
 	#pragma comment(lib, BL_LIB(BussIK))

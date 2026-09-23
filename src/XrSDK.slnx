@@ -194,6 +194,14 @@
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.IK.Native/XrEngine.IK.Native.vcxproj" Id="48dc3051-a4a4-42a2-b1dd-ff5f039d238b">
+      <BuildType Solution="Debug|Any CPU" Project="Release" />
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
+    <Project Path="Engine/XrEngine.IK/XrEngine.IK.csproj" Id="c17b19a8-ed1f-4abb-b6b6-492f8655ea4d">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Lighting/XrEngine.Lighting.csproj" Id="e2f07925-0d06-4f5f-8ab9-9830f5a0011e">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />
