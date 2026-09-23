@@ -19,6 +19,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\third-party\glTF-CSharp-Loader\glTFLoader\glTFLoader.csproj" />
 		<ProjectReference Include="..\XrEngine.Animation\XrEngine.Animation.csproj" />
+		<ProjectReference Include="..\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 

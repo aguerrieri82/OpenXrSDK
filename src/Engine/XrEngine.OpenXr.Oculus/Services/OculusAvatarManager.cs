@@ -1,6 +1,8 @@
 using global::Oculus.Avatar2;
+using Microsoft.Win32.SafeHandles;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using XrEngine.Gltf;
 using AvatarApi = global::Oculus.Avatar2.CAPI;
 
 namespace XrEngine.OpenXr.Oculus
@@ -19,10 +21,12 @@ namespace XrEngine.OpenXr.Oculus
         private TaskCompletionSource<Avatar>? _load;
         private readonly Stopwatch _loadTime = new();
 
+
         public OculusAvatarManager()
         {
             _resourceCallback = OnResource;
             _builder = new OculusAvatarBuilder(_resources);
+            UseCache = true;
         }
 
         public Task LoginAsync(string accessToken)
@@ -51,8 +55,32 @@ namespace XrEngine.OpenXr.Oculus
             return InvokeAsync(() => BeginLoad(ulong.Parse(userId))).Unwrap();
         }
 
-        private Task<Avatar> BeginLoad(ulong userId)
+        private async Task<Avatar> BeginLoad(ulong userId)
         {
+            string? cacheFile = null;
+
+            if (UseCache)
+            {
+                cacheFile = Path.Combine(XrPlatform.Current!.CachePath, $"{userId}.avatar_v1.glb");
+
+                if (File.Exists(cacheFile))
+                {
+                    try
+                    {
+                        var avatarRaw = (Group3D)GltfLoader.LoadFile(cacheFile);
+                        var avatar = new Avatar();
+                        foreach (var child in avatarRaw.Children.ToArray())
+                            avatar.AddChild(child);
+                        return avatar;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warn("Avatar cache read error:\n{0}", ex.Message);
+                    }
+                }
+            }
+
+
             var filters = AvatarDefaults.FullBodyFilters;
             filters.lodFlags = AvatarApi.ovrAvatar2EntityLODFlags.LOD_0;
             filters.viewFlags = AvatarApi.ovrAvatar2EntityViewFlags.ThirdPerson;
@@ -79,7 +107,16 @@ namespace XrEngine.OpenXr.Oculus
 
                 _load = new TaskCompletionSource<Avatar>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _loadTime.Restart();
-                return _load.Task;
+
+                var avatar = await _load.Task;
+
+                if (cacheFile != null)
+                {
+                    var exporter = new GltfExporter();
+                    await exporter.ExportAsync(avatar, cacheFile);
+                }
+
+                return avatar;
             }
             catch
             {
@@ -216,5 +253,8 @@ namespace XrEngine.OpenXr.Oculus
             _commands.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        public bool UseCache { get; set; }
+
     }
 }

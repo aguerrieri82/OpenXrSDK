@@ -2,6 +2,7 @@
 
 namespace XrEngine.Compression
 {
+    [AIGenerated]
     public static unsafe class PngLib
     {
         private const string LibName = "etcpack";
@@ -20,10 +21,8 @@ namespace XrEngine.Compression
             public int Capacity;
             public int Position;
 
-            public readonly ReadOnlySpan<byte> Span =>
-                Data == null || Size <= 0
-                    ? ReadOnlySpan<byte>.Empty
-                    : new ReadOnlySpan<byte>(Data, Size);
+            public readonly ReadOnlySpan<byte> Span => Data == null || Size <= 0 ?
+                [] : new ReadOnlySpan<byte>(Data, Size);
 
             public void Dispose()
             {
@@ -43,59 +42,27 @@ namespace XrEngine.Compression
         }
 
         [DllImport(LibName)]
-        public static extern int DecodePng(
-            ref MemoryBuffer input,
-            bool swap16,
-            ref ImageData output);
+        public static extern int DecodePng(ref MemoryBuffer input, bool swap16, ref ImageData output);
 
         [DllImport(LibName)]
-        public static extern int EncodePng(
-            void* pixels,
-            int width,
-            int height,
-            int colorType,
-            int bitDepth,
-            int compressionLevel,
-            bool swap16,
-            ref MemoryBuffer output);
+        public static extern int EncodePng(void* pixels, int width, int height, int colorType, int bitDepth, int compressionLevel, bool swap16, ref MemoryBuffer output);
 
         [DllImport(LibName)]
         public static extern void FreeMemoryBuffer(this ref MemoryBuffer buffer);
 
-        public static int EncodeGray16(
-            ushort* pixels,
-            int width,
-            int height,
-            int compressionLevel,
-            ref MemoryBuffer output)
+        public static int EncodeGray16(ushort* pixels, int width, int height, int compressionLevel, ref MemoryBuffer output)
         {
-            return EncodePng(
-                pixels,
-                width,
-                height,
-                ColorTypeGray,
-                16,
-                compressionLevel,
-                true,
-                ref output);
+            return EncodePng(pixels, width, height, ColorTypeGray, 16, compressionLevel, true, ref output);
         }
 
-        public static int EncodeRgba8(
-            byte* pixels,
-            int width,
-            int height,
-            int compressionLevel,
-            ref MemoryBuffer output)
+        public static int EncodeRgba8(byte* pixels, int width, int height, int compressionLevel, ref MemoryBuffer output)
         {
-            return EncodePng(
-                pixels,
-                width,
-                height,
-                ColorTypeRgba,
-                8,
-                compressionLevel,
-                false,
-                ref output);
+            return EncodePng(pixels, width, height, ColorTypeRgba, 8, compressionLevel, false, ref output);
+        }
+
+        public static int EncodeRgb8(byte* pixels, int width, int height, int compressionLevel, ref MemoryBuffer output)
+        {
+            return EncodePng(pixels, width, height, ColorTypeRgb, 8, compressionLevel, false, ref output);
         }
     }
 }

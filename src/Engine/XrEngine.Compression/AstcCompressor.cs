@@ -175,7 +175,60 @@ namespace XrEngine.Compression
         [DllImport("astcencoder-native")]
         static extern int Encode(nint data, int width, int height, int depth, astcenc_type dataType, ref astcenc_params parameters, nint dst, ref int dstSize);
 
+        [DllImport("astcencoder-native")]
+        static extern int Decode(nint data, int dataSize, int width, int height, int depth, astcenc_type dataType, ref astcenc_params parameters, nint dst);
+
         #endregion
+
+        public static TextureData Decode(TextureData data, bool isNormalMap = false)
+        {
+            if (data.Compression != TextureCompressionFormat.Astc || data.Content == null || data.BlockSize == 0)
+                throw new ArgumentException();
+
+            if (data.Format.GetChannels() != 4)
+                throw new NotSupportedException();
+
+            astcenc_profile profile;
+            astcenc_type type;
+
+            if (data.Format.IsInt8())
+            {
+                profile = data.Format.IsSrgb() ? astcenc_profile.ASTCENC_PRF_LDR_SRGB : astcenc_profile.ASTCENC_PRF_LDR;
+                type = astcenc_type.ASTCENC_TYPE_U8;
+            }
+            else if (data.Format.IsFloat16())
+            {
+                profile = astcenc_profile.ASTCENC_PRF_HDR;
+                type = astcenc_type.ASTCENC_TYPE_F16;
+            }
+            else if (data.Format.IsFloat32())
+            {
+                profile = isNormalMap ? astcenc_profile.ASTCENC_PRF_LDR : astcenc_profile.ASTCENC_PRF_HDR;
+                type = astcenc_type.ASTCENC_TYPE_F32;
+            }
+            else
+                throw new NotSupportedException();
+
+            var depth = (int)Math.Max(data.Depth, 1);
+            var componentSize = type == astcenc_type.ASTCENC_TYPE_U8 ? 1 : type == astcenc_type.ASTCENC_TYPE_F16 ? 2 : 4;
+            var dstSize = checked((uint)((long)data.Width * data.Height * depth * 4 * componentSize));
+
+            var pars = new astcenc_params { block_x = data.BlockSize, block_y = data.BlockSize, block_z = depth <= 1 ? 1u : data.BlockSize, flags = ASTCENC_FLG_DECOMPRESS_ONLY, profile = profile, quality = ASTCENC_PRE_FASTEST, thread_count = 1 };
+
+            var newData = data.Clone();
+            newData.Content = MemoryBuffer.Create<byte>(dstSize);
+            newData.Compression = TextureCompressionFormat.Uncompressed;
+            newData.BlockSize = 0;
+
+            using var srcPtr = data.Content.MemoryLock();
+            using var dstPtr = newData.Content.MemoryLock();
+
+            var result = Decode(srcPtr, checked((int)data.Content.Size), (int)data.Width, (int)data.Height, depth, type, ref pars, dstPtr);
+            if (result != 0)
+                throw new InvalidOperationException();
+
+            return newData;
+        }
 
         public static TextureData Encode(TextureData data, bool isNormalMap, float quality, uint blockSize, int threadPriority = 0)
         {

@@ -324,6 +324,16 @@ namespace XrEngine.Gltf
             return null;
         }
 
+        protected static string[]? GetMorphTargetNames(object? extras)
+        {
+            if (extras is JsonElement json &&
+                json.TryGetProperty("targetNames", out var names) &&
+                names.ValueKind == JsonValueKind.Array)
+                return [.. names.EnumerateArray().Select(a => a.GetString() ?? "")];
+
+            return null;
+        }
+
         protected ulong TextureCacheKey(int imageId, Sampler? sampler)
         {
             var hash = HashBuilder.Instance;
@@ -941,7 +951,7 @@ namespace XrEngine.Gltf
             }
         }
 
-        public Geometry3D ProcessPrimitive(MeshPrimitive primitive, Geometry3D? result = null)
+        public Geometry3D ProcessPrimitive(MeshPrimitive primitive, Geometry3D? result = null, string[]? morphTargetNames = null)
         {
             result ??= new Geometry3D();
 
@@ -1191,6 +1201,7 @@ namespace XrEngine.Gltf
                 {
                     var morphTarget = new MorphTarget()
                     {
+                        Name = morphTargetNames != null && iTarget < morphTargetNames.Length ? morphTargetNames[iTarget] : null,
                         Components = new MorphComponent[target.Count]
                     };
 
@@ -1293,7 +1304,7 @@ namespace XrEngine.Gltf
             var mesh = _model!.Meshes[meshId];
             var primitive = mesh.Primitives[primId];
 
-            result = ProcessPrimitive(primitive, result);
+            result = ProcessPrimitive(primitive, result, GetMorphTargetNames(mesh.Extras));
 
             return result;
         }
@@ -1311,6 +1322,8 @@ namespace XrEngine.Gltf
             }
 
             CheckExtensions(gltMesh.Extensions);
+
+            var morphTargetNames = GetMorphTargetNames(gltMesh.Extras);
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
@@ -1349,7 +1362,7 @@ namespace XrEngine.Gltf
 
                 Load(curMesh, () =>
                 {
-                    ProcessPrimitive(primitive, curMesh.Geometry);
+                    ProcessPrimitive(primitive, curMesh.Geometry, morphTargetNames);
 
                     AssignAsset(curMesh.Geometry, gltMesh.Name, "geo", meshId, primId);
 

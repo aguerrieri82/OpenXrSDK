@@ -208,4 +208,53 @@ extern "C"
 
         return status;
     }
+	
+	EXPORT astcenc_error APIENTRY Decode(uint8_t* data, int dataSize, int width, int height, int depth, astcenc_type dataType, astcenc_params& params, uint8_t* dst)
+	{
+		depth = std::max(depth, 1);
+
+		size_t componentSize =
+			dataType == ASTCENC_TYPE_U8 ? 1 :
+			dataType == ASTCENC_TYPE_F16 ? 2 :
+			dataType == ASTCENC_TYPE_F32 ? 4 : 0;
+
+		if (componentSize == 0)
+			return ASTCENC_ERR_BAD_PARAM;
+
+		size_t sliceBytes = (size_t)width * (size_t)height * 4 * componentSize;
+
+		std::vector<void*> slices((size_t)depth);
+
+		for (int z = 0; z < depth; z++)
+			slices[(size_t)z] = dst + (size_t)z * sliceBytes;
+
+		astcenc_image image;
+		image.dim_x = (unsigned int)width;
+		image.dim_y = (unsigned int)height;
+		image.dim_z = (unsigned int)depth;
+		image.data_type = dataType;
+		image.data = slices.data();
+
+		astcenc_config config;
+
+		astcenc_error status = astcenc_config_init(params.profile, params.block_x, params.block_y, params.block_z, params.quality, params.flags | ASTCENC_FLG_DECOMPRESS_ONLY, &config);
+
+		if (status != ASTCENC_SUCCESS)
+			return status;
+
+		astcenc_context* context = nullptr;
+
+		status = astcenc_context_alloc(&config, 1, &context);
+
+		if (status != ASTCENC_SUCCESS)
+			return status;
+
+		astcenc_swizzle swizzle { ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A };
+
+		status = astcenc_decompress_image(context, data, (size_t)dataSize, &image, &swizzle, 0);
+
+		astcenc_context_free(context);
+
+		return status;
+	}
 }

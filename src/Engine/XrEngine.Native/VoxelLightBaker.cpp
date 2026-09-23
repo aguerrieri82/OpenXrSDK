@@ -24,17 +24,13 @@ namespace {
 
 	FORCE_INLINE bool HasEnergy(const Vec3& energy, float threshold)
 	{
-		return energy.X > threshold ||
-			energy.Y > threshold ||
-			energy.Z > threshold;
+		return energy.X > threshold || energy.Y > threshold || energy.Z > threshold;
 	}
-
 
 	FORCE_INLINE Vec3 FaceNormal(int32_t face)
 	{
 		return FaceNormals[face];
 	}
-
 
 	FORCE_INLINE int32_t VoxelIndex(const VoxelGridDesc& grid, Vec3I cell)
 	{
@@ -53,20 +49,14 @@ namespace {
 
 	FORCE_INLINE float HashFloat(uint32_t value)
 	{
-		return float(Hash(value) & 0x00FFFFFFu) *
-			(1.0f / 16777216.0f);
+		return float(Hash(value) & 0x00FFFFFFu) * (1.0f / 16777216.0f);
 	}
-
 
 	Vec3 VoxelCenter(const VoxelGridDesc& grid, Vec3I cell)
 	{
 		float size = grid.VoxelSize;
 
-		return {
-			grid.Origin.X + (float(cell.X) + 0.5f) * size,
-			grid.Origin.Y + (float(cell.Y) + 0.5f) * size,
-			grid.Origin.Z + (float(cell.Z) + 0.5f) * size
-		};
+		return { grid.Origin.X + (float(cell.X) + 0.5f) * size, grid.Origin.Y + (float(cell.Y) + 0.5f) * size, grid.Origin.Z + (float(cell.Z) + 0.5f) * size };
 	}
 
 	Vec3I VoxelCell(const VoxelGridDesc& grid, int32_t index)
@@ -84,28 +74,17 @@ namespace {
 		return cell;
 	}
 
-
-
 	FORCE_INLINE int32_t FieldIndex(const VoxelLightField& field, Vec3I cell)
 	{
 		return cell.X + cell.Y * field.Size.X + cell.Z * field.Size.X * field.Size.Y;
 	}
 
-
 	FORCE_INLINE bool IsInsideGrid(const VoxelGridDesc& grid, Vec3I cell)
 	{
-		return cell.X >= 0 &&
-			cell.Y >= 0 &&
-			cell.Z >= 0 &&
-			cell.X < grid.Size.X &&
-			cell.Y < grid.Size.Y &&
-			cell.Z < grid.Size.Z;
+		return cell.X >= 0 && cell.Y >= 0 && cell.Z >= 0 && cell.X < grid.Size.X && cell.Y < grid.Size.Y && cell.Z < grid.Size.Z;
 	}
 
-	bool WorldToVoxel(
-		const VoxelGridDesc& grid,
-		const Vec3& p,
-		Vec3I& cell)
+	bool WorldToVoxel(const VoxelGridDesc& grid, const Vec3& p, Vec3I& cell)
 	{
 		float invSize = 1.0f / grid.VoxelSize;
 
@@ -115,7 +94,6 @@ namespace {
 
 		return IsInsideGrid(grid, cell);
 	}
-
 
 	float LightCurveAtT(const LightCurve& falloff, float t)
 	{
@@ -189,11 +167,7 @@ namespace {
 		return slot;
 	}
 
-	float SpotConeAttenuation(
-		const Vec3& lightDirection,
-		float innerCos,
-		float outerCos,
-		const Vec3& rayDirection)
+	float SpotConeAttenuation(const Vec3& lightDirection, float innerCos, float outerCos, const Vec3& rayDirection)
 	{
 		Vec3 axis = lightDirection.Normalized();
 		Vec3 dir = rayDirection.Normalized();
@@ -220,16 +194,11 @@ namespace {
 		return light.Color * light.Intensity;
 	}
 
-	void DirectionBasis(
-		const Vec3& direction,
-		Vec3& right,
-		Vec3& up)
+	void DirectionBasis(const Vec3& direction, Vec3& right, Vec3& up)
 	{
 		Vec3 axis = direction.Normalized();
 
-		Vec3 ref = std::fabs(axis.Y) < 0.9f
-			? Vec3{ 0.0f, 1.0f, 0.0f }
-		: Vec3{ 1.0f, 0.0f, 0.0f };
+		Vec3 ref = std::fabs(axis.Y) < 0.9f ? Vec3{ 0.0f, 1.0f, 0.0f } : Vec3{ 1.0f, 0.0f, 0.0f };
 
 		right = Cross(ref, axis).Normalized();
 
@@ -257,25 +226,18 @@ namespace {
 		return result;
 	}
 
-
 	FORCE_INLINE VoxelLightEnergy MakeEnergy(const Vec3& energy, const Vec3& direction, const bool normalMode)
 	{
 		return normalMode ? MakeEnergy<true>(energy, direction) : MakeEnergy<false>(energy, direction);
 	}
-
 
 	FORCE_INLINE float EnergyScore(const Vec3& energy)
 	{
 		return energy.X + energy.Y + energy.Z;
 	}
 
-
 	template<VoxelLightMergeMode Mode, bool NormalMode>
-	void MergeEnergy(
-		VoxelLightEnergy& target,
-		const VoxelLightEnergy& source,
-		VoxelLightState targetState,
-		VoxelLightState sourceState)
+	void MergeEnergy(VoxelLightEnergy& target, const VoxelLightEnergy& source, VoxelLightState targetState, VoxelLightState sourceState)
 	{
 		if (Mode == VoxelLightMergeMode::Add)
 		{
@@ -347,9 +309,7 @@ namespace {
 	}
 
 	template<VoxelLightMergeMode Mode, bool NormalMode>
-	void MergeFace(
-		VoxelLightFace& target,
-		const VoxelLightFace& source)
+	void MergeFace(VoxelLightFace& target, const VoxelLightFace& source)
 	{
 		MergeEnergy<Mode, NormalMode>(target.Outgoing, source.Outgoing, target.State, source.State);
 		target.Outgoing.VisitCount = std::max(target.Outgoing.VisitCount, source.Outgoing.VisitCount);
@@ -361,21 +321,13 @@ namespace {
 	}
 
 	template<VoxelLightMergeMode Mode, bool NormalMode>
-	void MergeVoxelLightData(
-		VoxelLightData& target,
-		const VoxelLightData& source)
+	void MergeVoxelLightData(VoxelLightData& target, const VoxelLightData& source)
 	{
 		for (int32_t face = 0; face < VOXEL_LIGHT_FACE_COUNT; ++face)
 			MergeFace<Mode, NormalMode>(target.Faces[face], source.Faces[face]);
 	}
 
-
-
-	FORCE_INLINE bool SelectVoxelHitFace(
-		const VoxelData& voxelData,
-		const Vec3& rayDirection,
-		int32_t originStep,
-		int32_t& hitFace)
+	FORCE_INLINE bool SelectVoxelHitFace(const VoxelData& voxelData, const Vec3& rayDirection, int32_t originStep, int32_t& hitFace)
 	{
 		hitFace = -1;
 
@@ -435,14 +387,7 @@ namespace {
 		return IncomingBucketFaceFromDirection(dir) ^ 1;
 	}
 
-
-	FORCE_INLINE bool RayAabbInterval(
-		const Vec3& boxMin,
-		const Vec3& boxMax,
-		const Vec3& origin,
-		const Vec3& direction,
-		float& enterT,
-		float& exitT)
+	FORCE_INLINE bool RayAabbInterval(const Vec3& boxMin, const Vec3& boxMax, const Vec3& origin, const Vec3& direction, float& enterT, float& exitT)
 	{
 		const float minAxis[3] = { boxMin.X, boxMin.Y, boxMin.Z };
 		const float maxAxis[3] = { boxMax.X, boxMax.Y, boxMax.Z };
@@ -482,56 +427,26 @@ namespace {
 		return true;
 	}
 
-	Vec3 RayGridExitPoint(
-		const VoxelGridDesc& grid,
-		const Vec3& origin,
-		const Vec3& direction)
+	Vec3 RayGridExitPoint(const VoxelGridDesc& grid, const Vec3& origin, const Vec3& direction)
 	{
-		Vec3 gridMax{
-			grid.Origin.X + float(grid.Size.X) * grid.VoxelSize,
-			grid.Origin.Y + float(grid.Size.Y) * grid.VoxelSize,
-			grid.Origin.Z + float(grid.Size.Z) * grid.VoxelSize
-		};
+		Vec3 gridMax{ grid.Origin.X + float(grid.Size.X) * grid.VoxelSize, grid.Origin.Y + float(grid.Size.Y) * grid.VoxelSize, grid.Origin.Z + float(grid.Size.Z) * grid.VoxelSize };
 
 		float enterT;
 		float exitT;
 
-		if (!RayAabbInterval(grid.Origin, gridMax, origin, direction, enterT, exitT) ||
-			exitT <= Epsilon)
+		if (!RayAabbInterval(grid.Origin, gridMax, origin, direction, enterT, exitT) || exitT <= Epsilon)
 			return { 0 };
 
 		return origin + direction * exitT;
 	}
 
-
-
-	int32_t RayVoxelExitFaceWeights(
-		const Vec3& voxelCenter,
-		float voxelSize,
-		const Vec3& rayPosition,
-		const Vec3& direction,
-		VoxelFaceWeight outFaces[3],
-		bool centerPlaneMode)
+	int32_t RayVoxelExitFaceWeights(const Vec3& voxelCenter, float voxelSize, const Vec3& rayPosition, const Vec3& direction, VoxelFaceWeight outFaces[3], bool centerPlaneMode)
 	{
 		const float half = voxelSize * 0.5f;
 
-		const float px[3] = {
-			rayPosition.X,
-			rayPosition.Y,
-			rayPosition.Z
-		};
-
-		const float dc[3] = {
-			direction.X,
-			direction.Y,
-			direction.Z
-		};
-
-		const float cc[3] = {
-			voxelCenter.X,
-			voxelCenter.Y,
-			voxelCenter.Z
-		};
+		const float px[3] = { rayPosition.X, rayPosition.Y, rayPosition.Z };
+		const float dc[3] = { direction.X, direction.Y, direction.Z };
+		const float cc[3] = { voxelCenter.X, voxelCenter.Y, voxelCenter.Z };
 
 		float bestT = FLT_MAX;
 		int32_t mainAxis = -1;
@@ -546,9 +461,7 @@ namespace {
 
 			const bool positive = d > 0.0f;
 
-			const float boundary = centerPlaneMode
-				? cc[axis]
-				: cc[axis] + (positive ? half : -half);
+			const float boundary = centerPlaneMode ? cc[axis] : cc[axis] + (positive ? half : -half);
 
 			const float t = (boundary - px[axis]) / d;
 
@@ -596,18 +509,15 @@ namespace {
 		{
 			constexpr float weight = 1.0f / 3.0f;
 
-			outFaces[0].Face =
-				mainAxis * 2 + int32_t(mainPositive);
+			outFaces[0].Face = mainAxis * 2 + int32_t(mainPositive);
 			outFaces[0].Weight = weight;
 
 			// Deliberately use > rather than >=:
 			// exact zero reproduced NaN >= 0 == false in the original path.
-			outFaces[1].Face =
-				uAxis * 2 + int32_t(u > 0.0f);
+			outFaces[1].Face = uAxis * 2 + int32_t(u > 0.0f);
 			outFaces[1].Weight = weight;
 
-			outFaces[2].Face =
-				vAxis * 2 + int32_t(v > 0.0f);
+			outFaces[2].Face = vAxis * 2 + int32_t(v > 0.0f);
 			outFaces[2].Weight = weight;
 
 			return 3;
@@ -624,52 +534,33 @@ namespace {
 
 		int32_t count = 0;
 
-		outFaces[count].Face =
-			mainAxis * 2 + int32_t(mainPositive);
+		outFaces[count].Face = mainAxis * 2 + int32_t(mainPositive);
 		outFaces[count].Weight = invSum;
 		++count;
 
 		if (uWeight > 0.000001f)
 		{
-			outFaces[count].Face =
-				uAxis * 2 + int32_t(u >= 0.0f);
-			outFaces[count].Weight =
-				uWeight * invSum;
+			outFaces[count].Face = uAxis * 2 + int32_t(u >= 0.0f);
+			outFaces[count].Weight = uWeight * invSum;
 			++count;
 		}
 
 		if (vWeight > 0.000001f)
 		{
-			outFaces[count].Face =
-				vAxis * 2 + int32_t(v >= 0.0f);
-			outFaces[count].Weight =
-				vWeight * invSum;
+			outFaces[count].Face = vAxis * 2 + int32_t(v >= 0.0f);
+			outFaces[count].Weight = vWeight * invSum;
 			++count;
 		}
 
 		return count;
 	}
 
-	bool RayVoxelSurfacePoint(
-		const Vec3& voxelCenter,
-		float voxelSize,
-		const Vec3& origin,
-		const Vec3& direction,
-		Vec3& point)
+	bool RayVoxelSurfacePoint(const Vec3& voxelCenter, float voxelSize, const Vec3& origin, const Vec3& direction, Vec3& point)
 	{
 		float half = voxelSize * 0.5f;
 
-		Vec3 boxMin{
-			voxelCenter.X - half,
-			voxelCenter.Y - half,
-			voxelCenter.Z - half
-		};
-
-		Vec3 boxMax{
-			voxelCenter.X + half,
-			voxelCenter.Y + half,
-			voxelCenter.Z + half
-		};
+		Vec3 boxMin{ voxelCenter.X - half, voxelCenter.Y - half, voxelCenter.Z - half };
+		Vec3 boxMax{ voxelCenter.X + half, voxelCenter.Y + half, voxelCenter.Z + half };
 
 		float enterT;
 		float exitT;
@@ -686,25 +577,20 @@ namespace {
 		return true;
 	}
 
-
-	Vec3 SurfaceBounceEnergy(
-		const Vec3& incomingEnergy,
-		const VoxelFaceData& face)
+	Vec3 SurfaceBounceEnergy(const Vec3& incomingEnergy, const VoxelFaceData& face)
 	{
 		Vec3 albedo{ face.BaseColor.X, face.BaseColor.Y, face.BaseColor.Z };
 
+		float roughness = std::clamp(face.Roughness, 0.0f, 1.0f);
 		float metallic = std::clamp(face.Metallic, 0.0f, 1.0f);
 
-		Vec3 dielectric = albedo + Vec3{ 0.04f, 0.04f, 0.04f };
-		Vec3 reflectance = Lerp(dielectric, albedo, metallic);
+		Vec3 diffuse = incomingEnergy * albedo;
+		Vec3 metal = incomingEnergy;
 
-		return incomingEnergy * reflectance;
+		return Lerp(diffuse, metal, metallic) * roughness;
 	}
 
-
-	int32_t BounceRayCountForGeneration(
-		int32_t generation,
-		const VoxelLightBakeParams& params)
+	int32_t BounceRayCountForGeneration(int32_t generation, const VoxelLightBakeParams& params)
 	{
 		if (params.Bounce.RayCount <= 1)
 			return 1;
@@ -716,19 +602,12 @@ namespace {
 		return std::max(1, int32_t(std::round(scaled)));
 	}
 
-	Vec3 ConeDirection(
-		const Vec3& center,
-		float maxAngle,
-		uint32_t seed,
-		int32_t index,
-		int32_t count)
+	Vec3 ConeDirection(const Vec3& center, float maxAngle, uint32_t seed, int32_t index, int32_t count)
 	{
 		if (count <= 1 || maxAngle <= Epsilon)
 			return center;
 
-		Vec3 ref = std::fabs(center.Y) < 0.9f
-			? Vec3{ 0.0f, 1.0f, 0.0f }
-		: Vec3{ 1.0f, 0.0f, 0.0f };
+		Vec3 ref = std::fabs(center.Y) < 0.9f ? Vec3{ 0.0f, 1.0f, 0.0f } : Vec3{ 1.0f, 0.0f, 0.0f };
 
 		Vec3 tangent = Cross(ref, center).Normalized();
 
@@ -737,42 +616,24 @@ namespace {
 
 		Vec3 bitangent = Cross(center, tangent).Normalized();
 
-		float radialJitter = HashFloat(
-			seed ^ uint32_t(index) * 0x9e3779b9u);
-
-		float azimuthJitter = HashFloat(
-			seed ^ uint32_t(index) * 0x85ebca6bu);
+		float radialJitter = HashFloat(seed ^ uint32_t(index) * 0x9e3779b9u);
+		float azimuthJitter = HashFloat(seed ^ uint32_t(index) * 0x85ebca6bu);
 
 		// One sample in each equal-solid-angle radial stratum.
-		float u =
-			(float(index) + radialJitter) /
-			float(count);
+		float u = (float(index) + radialJitter) / float(count);
 
-		float cosTheta =
-			1.0f - u * (1.0f - std::cos(maxAngle));
+		float cosTheta = 1.0f - u * (1.0f - std::cos(maxAngle));
 
-		float sinTheta =
-			std::sqrt(std::max(
-				0.0f,
-				1.0f - cosTheta * cosTheta));
+		float sinTheta = std::sqrt(std::max(0.0f, 1.0f - cosTheta * cosTheta));
 
-		float azimuth =
-			2.0f * Pi * azimuthJitter;
+		float azimuth = 2.0f * Pi * azimuthJitter;
 
-		Vec3 radial =
-			tangent * std::cos(azimuth) +
-			bitangent * std::sin(azimuth);
+		Vec3 radial = tangent * std::cos(azimuth) + bitangent * std::sin(azimuth);
 
-		return (
-			center * cosTheta +
-			radial * sinTheta).Normalized();
+		return (center * cosTheta + radial * sinTheta).Normalized();
 	}
 
-
-
-	MergeEnergyFn SelectMergeEnergy(
-		VoxelLightMergeMode mode,
-		bool normalMode)
+	MergeEnergyFn SelectMergeEnergy(VoxelLightMergeMode mode, bool normalMode)
 	{
 		if (normalMode)
 		{
@@ -806,9 +667,7 @@ namespace {
 		return nullptr;
 	}
 
-	MergeVoxelLightDataFn SelectMergeVoxelLightData(
-		VoxelLightMergeMode mode,
-		bool normalMode)
+	MergeVoxelLightDataFn SelectMergeVoxelLightData(VoxelLightMergeMode mode, bool normalMode)
 	{
 		if (normalMode)
 		{
@@ -897,11 +756,7 @@ void VoxelRayMarcher::SetContext(VoxelLightBaker* baker, int32_t workerIndex)
 
 	const VoxelLightBakeParams& params = baker->_params;
 
-	_step = SelectStep(
-		params.Mode,
-		params.IntersectMode,
-		params.DirCollapseMode == DirectionCollapseMode::Normal,
-		params.RayMergeMode);
+	_step = SelectStep(params.Mode, params.IntersectMode, params.DirCollapseMode == DirectionCollapseMode::Normal, params.RayMergeMode);
 }
 
 void VoxelRayMarcher::Prepare(int32_t voxelCount)
@@ -912,7 +767,6 @@ void VoxelRayMarcher::Prepare(int32_t voxelCount)
 	_local.Contribution.Cells.reserve(voxelCount);
 	_ray.IsAlive = true;
 }
-
 
 bool VoxelRayMarcher::CreateRay(const VoxelLightRay& ray, int32_t generation)
 {
@@ -938,9 +792,7 @@ bool VoxelRayMarcher::CreateRay(const VoxelLightRay& ray, int32_t generation)
 
 	const VoxelGridDesc& grid = _baker->_grid;
 
-	if (grid.VoxelSize <= 0.0f ||
-		grid.Size.X <= 0 || grid.Size.Y <= 0 || grid.Size.Z <= 0 ||
-		Dot(ray.Direction, ray.Direction) <= Epsilon)
+	if (grid.VoxelSize <= 0.0f || grid.Size.X <= 0 || grid.Size.Y <= 0 || grid.Size.Z <= 0 || Dot(ray.Direction, ray.Direction) <= Epsilon)
 	{
 		return _ray.IsAlive = false;
 	}
@@ -984,8 +836,7 @@ bool VoxelRayMarcher::CreateRay(const VoxelLightRay& ray, int32_t generation)
 
 	auto initialCell = [&](float origin, float direction, float gridOrigin, int32_t size)
 		{
-			const double coordinate =
-				(double(origin) + double(direction) * enter - double(gridOrigin)) / double(grid.VoxelSize);
+			const double coordinate = (double(origin) + double(direction) * enter - double(gridOrigin)) / double(grid.VoxelSize);
 
 			double cell = std::floor(coordinate);
 
@@ -1032,10 +883,7 @@ void VoxelRayMarcher::TraceRange(int32_t startRay, int32_t endRay, int32_t gener
 		TraceRay(_baker->_rays[i], generation);
 }
 
-
-
-void VoxelRayMarcher::GetDebugState(
-	VoxelRayDebugState& state) const
+void VoxelRayMarcher::GetDebugState(VoxelRayDebugState& state) const
 {
 	if (_ray.LightState == VoxelLightState::Occlusion)
 	{
@@ -1044,9 +892,7 @@ void VoxelRayMarcher::GetDebugState(
 	}
 	else
 	{
-		float falloff = LightFalloffAtDistance(
-			_ray.Falloff,
-			_ray.Distance);
+		float falloff = LightFalloffAtDistance(_ray.Falloff, _ray.Distance);
 
 		state.Energy = _ray.Energy * falloff;
 	}
@@ -1085,7 +931,6 @@ void VoxelRayMarcher::GetDebugState(
 	}
 }
 
-
 bool VoxelRayMarcher::SetCellInterval(double entryDistance, bool atOrigin)
 {
 	const VoxelGridDesc& grid = _baker->_grid;
@@ -1111,9 +956,7 @@ bool VoxelRayMarcher::SetCellInterval(double entryDistance, bool atOrigin)
 
 		if (exitDistance > entryDistance)
 		{
-			const double distance = atOrigin
-				? entryDistance
-				: entryDistance + (exitDistance - entryDistance) * 0.5;
+			const double distance = atOrigin ? entryDistance : entryDistance + (exitDistance - entryDistance) * 0.5;
 
 			_ray.TravelDistance = distance;
 			_ray.Position = origin + direction * float(distance);
@@ -1156,11 +999,7 @@ FORCE_INLINE bool VoxelRayMarcher::MoveToNextVoxel()
 	return SetCellInterval(crossing, false);
 }
 
-VoxelRayMarcher::StepFn VoxelRayMarcher::SelectStep(
-	LightTrackMode mode,
-	RayIntersectionMode intersectMode,
-	bool normalMode,
-	VoxelLightMergeMode rayMergeMode)
+VoxelRayMarcher::StepFn VoxelRayMarcher::SelectStep(LightTrackMode mode, RayIntersectionMode intersectMode, bool normalMode, VoxelLightMergeMode rayMergeMode)
 {
 #define SELECT_STEP(MODE, INTERSECT, NORMAL)									\
 	switch (rayMergeMode)														\
@@ -1233,11 +1072,7 @@ VoxelRayMarcher::StepFn VoxelRayMarcher::SelectStep(
 	return nullptr;
 }
 
-template<
-	LightTrackMode Mode,
-	RayIntersectionMode IntersectMode,
-	bool NormalMode,
-	VoxelLightMergeMode RayMergeMode>
+template<LightTrackMode Mode, RayIntersectionMode IntersectMode, bool NormalMode, VoxelLightMergeMode RayMergeMode>
 bool VoxelRayMarcher::Step()
 {
 	if (!_ray.IsAlive)
@@ -1256,9 +1091,7 @@ bool VoxelRayMarcher::Step()
 	_ray.LastAffectedVoxel = -1;
 	_ray.LastAffectedFace = -1;
 
-	const float falloff = LightFalloffAtDistance(
-		_ray.Falloff,
-		_ray.Distance);
+	const float falloff = LightFalloffAtDistance(_ray.Falloff, _ray.Distance);
 
 	Vec3 stepEnergy = _ray.Energy * falloff;
 
@@ -1276,8 +1109,7 @@ bool VoxelRayMarcher::Step()
 
 	int32_t slot = -1;
 
-	if (Mode != LightTrackMode::OcclusionsOnly ||
-		_ray.LightState == VoxelLightState::Occlusion)
+	if (Mode != LightTrackMode::OcclusionsOnly || _ray.LightState == VoxelLightState::Occlusion)
 	{
 		bool isNewCell;
 
@@ -1290,11 +1122,7 @@ bool VoxelRayMarcher::Step()
 
 		if (_ray.BounceCount > 0 || !params.InitiateLightField)
 		{
-			MergeEnergy<RayMergeMode, NormalMode>(
-				data.Faces[incomingFace].Incoming,
-				MakeEnergy<NormalMode>(stepEnergy, _ray.Direction),
-				data.Faces[incomingFace].State,
-				_ray.LightState);
+			MergeEnergy<RayMergeMode, NormalMode>(data.Faces[incomingFace].Incoming, MakeEnergy<NormalMode>(stepEnergy, _ray.Direction), data.Faces[incomingFace].State, _ray.LightState);
 		}
 #endif
 	}
@@ -1303,11 +1131,7 @@ bool VoxelRayMarcher::Step()
 
 	int32_t hitFace;
 
-	const bool hasHit = SelectVoxelHitFace(
-		voxelData,
-		_ray.Direction,
-		_ray.OriginStep,
-		hitFace);
+	const bool hasHit = SelectVoxelHitFace(voxelData, _ray.Direction, _ray.OriginStep, hitFace);
 
 	if (hasHit)
 	{
@@ -1316,17 +1140,11 @@ bool VoxelRayMarcher::Step()
 
 		if (Mode != LightTrackMode::Full)
 		{
-			const Vec3 exitPoint = RayGridExitPoint(
-				grid,
-				_ray.Origin,
-				_ray.Direction);
+			const Vec3 exitPoint = RayGridExitPoint(grid, _ray.Origin, _ray.Direction);
 
-			const float exitDistance =
-				(exitPoint - _ray.Origin).Length();
+			const float exitDistance = (exitPoint - _ray.Origin).Length();
 
-			const float exitFalloff = LightFalloffAtDistance(
-				_ray.Falloff,
-				exitDistance);
+			const float exitFalloff = LightFalloffAtDistance(_ray.Falloff, exitDistance);
 
 			const Vec3 exitEnergy = _ray.Energy * exitFalloff;
 
@@ -1346,34 +1164,22 @@ bool VoxelRayMarcher::Step()
 			if (nextGeneration < maxBounceCount)
 			{
 				const Vec3 normal = faceData.Normal;
-				const Vec3 reflectDir =
-					Reflect(_ray.Direction, normal).Normalized();
+				const Vec3 reflectDir = Reflect(_ray.Direction, normal).Normalized();
 
-				const float roughness =
-					std::clamp(faceData.Roughness, 0.0f, 1.0f);
+				const float roughness = std::clamp(faceData.Roughness, 0.0f, 1.0f);
 
-				const float metallic =
-					std::clamp(faceData.Metallic, 0.0f, 1.0f);
+				const float metallic = std::clamp(faceData.Metallic, 0.0f, 1.0f);
 
-				const float normalWeight = std::clamp(
-					bounceNormalWeightParam * (1.0f - metallic),
-					0.0f,
-					1.0f);
+				const float normalWeight = std::clamp(bounceNormalWeightParam * (1.0f - metallic), 0.0f, 1.0f);
 
-				Vec3 bounceDir =
-					Lerp(reflectDir, normal, normalWeight).Normalized();
+				Vec3 bounceDir = Lerp(reflectDir, normal, normalWeight).Normalized();
 
 				if (Dot(bounceDir, bounceDir) <= Epsilon)
 					bounceDir = reflectDir;
 
 				Vec3 bounceOrigin;
 
-				if (!RayVoxelSurfacePoint(
-					VoxelCenter(grid, _ray.Cell),
-					grid.VoxelSize,
-					_ray.Origin,
-					_ray.Direction,
-					bounceOrigin))
+				if (!RayVoxelSurfacePoint(VoxelCenter(grid, _ray.Cell), grid.VoxelSize, _ray.Origin, _ray.Direction, bounceOrigin))
 				{
 					bounceOrigin = _ray.Position;
 				}
@@ -1383,29 +1189,17 @@ bool VoxelRayMarcher::Step()
 				_ray.TravelDistance = _ray.Distance;
 				stepEnergy = _ray.Energy * LightFalloffAtDistance(_ray.Falloff, _ray.Distance);
 
-				const Vec3 bounceEnergy =
-					SurfaceBounceEnergy(stepEnergy, faceData);
+				const Vec3 bounceEnergy = SurfaceBounceEnergy(stepEnergy, faceData);
 
 				const VoxelLightBakeParams localParams = _baker->_params;
 
-				const int32_t rayCount = std::max(
-					1,
-					BounceRayCountForGeneration(
-						_ray.BounceCount,
-						localParams));
+				const int32_t rayCount = std::max(1, BounceRayCountForGeneration(_ray.BounceCount, localParams));
 
-				const float centerWeight = rayCount > 1
-					? std::clamp(
-						bounceCenterWeightParam,
-						0.0f,
-						1.0f)
-					: 1.0f;
+				const float centerWeight = rayCount > 1 ? std::clamp(bounceCenterWeightParam, 0.0f, 1.0f) : 1.0f;
 
-				const float coneAngle =
-					bounceConeMaxAngle * roughness;
+				const float coneAngle = bounceConeMaxAngle * roughness;
 
-				auto pushBounceRay =
-					[&](const Vec3& direction, const Vec3& energy)
+				auto pushBounceRay = [&](const Vec3& direction, const Vec3& energy)
 					{
 						if (!HasEnergy(energy, energyThreshold))
 							return;
@@ -1424,17 +1218,13 @@ bool VoxelRayMarcher::Step()
 						_nextRays.push_back(ray);
 					};
 
-				pushBounceRay(
-					bounceDir,
-					bounceEnergy * centerWeight);
+				pushBounceRay(bounceDir, bounceEnergy * centerWeight);
 
 				const int32_t sideCount = rayCount - 1;
 
 				if (sideCount > 0)
 				{
-					const Vec3 sideEnergy =
-						bounceEnergy *
-						((1.0f - centerWeight) / float(sideCount));
+					const Vec3 sideEnergy = bounceEnergy * ((1.0f - centerWeight) / float(sideCount));
 
 					uint32_t coneSeed = Hash(
 						std::bit_cast<uint32_t>(bounceOrigin.X) * 73856093u ^
@@ -1444,12 +1234,7 @@ bool VoxelRayMarcher::Step()
 
 					for (int32_t i = 0; i < sideCount; ++i)
 					{
-						const Vec3 sideDir = ConeDirection(
-							bounceDir,
-							coneAngle,
-							coneSeed,
-							i,
-							sideCount);
+						const Vec3 sideDir = ConeDirection(bounceDir, coneAngle, coneSeed, i, sideCount);
 
 						pushBounceRay(sideDir, sideEnergy);
 					}
@@ -1469,9 +1254,7 @@ bool VoxelRayMarcher::Step()
 		{
 			if (_ray.LightState == VoxelLightState::Occlusion)
 			{
-				const float recovery = LightRecoveryAtDistance(
-					_ray.Recovery,
-					_ray.Distance);
+				const float recovery = LightRecoveryAtDistance(_ray.Recovery, _ray.Distance);
 
 				stepEnergy = _ray.MaxEnergy * recovery;
 			}
@@ -1483,39 +1266,24 @@ bool VoxelRayMarcher::Step()
 
 		if (writeEnergy)
 		{
-			VoxelLightData& data =
-				_local.Contribution.Cells[slot].Data;
+			VoxelLightData& data = _local.Contribution.Cells[slot].Data;
 
-			const Vec3 activeDir = NormalMode
-				? _ray.DirectionNormal
-				: _ray.Direction;
+			const Vec3 activeDir = NormalMode ? _ray.DirectionNormal : _ray.Direction;
 
 			if (NormalMode)
-				outgoingFace =
-				OutgoingBucketFaceFromDirection(_ray.DirectionNormal);
+				outgoingFace = OutgoingBucketFaceFromDirection(_ray.DirectionNormal);
 
 			if (IntersectMode == RayIntersectionMode::Direction)
 			{
-				MergeEnergy<RayMergeMode, NormalMode>(
-					data.Faces[outgoingFace].Outgoing,
-					MakeEnergy<NormalMode>(stepEnergy, activeDir),
-					data.Faces[outgoingFace].State,
-					_ray.LightState);
+				MergeEnergy<RayMergeMode, NormalMode>(data.Faces[outgoingFace].Outgoing, MakeEnergy<NormalMode>(stepEnergy, activeDir), data.Faces[outgoingFace].State, _ray.LightState);
 
-				data.Faces[outgoingFace].State =
-					_ray.LightState;
+				data.Faces[outgoingFace].State = _ray.LightState;
 			}
 			else
 			{
 				VoxelFaceWeight faces[3] = {};
 
-				int32_t intCount = RayVoxelExitFaceWeights(
-					VoxelCenter(grid, _ray.Cell),
-					_baker->GetVoxelSize(),
-					_ray.Position,
-					activeDir,
-					faces,
-					RayMergeMode == VoxelLightMergeMode::MaxSample);
+				int32_t intCount = RayVoxelExitFaceWeights(VoxelCenter(grid, _ray.Cell), _baker->GetVoxelSize(), _ray.Position, activeDir, faces, RayMergeMode == VoxelLightMergeMode::MaxSample);
 
 				if (intCount == 0)
 				{
@@ -1529,11 +1297,7 @@ bool VoxelRayMarcher::Step()
 					const int32_t face = faces[i].Face;
 					const Vec3 faceEnergy = stepEnergy * faces[i].Weight;
 
-					MergeEnergy<RayMergeMode, NormalMode>(
-						data.Faces[face].Outgoing,
-						MakeEnergy<NormalMode>(faceEnergy, activeDir),
-						data.Faces[face].State,
-						_ray.LightState);
+					MergeEnergy<RayMergeMode, NormalMode>(data.Faces[face].Outgoing, MakeEnergy<NormalMode>(faceEnergy, activeDir), data.Faces[face].State, _ray.LightState);
 
 					data.Faces[face].State = _ray.LightState;
 				}
@@ -1582,22 +1346,13 @@ void VoxelLightBaker::SetParams(const VoxelLightBakeParams& params)
 
 	bool normalMode = _params.DirCollapseMode == DirectionCollapseMode::Normal;
 
-	_mergeEnergyLight = SelectMergeEnergy(
-		_params.LightMergeMode,
-		normalMode);
+	_mergeEnergyLight = SelectMergeEnergy(_params.LightMergeMode, normalMode);
 
-	_mergeVoxelLightDataLight = SelectMergeVoxelLightData(
-		_params.LightMergeMode,
-		normalMode);
+	_mergeVoxelLightDataLight = SelectMergeVoxelLightData(_params.LightMergeMode, normalMode);
 
-	_mergeVoxelLightDataGen = SelectMergeVoxelLightData(
-		_params.GenMergeMode,
-		normalMode);
+	_mergeVoxelLightDataGen = SelectMergeVoxelLightData(_params.GenMergeMode, normalMode);
 
-	_mergeVoxelLightDataRay = SelectMergeVoxelLightData(
-		_params.RayMergeMode,
-		normalMode);
-
+	_mergeVoxelLightDataRay = SelectMergeVoxelLightData(_params.RayMergeMode, normalMode);
 }
 
 void VoxelLightBaker::SetGrid(const VoxelGridDesc& grid)
@@ -1613,11 +1368,7 @@ void VoxelLightBaker::SetGrid(const VoxelGridDesc& grid)
 
 	_currentMerge.Contribution.Cells.reserve(_voxelCount);
 	_currentMerge.TouchedVoxels.reserve(_voxelCount);
-
-
-
 }
-
 
 void VoxelLightBaker::ClearScene()
 {
@@ -1680,9 +1431,7 @@ void VoxelLightBaker::AddMesh(const Vec3I& origin, const Vec3I& size, const Voxe
 	}
 }
 
-void VoxelLightBaker::AddGpuMeshFaces(
-	const GpuVoxelFaceData* faces,
-	int32_t faceCount)
+void VoxelLightBaker::AddGpuMeshFaces(const GpuVoxelFaceData* faces, int32_t faceCount)
 {
 	if (faces == nullptr || faceCount <= 0)
 		return;
@@ -1743,16 +1492,9 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 
 		VoxelLightContribution generationContribution;
 
-		TraceRays(
-			generationContribution,
-			_nextRays,
-			generation);
+		TraceRays(generationContribution, _nextRays, generation);
 
-		MergeContribution(
-			contribution,
-			_currentMerge,
-			generationContribution,
-			_mergeVoxelLightDataGen);
+		MergeContribution(contribution, _currentMerge, generationContribution, _mergeVoxelLightDataGen);
 
 		_rays.swap(_nextRays);
 		_nextRays.clear();
@@ -1762,27 +1504,19 @@ void VoxelLightBaker::BakeGeneratedRays(VoxelLightContribution& contribution)
 		CleanupUnvisitedFaces(contribution);
 }
 
-
-void VoxelLightBaker::BakeAreaLight(
-	const AreaLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::BakeAreaLight(const AreaLight& light, VoxelLightContribution& contribution)
 {
 	contribution.Cells.clear();
 	ClearMergeState(_currentMerge);
 
 	Vec3 normal = light.Normal.Normalized();
 	Vec3 direction = light.Direction.Normalized();
-	Vec3 up =
-		(light.Up - normal * Dot(light.Up, normal)).Normalized();
+	Vec3 up = (light.Up - normal * Dot(light.Up, normal)).Normalized();
 
 	Vec3 energy = light.Color * light.Intensity;
 
-	if (Dot(normal, normal) <= Epsilon ||
-		Dot(up, up) <= Epsilon ||
-		Dot(direction, direction) <= Epsilon ||
-		light.Width <= Epsilon ||
-		light.Height <= Epsilon ||
-		!HasEnergy(energy, _params.EnergyThreshold))
+	if (Dot(normal, normal) <= Epsilon || Dot(up, up) <= Epsilon || Dot(direction, direction) <= Epsilon ||
+		light.Width <= Epsilon || light.Height <= Epsilon || !HasEnergy(energy, _params.EnergyThreshold))
 	{
 		ClearMergeState(_currentMerge);
 		return;
@@ -1800,21 +1534,16 @@ void VoxelLightBaker::BakeAreaLight(
 	ClearMergeState(_currentMerge);
 }
 
-void VoxelLightBaker::PrefillAreaLightContribution(
-	const AreaLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::PrefillAreaLightContribution(const AreaLight& light, VoxelLightContribution& contribution)
 {
 	VoxelLightContribution directContribution;
 	directContribution.Cells.reserve(_voxelCount);
 
 	Vec3 normal = light.Normal.Normalized();
 	Vec3 direction = light.Direction.Normalized();
-	Vec3 up =
-		(light.Up - normal * Dot(light.Up, normal)).Normalized();
+	Vec3 up = (light.Up - normal * Dot(light.Up, normal)).Normalized();
 
-	if (Dot(normal, normal) <= Epsilon ||
-		Dot(up, up) <= Epsilon ||
-		Dot(direction, direction) <= Epsilon)
+	if (Dot(normal, normal) <= Epsilon || Dot(up, up) <= Epsilon || Dot(direction, direction) <= Epsilon)
 	{
 		return;
 	}
@@ -1827,8 +1556,7 @@ void VoxelLightBaker::PrefillAreaLightContribution(
 	if (std::fabs(planeDenominator) <= Epsilon)
 		return;
 
-	const bool normalMode =
-		_params.DirCollapseMode == DirectionCollapseMode::Normal;
+	const bool normalMode = _params.DirCollapseMode == DirectionCollapseMode::Normal;
 
 	for (int32_t z = 0; z < _grid.Size.Z; ++z)
 	{
@@ -1839,36 +1567,28 @@ void VoxelLightBaker::PrefillAreaLightContribution(
 				Vec3I coord = { x, y, z };
 				Vec3 center = VoxelCenter(_grid, coord);
 
-				float distance =
-					Dot(normal, center - light.Position) /
-					planeDenominator;
+				float distance = Dot(normal, center - light.Position) / planeDenominator;
 
 				if (distance < -Epsilon)
 					continue;
 
 				distance = std::max(0.0f, distance);
 
-				Vec3 emissionPoint =
-					center - direction * distance;
+				Vec3 emissionPoint = center - direction * distance;
 
 				Vec3 local = emissionPoint - light.Position;
 
-				if (std::fabs(Dot(local, right)) >
-					light.Width * 0.5f)
+				if (std::fabs(Dot(local, right)) > light.Width * 0.5f)
 				{
 					continue;
 				}
 
-				if (std::fabs(Dot(local, up)) >
-					light.Height * 0.5f)
+				if (std::fabs(Dot(local, up)) > light.Height * 0.5f)
 				{
 					continue;
 				}
 
-				float falloff =
-					LightFalloffAtDistance(
-						light.Falloff,
-						distance);
+				float falloff = LightFalloffAtDistance(light.Falloff, distance);
 
 				Vec3 energy = lightEnergy * falloff;
 
@@ -1876,50 +1596,33 @@ void VoxelLightBaker::PrefillAreaLightContribution(
 					continue;
 
 				int32_t index = VoxelIndex(_grid, coord);
-				int32_t incomingFace =
-					IncomingBucketFaceFromDirection(direction);
+				int32_t incomingFace = IncomingBucketFaceFromDirection(direction);
 
 				int32_t outgoingFace = incomingFace ^ 1;
 
 				VoxelLightCell cell{};
 				cell.Index = index;
 
-				_mergeEnergyLight(
-					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(
-						energy,
-						direction,
-						normalMode),
-					VoxelLightState::Light,
-					VoxelLightState::Light);
+				_mergeEnergyLight(cell.Data.Faces[outgoingFace].Outgoing, MakeEnergy(energy, direction, normalMode), VoxelLightState::Light, VoxelLightState::Light);
 
 				directContribution.Cells.push_back(cell);
 			}
 		}
 	}
 
-	MergeContribution(
-		contribution,
-		_currentMerge,
-		directContribution,
-		_mergeVoxelLightDataLight);
+	MergeContribution(contribution, _currentMerge, directContribution, _mergeVoxelLightDataLight);
 }
 
-void VoxelLightBaker::GenerateAreaLightRays(
-	const AreaLight& light)
+void VoxelLightBaker::GenerateAreaLightRays(const AreaLight& light)
 {
 	_rays.clear();
 
 	Vec3 normal = light.Normal.Normalized();
 	Vec3 direction = light.Direction.Normalized();
-	Vec3 up =
-		(light.Up - normal * Dot(light.Up, normal)).Normalized();
+	Vec3 up = (light.Up - normal * Dot(light.Up, normal)).Normalized();
 
-	if (Dot(normal, normal) <= Epsilon ||
-		Dot(up, up) <= Epsilon ||
-		Dot(direction, direction) <= Epsilon ||
-		light.Width <= Epsilon ||
-		light.Height <= Epsilon)
+	if (Dot(normal, normal) <= Epsilon || Dot(up, up) <= Epsilon || Dot(direction, direction) <= Epsilon ||
+		light.Width <= Epsilon || light.Height <= Epsilon)
 	{
 		return;
 	}
@@ -1930,54 +1633,34 @@ void VoxelLightBaker::GenerateAreaLightRays(
 	if (!HasEnergy(rayEnergy, _params.EnergyThreshold))
 		return;
 
-	int32_t subSample =
-		std::max(1, _params.RaySubsample);
+	int32_t subSample = std::max(1, _params.RaySubsample);
 
-	float sampleSpacing =
-		_grid.VoxelSize / float(subSample);
+	float sampleSpacing = _grid.VoxelSize / float(subSample);
 
-	int32_t sampleCountX =
-		std::max(
-			1,
-			int32_t(std::ceil(
-				light.Width / sampleSpacing)));
+	int32_t sampleCountX = std::max(1, int32_t(std::ceil(light.Width / sampleSpacing)));
 
-	int32_t sampleCountY =
-		std::max(
-			1,
-			int32_t(std::ceil(
-				light.Height / sampleSpacing)));
+	int32_t sampleCountY = std::max(1, int32_t(std::ceil(light.Height / sampleSpacing)));
 
-	float spacingX =
-		light.Width / float(sampleCountX);
+	float spacingX = light.Width / float(sampleCountX);
 
-	float spacingY =
-		light.Height / float(sampleCountY);
+	float spacingY = light.Height / float(sampleCountY);
 
 	if (_params.RayMergeMode == VoxelLightMergeMode::Add)
-		rayEnergy =
-		rayEnergy / float(subSample * subSample);
+		rayEnergy = rayEnergy / float(subSample * subSample);
 
 	_rays.reserve(sampleCountX * sampleCountY);
 
 	for (int32_t y = 0; y < sampleCountY; ++y)
 	{
-		float localY =
-			-light.Height * 0.5f +
-			(float(y) + 0.5f) * spacingY;
+		float localY = -light.Height * 0.5f + (float(y) + 0.5f) * spacingY;
 
 		for (int32_t x = 0; x < sampleCountX; ++x)
 		{
-			float localX =
-				-light.Width * 0.5f +
-				(float(x) + 0.5f) * spacingX;
+			float localX = -light.Width * 0.5f + (float(x) + 0.5f) * spacingX;
 
 			VoxelLightRay ray{};
 
-			ray.Position =
-				light.Position +
-				right * localX +
-				up * localY;
+			ray.Position = light.Position + right * localX + up * localY;
 
 			ray.Direction = direction;
 			ray.DirectionNormal = direction;
@@ -1990,9 +1673,7 @@ void VoxelLightBaker::GenerateAreaLightRays(
 	}
 }
 
-void VoxelLightBaker::BakePointLight(
-	const PointLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::BakePointLight(const PointLight& light, VoxelLightContribution& contribution)
 {
 	contribution.Cells.clear();
 	ClearMergeState(_currentMerge);
@@ -2023,9 +1704,7 @@ void VoxelLightBaker::BakePointLight(
 	ClearMergeState(_currentMerge);
 }
 
-void VoxelLightBaker::BakeDirectionalLight(
-	const DirectionalLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::BakeDirectionalLight(const DirectionalLight& light, VoxelLightContribution& contribution)
 {
 	contribution.Cells.clear();
 	ClearMergeState(_currentMerge);
@@ -2033,8 +1712,7 @@ void VoxelLightBaker::BakeDirectionalLight(
 	Vec3 direction = light.Direction.Normalized();
 	Vec3 energy = light.Color * light.Intensity;
 
-	if (Dot(direction, direction) <= Epsilon ||
-		!HasEnergy(energy, _params.EnergyThreshold))
+	if (Dot(direction, direction) <= Epsilon || !HasEnergy(energy, _params.EnergyThreshold))
 	{
 		ClearMergeState(_currentMerge);
 		return;
@@ -2052,9 +1730,7 @@ void VoxelLightBaker::BakeDirectionalLight(
 	ClearMergeState(_currentMerge);
 }
 
-void VoxelLightBaker::BakeSpotLight(
-	const SpotLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::BakeSpotLight(const SpotLight& light, VoxelLightContribution& contribution)
 {
 	contribution.Cells.clear();
 	ClearMergeState(_currentMerge);
@@ -2062,10 +1738,7 @@ void VoxelLightBaker::BakeSpotLight(
 	Vec3 direction = light.Direction.Normalized();
 	Vec3 energy = light.Color * light.Intensity;
 
-	if (Dot(direction, direction) <= Epsilon ||
-		!HasEnergy(energy, _params.EnergyThreshold) ||
-		light.OuterCos <= -1.0f ||
-		light.InnerCos < light.OuterCos)
+	if (Dot(direction, direction) <= Epsilon || !HasEnergy(energy, _params.EnergyThreshold) || light.OuterCos <= -1.0f || light.InnerCos < light.OuterCos)
 	{
 		ClearMergeState(_currentMerge);
 		return;
@@ -2105,9 +1778,7 @@ VoxelLightField& VoxelLightBaker::GetLightField()
 	return _field;
 }
 
-void VoxelLightBaker::PrefillPointLightContribution(
-	const PointLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::PrefillPointLightContribution(const PointLight& light, VoxelLightContribution& contribution)
 {
 	VoxelLightContribution directContribution;
 	directContribution.Cells.reserve(_voxelCount);
@@ -2148,11 +1819,7 @@ void VoxelLightBaker::PrefillPointLightContribution(
 				VoxelLightCell cell{};
 				cell.Index = index;
 
-				_mergeEnergyLight(
-					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction, normalMode),
-					VoxelLightState::Light,
-					VoxelLightState::Light);
+				_mergeEnergyLight(cell.Data.Faces[outgoingFace].Outgoing, MakeEnergy(energy, direction, normalMode), VoxelLightState::Light, VoxelLightState::Light);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -2162,9 +1829,7 @@ void VoxelLightBaker::PrefillPointLightContribution(
 	MergeContribution(contribution, _currentMerge, directContribution, _mergeVoxelLightDataLight);
 }
 
-void VoxelLightBaker::PrefillDirectionalLightContribution(
-	const DirectionalLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::PrefillDirectionalLightContribution(const DirectionalLight& light, VoxelLightContribution& contribution)
 {
 	VoxelLightContribution directContribution;
 	directContribution.Cells.reserve(_voxelCount);
@@ -2172,8 +1837,7 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 	Vec3 direction = light.Direction.Normalized();
 	Vec3 lightEnergy = DirectionalLightEnergy(light);
 
-	if (Dot(direction, direction) <= Epsilon ||
-		!HasEnergy(lightEnergy, _params.EnergyThreshold))
+	if (Dot(direction, direction) <= Epsilon || !HasEnergy(lightEnergy, _params.EnergyThreshold))
 	{
 		return;
 	}
@@ -2213,11 +1877,7 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 				VoxelLightCell cell{};
 				cell.Index = index;
 
-				_mergeEnergyLight(
-					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction, normalMode),
-					VoxelLightState::Light,
-					VoxelLightState::Light);
+				_mergeEnergyLight(cell.Data.Faces[outgoingFace].Outgoing, MakeEnergy(energy, direction, normalMode), VoxelLightState::Light, VoxelLightState::Light);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -2227,9 +1887,7 @@ void VoxelLightBaker::PrefillDirectionalLightContribution(
 	MergeContribution(contribution, _currentMerge, directContribution, _mergeVoxelLightDataLight);
 }
 
-void VoxelLightBaker::PrefillSpotLightContribution(
-	const SpotLight& light,
-	VoxelLightContribution& contribution)
+void VoxelLightBaker::PrefillSpotLightContribution(const SpotLight& light, VoxelLightContribution& contribution)
 {
 	VoxelLightContribution directContribution;
 	directContribution.Cells.reserve(_voxelCount);
@@ -2259,11 +1917,7 @@ void VoxelLightBaker::PrefillSpotLightContribution(
 
 				Vec3 direction = lightToVoxel / distance;
 
-				float cone = SpotConeAttenuation(
-					lightDirection,
-					light.InnerCos,
-					light.OuterCos,
-					direction);
+				float cone = SpotConeAttenuation(lightDirection, light.InnerCos, light.OuterCos, direction);
 
 				if (cone <= 0.0f)
 					continue;
@@ -2280,11 +1934,7 @@ void VoxelLightBaker::PrefillSpotLightContribution(
 				VoxelLightCell cell{};
 				cell.Index = index;
 
-				_mergeEnergyLight(
-					cell.Data.Faces[outgoingFace].Outgoing,
-					MakeEnergy(energy, direction, normalMode),
-					VoxelLightState::Light,
-					VoxelLightState::Light);
+				_mergeEnergyLight(cell.Data.Faces[outgoingFace].Outgoing, MakeEnergy(energy, direction, normalMode), VoxelLightState::Light, VoxelLightState::Light);
 
 				directContribution.Cells.push_back(cell);
 			}
@@ -2355,17 +2005,9 @@ void VoxelLightBaker::GeneratePointLightRays(const PointLight& light, bool fillM
 					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X, _grid.Origin.Y + fy * size, _grid.Origin.Z + fz * size });
 
-					addRay({
-						_grid.Origin.X + float(_grid.Size.X) * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + float(_grid.Size.X) * size, _grid.Origin.Y + fy * size, _grid.Origin.Z + fz * size });
 				}
 			}
 		}
@@ -2382,17 +2024,9 @@ void VoxelLightBaker::GeneratePointLightRays(const PointLight& light, bool fillM
 					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y, _grid.Origin.Z + fz * size });
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + float(_grid.Size.Y) * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + float(_grid.Size.Y) * size, _grid.Origin.Z + fz * size });
 				}
 			}
 		}
@@ -2409,17 +2043,9 @@ void VoxelLightBaker::GeneratePointLightRays(const PointLight& light, bool fillM
 					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + fy * size, _grid.Origin.Z });
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + float(_grid.Size.Z) * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + fy * size, _grid.Origin.Z + float(_grid.Size.Z) * size });
 				}
 			}
 		}
@@ -2443,18 +2069,12 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 	Vec3 up;
 	DirectionBasis(direction, right, up);
 
-
 	int32_t subSample = std::max(1, _params.RaySubsample);
 	float invSubSample = 1.0f / float(subSample);
 	float size = _grid.VoxelSize;
 
 	Vec3 gridMin = _grid.Origin;
-	Vec3 gridMax =
-	{
-		gridMin.X + float(_grid.Size.X) * size,
-		gridMin.Y + float(_grid.Size.Y) * size,
-		gridMin.Z + float(_grid.Size.Z) * size
-	};
+	Vec3 gridMax = { gridMin.X + float(_grid.Size.X) * size, gridMin.Y + float(_grid.Size.Y) * size, gridMin.Z + float(_grid.Size.Z) * size };
 
 	Vec3 rayEnergy = lightEnergy;
 
@@ -2465,14 +2085,12 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 		{
 			// Intersect the backward line from the uniformly sampled
 			// grid destination with the emission plane.
-			float distanceToPlane =
-				Dot(destination - light.Position, direction);
+			float distanceToPlane = Dot(destination - light.Position, direction);
 
 			if (distanceToPlane < -Epsilon)
 				return;
 
-			Vec3 emissionPoint =
-				destination - direction * distanceToPlane;
+			Vec3 emissionPoint = destination - direction * distanceToPlane;
 
 			// Find the first usable point of the segment
 			// emissionPoint -> destination inside the voxel grid.
@@ -2482,16 +2100,13 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 			if (std::fabs(direction.X) <= Epsilon)
 			{
-				if (emissionPoint.X < gridMin.X ||
-					emissionPoint.X > gridMax.X)
+				if (emissionPoint.X < gridMin.X || emissionPoint.X > gridMax.X)
 					return;
 			}
 			else
 			{
-				float t0 =
-					(gridMin.X - emissionPoint.X) / direction.X;
-				float t1 =
-					(gridMax.X - emissionPoint.X) / direction.X;
+				float t0 = (gridMin.X - emissionPoint.X) / direction.X;
+				float t1 = (gridMax.X - emissionPoint.X) / direction.X;
 
 				if (t0 > t1)
 					std::swap(t0, t1);
@@ -2502,16 +2117,13 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 			if (std::fabs(direction.Y) <= Epsilon)
 			{
-				if (emissionPoint.Y < gridMin.Y ||
-					emissionPoint.Y > gridMax.Y)
+				if (emissionPoint.Y < gridMin.Y || emissionPoint.Y > gridMax.Y)
 					return;
 			}
 			else
 			{
-				float t0 =
-					(gridMin.Y - emissionPoint.Y) / direction.Y;
-				float t1 =
-					(gridMax.Y - emissionPoint.Y) / direction.Y;
+				float t0 = (gridMin.Y - emissionPoint.Y) / direction.Y;
+				float t1 = (gridMax.Y - emissionPoint.Y) / direction.Y;
 
 				if (t0 > t1)
 					std::swap(t0, t1);
@@ -2522,16 +2134,13 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 			if (std::fabs(direction.Z) <= Epsilon)
 			{
-				if (emissionPoint.Z < gridMin.Z ||
-					emissionPoint.Z > gridMax.Z)
+				if (emissionPoint.Z < gridMin.Z || emissionPoint.Z > gridMax.Z)
 					return;
 			}
 			else
 			{
-				float t0 =
-					(gridMin.Z - emissionPoint.Z) / direction.Z;
-				float t1 =
-					(gridMax.Z - emissionPoint.Z) / direction.Z;
+				float t0 = (gridMin.Z - emissionPoint.Z) / direction.Z;
+				float t1 = (gridMax.Z - emissionPoint.Z) / direction.Z;
 
 				if (t0 > t1)
 					std::swap(t0, t1);
@@ -2546,9 +2155,7 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 			if (entryDistance > distanceToPlane + Epsilon)
 				return;
 
-			Vec3 energy =
-				rayEnergy *
-				LightFalloffAtDistance(light.Falloff, entryDistance);
+			Vec3 energy = rayEnergy * LightFalloffAtDistance(light.Falloff, entryDistance);
 
 			if (!HasEnergy(energy, _params.EnergyThreshold))
 				return;
@@ -2570,8 +2177,7 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 	if (std::fabs(direction.X) > Epsilon)
 	{
-		float destinationX =
-			direction.X > 0.0f ? gridMax.X : gridMin.X;
+		float destinationX = direction.X > 0.0f ? gridMax.X : gridMin.X;
 
 		for (int32_t z = 0; z < _grid.Size.Z; ++z)
 		{
@@ -2581,20 +2187,11 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 				{
 					for (int32_t sy = 0; sy < subSample; ++sy)
 					{
-						float fy =
-							float(y) +
-							(float(sy) + 0.5f) * invSubSample;
+						float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 
-						float fz =
-							float(z) +
-							(float(sz) + 0.5f) * invSubSample;
+						float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-						tryAddRay(
-							{
-								destinationX,
-								gridMin.Y + fy * size,
-								gridMin.Z + fz * size
-							});
+						tryAddRay({ destinationX, gridMin.Y + fy * size, gridMin.Z + fz * size });
 					}
 				}
 			}
@@ -2603,8 +2200,7 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 	if (std::fabs(direction.Y) > Epsilon)
 	{
-		float destinationY =
-			direction.Y > 0.0f ? gridMax.Y : gridMin.Y;
+		float destinationY = direction.Y > 0.0f ? gridMax.Y : gridMin.Y;
 
 		for (int32_t z = 0; z < _grid.Size.Z; ++z)
 		{
@@ -2614,20 +2210,11 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 				{
 					for (int32_t sx = 0; sx < subSample; ++sx)
 					{
-						float fx =
-							float(x) +
-							(float(sx) + 0.5f) * invSubSample;
+						float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 
-						float fz =
-							float(z) +
-							(float(sz) + 0.5f) * invSubSample;
+						float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-						tryAddRay(
-							{
-								gridMin.X + fx * size,
-								destinationY,
-								gridMin.Z + fz * size
-							});
+						tryAddRay({ gridMin.X + fx * size, destinationY, gridMin.Z + fz * size });
 					}
 				}
 			}
@@ -2636,8 +2223,7 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 
 	if (std::fabs(direction.Z) > Epsilon)
 	{
-		float destinationZ =
-			direction.Z > 0.0f ? gridMax.Z : gridMin.Z;
+		float destinationZ = direction.Z > 0.0f ? gridMax.Z : gridMin.Z;
 
 		for (int32_t y = 0; y < _grid.Size.Y; ++y)
 		{
@@ -2647,20 +2233,11 @@ void VoxelLightBaker::GenerateDirectionalLightRays(const DirectionalLight& light
 				{
 					for (int32_t sx = 0; sx < subSample; ++sx)
 					{
-						float fx =
-							float(x) +
-							(float(sx) + 0.5f) * invSubSample;
+						float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 
-						float fy =
-							float(y) +
-							(float(sy) + 0.5f) * invSubSample;
+						float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 
-						tryAddRay(
-							{
-								gridMin.X + fx * size,
-								gridMin.Y + fy * size,
-								destinationZ
-							});
+						tryAddRay({ gridMin.X + fx * size, gridMin.Y + fy * size, destinationZ });
 					}
 				}
 			}
@@ -2685,11 +2262,7 @@ void VoxelLightBaker::GenerateSpotLightRays(const SpotLight& light)
 			if (Dot(dir, dir) <= Epsilon)
 				return;
 
-			float cone = SpotConeAttenuation(
-				lightDirection,
-				light.InnerCos,
-				light.OuterCos,
-				dir);
+			float cone = SpotConeAttenuation(lightDirection, light.InnerCos, light.OuterCos, dir);
 
 			if (cone <= 0.0f)
 				return;
@@ -2724,17 +2297,9 @@ void VoxelLightBaker::GenerateSpotLightRays(const SpotLight& light)
 					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X, _grid.Origin.Y + fy * size, _grid.Origin.Z + fz * size });
 
-					addRay({
-						_grid.Origin.X + float(_grid.Size.X) * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + float(_grid.Size.X) * size, _grid.Origin.Y + fy * size, _grid.Origin.Z + fz * size });
 				}
 			}
 		}
@@ -2751,17 +2316,9 @@ void VoxelLightBaker::GenerateSpotLightRays(const SpotLight& light)
 					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 					float fz = float(z) + (float(sz) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y, _grid.Origin.Z + fz * size });
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + float(_grid.Size.Y) * size,
-						_grid.Origin.Z + fz * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + float(_grid.Size.Y) * size, _grid.Origin.Z + fz * size });
 				}
 			}
 		}
@@ -2778,17 +2335,9 @@ void VoxelLightBaker::GenerateSpotLightRays(const SpotLight& light)
 					float fx = float(x) + (float(sx) + 0.5f) * invSubSample;
 					float fy = float(y) + (float(sy) + 0.5f) * invSubSample;
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + fy * size, _grid.Origin.Z });
 
-					addRay({
-						_grid.Origin.X + fx * size,
-						_grid.Origin.Y + fy * size,
-						_grid.Origin.Z + float(_grid.Size.Z) * size
-						});
+					addRay({ _grid.Origin.X + fx * size, _grid.Origin.Y + fy * size, _grid.Origin.Z + float(_grid.Size.Z) * size });
 				}
 			}
 		}
@@ -2800,10 +2349,7 @@ void VoxelLightBaker::CleanupUnvisitedFaces(VoxelLightContribution& contribution
 	(void)contribution;
 }
 
-void VoxelLightBaker::TraceRays(
-	VoxelLightContribution& contribution,
-	std::vector<VoxelLightRay>& nextRays,
-	int32_t generation)
+void VoxelLightBaker::TraceRays(VoxelLightContribution& contribution, std::vector<VoxelLightRay>& nextRays, int32_t generation)
 {
 	contribution.Cells.clear();
 	nextRays.clear();
@@ -2823,11 +2369,7 @@ void VoxelLightBaker::TraceRays(
 	{
 		_marchers[0].TraceRange(0, rayCount, generation);
 
-		MergeContribution(
-			contribution,
-			mergeState,
-			_marchers[0].Contribution(),
-			_mergeVoxelLightDataRay);
+		MergeContribution(contribution, mergeState, _marchers[0].Contribution(), _mergeVoxelLightDataRay);
 
 		const std::vector<VoxelLightRay>& workerNext = _marchers[0].NextRays();
 		nextRays.insert(nextRays.end(), workerNext.begin(), workerNext.end());
@@ -2852,11 +2394,7 @@ void VoxelLightBaker::TraceRays(
 
 				std::lock_guard<std::mutex> lock(_mergeLock);
 
-				MergeContribution(
-					contribution,
-					mergeState,
-					_marchers[i].Contribution(),
-					_mergeVoxelLightDataRay);
+				MergeContribution(contribution, mergeState, _marchers[i].Contribution(), _mergeVoxelLightDataRay);
 
 				const std::vector<VoxelLightRay>& workerNext = _marchers[i].NextRays();
 				nextRays.insert(nextRays.end(), workerNext.begin(), workerNext.end());
@@ -2869,11 +2407,7 @@ void VoxelLightBaker::TraceRays(
 		thread.join();
 }
 
-void VoxelLightBaker::MergeContribution(
-	VoxelLightContribution& target,
-	ContributionMergeState& mergeState,
-	const VoxelLightContribution& source,
-	MergeVoxelLightDataFn mergeVoxelLightData)
+void VoxelLightBaker::MergeContribution(VoxelLightContribution& target, ContributionMergeState& mergeState, const VoxelLightContribution& source, MergeVoxelLightDataFn mergeVoxelLightData)
 {
 	for (const VoxelLightCell& sourceCell : source.Cells)
 	{
@@ -2893,9 +2427,7 @@ void VoxelLightBaker::MergeContribution(
 		}
 		else
 		{
-			mergeVoxelLightData(
-				target.Cells[slot].Data,
-				sourceCell.Data);
+			mergeVoxelLightData(target.Cells[slot].Data, sourceCell.Data);
 		}
 	}
 }
@@ -2906,8 +2438,6 @@ void VoxelLightBaker::ClearMergeState(ContributionMergeState& mergeState) {
 	mergeState.TouchedVoxels.clear();
 
 }
-
-
 
 int32_t BuildGaussianKernel3x3x3(BlurSample* samples)
 {
@@ -2928,11 +2458,7 @@ int32_t BuildGaussianKernel3x3x3(BlurSample* samples)
 				sample.Dy = offsets[y];
 				sample.Dz = offsets[z];
 
-				sample.Weight =
-					weights[x] *
-					weights[y] *
-					weights[z] *
-					(1.0f / 64.0f);
+				sample.Weight = weights[x] * weights[y] * weights[z] * (1.0f / 64.0f);
 			}
 		}
 	}
@@ -2984,10 +2510,7 @@ void VoxelLightBaker::BlurLightField()
 							const int32_t ny = y + sample.Dy;
 							const int32_t nz = z + sample.Dz;
 
-							if (nx < 0 || ny < 0 || nz < 0 ||
-								nx >= _field.Size.X ||
-								ny >= _field.Size.Y ||
-								nz >= _field.Size.Z)
+							if (nx < 0 || ny < 0 || nz < 0 || nx >= _field.Size.X || ny >= _field.Size.Y || nz >= _field.Size.Z)
 							{
 								continue;
 							}
@@ -3032,9 +2555,7 @@ void VoxelLightBaker::BlurLightField()
 	}
 }
 
-
-void VoxelLightBaker::ReconstructDirectionSurfaceForFace(
-	int32_t face)
+void VoxelLightBaker::ReconstructDirectionSurfaceForFace(int32_t face)
 {
 	if (face < 0 || face >= VOXEL_LIGHT_FACE_COUNT)
 		return;
@@ -3333,10 +2854,7 @@ void VoxelLightBaker::BuildLightField() {
 			}
 			else if (colMode == DirectionCollapseMode::Luminance)
 			{
-				outDir =
-					outgoing.DirectionR * 0.2126f +
-					outgoing.DirectionG * 0.7152f +
-					outgoing.DirectionB * 0.0722f;
+				outDir = outgoing.DirectionR * 0.2126f + outgoing.DirectionG * 0.7152f + outgoing.DirectionB * 0.0722f;
 			}
 			else
 			{

@@ -337,6 +337,7 @@ namespace XrEngine
                 InvalidateLocalBounds();
 
                 NotifyChanged(ChangeType.Geometry);
+
             }
         }
 

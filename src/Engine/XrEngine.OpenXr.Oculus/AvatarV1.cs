@@ -5,7 +5,9 @@ using System.Numerics;
 
 namespace XrEngine.OpenXr.Oculus
 {
-    public partial class AvatarV1 : Group3D
+
+    [Obsolete]
+    public class AvatarV1 : Group3D
     {
         private static readonly Dictionary<FullBodyJointMETA, string> _bodyMap = new()
         {
