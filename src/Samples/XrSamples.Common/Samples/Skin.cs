@@ -1,7 +1,6 @@
 using System.Numerics;
 using XrEngine;
 using XrEngine.Animation;
-using XrEngine.Bullet;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
 
@@ -132,6 +131,7 @@ namespace XrSamples
                 Visit(root);
             }
 
+            /*
             var ikRoot = mesh.FindByName<Joint3D>("Skeleton_torso_joint_1")!;
             var updater = ikRoot.AddComponent(new IkSkeletonUpdater());
             ConfigureIk(ikRoot);
@@ -157,6 +157,7 @@ namespace XrSamples
 
                 updater.SetTarget(effector, target);
             }
+            */
 
             return builder
                 .UseApp(app)

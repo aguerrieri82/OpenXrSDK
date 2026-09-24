@@ -1,10 +1,17 @@
-﻿using Silk.NET.OpenAL;
+﻿using OpenAl.Framework.Helpers;
+using Silk.NET.OpenAL;
 using System.Numerics;
 
 namespace OpenAl.Framework
 {
     public class AlSource : AlObject, IDisposable
     {
+        public struct OffsetLatencyResult
+        {
+            public double Offset;
+            public double Latency;
+
+        }
 
         public AlSource(AL al)
             : base(al, al.GenSource())
@@ -75,13 +82,17 @@ namespace OpenAl.Framework
             return bufHandles.Select(a => AlBuffer.Attach(_al, a));
         }
 
-        public float Latency
+        public OffsetLatencyResult OffsetLatency
         {
             get
             {
-
-                _al.GetSourceProperty(_handle, (SourceVector3)0x1201, out var data);
-                return data.X;
+                Span<double> result = stackalloc double[2];
+                SourceSoftExt.GetSourceDouble(_handle, SourceSoftExt.AL_SEC_OFFSET_LATENCY_SOFT, result);
+                return new OffsetLatencyResult
+                {
+                    Offset = result[0],
+                    Latency = result[1]
+                };
             }
         }
 

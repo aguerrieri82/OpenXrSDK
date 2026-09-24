@@ -18,7 +18,7 @@ namespace OpenAl.Framework
     {
         const int ALC_ALL_DEVICES_SPECIFIER = 0x1013;
 
-        readonly alcGetInteger64vSOFTDelegate GetInteger64;
+
 
         private Device* _device;
         private Context* _context;
@@ -42,8 +42,6 @@ namespace OpenAl.Framework
 
             CreateContext(deviceName);
 
-            GetInteger64 = Marshal.GetDelegateForFunctionPointer<alcGetInteger64vSOFTDelegate>((nint)_alc.GetProcAddress(_device, "alcGetInteger64vSOFT"));
-
             Current = this;
 
             SourceSoftExt.Init(_alc, _device);
@@ -53,8 +51,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                long result;
-                GetInteger64(_device, (int)GetDeviceInt64.Latency, 1, &result);
+                SourceSoftExt.GetInteger64(_device, (int)GetDeviceInt64.Latency, out var result);
                 return (ulong)result;
             }
         }
@@ -63,8 +60,7 @@ namespace OpenAl.Framework
         {
             get
             {
-                long result;
-                GetInteger64(_device, (int)GetDeviceInt64.Clock, 1, &result);
+                SourceSoftExt.GetInteger64(_device, (int)GetDeviceInt64.Clock, out var result);
                 return (ulong)result;
             }
         }

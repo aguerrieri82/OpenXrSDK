@@ -12,6 +12,7 @@
 // #include "analyze.h"
 IK_QJacobianSolver::IK_QJacobianSolver()
 {
+  m_scale = 1.0;
   m_poleconstraint = false;
   m_getpoleangle = false;
   m_rootmatrix.setIdentity();
@@ -64,6 +65,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
 {
   m_segments.clear();
   AddSegmentList(root);
+  m_scale = ComputeScale();
 
   // assign each segment a unique id for the jacobian
   std::vector<IK_QSegment *>::iterator seg;
@@ -291,11 +293,11 @@ bool IK_QJacobianSolver::UpdateAngles(double &norm)
 }
 
 bool IK_QJacobianSolver::Solve(IK_QSegment *root,
-                               std::list<IK_QTask *> tasks,
+                               std::list<IK_QTask *> &tasks,
                                const double /*tolerance*/,
                                const int max_iterations)
 {
-  float scale = ComputeScale();
+  const double scale = m_scale;
   bool solved = false;
   // double dt = analyze_time();
 
@@ -351,7 +353,7 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
     norm = std::max(maxnorm, norm);
 
     // check for convergence
-    if (norm < 1e-3 && iterations > 10) {
+    if (norm < 1e-3) {
       solved = true;
       break;
     }

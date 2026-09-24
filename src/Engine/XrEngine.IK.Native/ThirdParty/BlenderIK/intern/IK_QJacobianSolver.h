@@ -29,6 +29,12 @@ class IK_QJacobianSolver {
   // setup pole vector constraint
   void SetPoleVectorConstraint(
       IK_QSegment *tip, Vector3d &goal, Vector3d &polegoal, float poleangle, bool getangle);
+  void ClearPoleVectorConstraint()
+  {
+    m_poleconstraint = false;
+    m_getpoleangle = false;
+    m_rootmatrix.setIdentity();
+  }
   float GetPoleAngle()
   {
     return m_poleangle;
@@ -39,7 +45,7 @@ class IK_QJacobianSolver {
 
   // returns true if converged, false if max number of iterations was used
   bool Solve(IK_QSegment *root,
-             std::list<IK_QTask *> tasks,
+             std::list<IK_QTask *> &tasks,
              const double tolerance,
              const int max_iterations);
 
@@ -54,6 +60,7 @@ class IK_QJacobianSolver {
   IK_QJacobian m_jacobian;
   IK_QJacobian m_jacobian_sub;
 
+  double m_scale;
   bool m_secondary_enabled;
 
   std::vector<IK_QSegment *> m_segments;

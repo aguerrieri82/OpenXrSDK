@@ -1,9 +1,25 @@
 #include "pch.h"
 
+struct XrIkCachedTarget
+{
+    int32_t bone = -1;
+    float positionWeight = 0;
+    float orientationWeight = 0;
+    IK_QPositionTask *positionTask = nullptr;
+    IK_QOrientationTask *orientationTask = nullptr;
+};
+
 struct XrIkContext
 {
     std::vector<std::unique_ptr<IK_QSegment>> bones;
     std::vector<XrIkQuaternion> initialRotations;
+
+    IK_QJacobianSolver solver;
+    std::vector<std::unique_ptr<IK_QTask>> ownedTasks;
+    std::list<IK_QTask *> tasks;
+    std::vector<XrIkCachedTarget> cachedTargets;
+
+    bool solverReady = false;
     bool movable = false;
 
     ~XrIkContext()
@@ -75,10 +91,12 @@ namespace
         context.bones[0]->UpdateTransform(Eigen::Affine3d::Identity());
     }
 
-    void ReadPose(XrIkContext &context, XrIkBonePose *poses, int32_t count)
+    void ReadPose(XrIkContext &context, XrIkBonePose *poses, int32_t count, bool updateTransforms = true)
     {
         Require(poses && count == int32_t(context.bones.size()), "Incorrect pose buffer size.");
-        UpdateTransforms(context);
+
+        if (updateTransforms)
+            UpdateTransforms(context);
 
         for (int32_t index = 0; index < count; index++)
         {
@@ -95,6 +113,85 @@ namespace
             poses[index].start = FromVector(bone->GlobalStart());
             poses[index].tip.position = FromVector(bone->GlobalEnd());
             poses[index].tip.orientation = FromQuaternion(globalRotation);
+        }
+    }
+
+    bool SameTaskLayout(const XrIkContext &context, const XrIkTarget *targets, int32_t count)
+    {
+        if (context.cachedTargets.size() != size_t(count))
+            return false;
+
+        for (int32_t index = 0; index < count; index++)
+        {
+            const auto &cached = context.cachedTargets[index];
+            const auto &target = targets[index];
+
+            if (cached.bone != target.bone ||
+                cached.positionWeight != target.position_weight ||
+                cached.orientationWeight != target.orientation_weight)
+                return false;
+        }
+
+        return true;
+    }
+
+    void ConfigureTasks(XrIkContext &context, const XrIkTarget *targets, int32_t count)
+    {
+        context.tasks.clear();
+        context.ownedTasks.clear();
+        context.cachedTargets.clear();
+
+        context.ownedTasks.reserve(count * 2);
+        context.cachedTargets.reserve(count);
+
+        for (int32_t index = 0; index < count; index++)
+        {
+            const auto &target = targets[index];
+            const auto *bone = context.bones[target.bone].get();
+
+            XrIkCachedTarget cached;
+            cached.bone = target.bone;
+            cached.positionWeight = target.position_weight;
+            cached.orientationWeight = target.orientation_weight;
+
+            if (target.position_weight > 0)
+            {
+                auto task = std::make_unique<IK_QPositionTask>(true, bone, ToVector(target.pose.position));
+                task->SetWeight(target.position_weight);
+                cached.positionTask = task.get();
+                context.tasks.push_back(task.get());
+                context.ownedTasks.push_back(std::move(task));
+            }
+
+            if (target.orientation_weight > 0)
+            {
+                auto task = std::make_unique<IK_QOrientationTask>(
+                    true, bone, ToQuaternion(target.pose.orientation).toRotationMatrix());
+                task->SetWeight(target.orientation_weight);
+                cached.orientationTask = task.get();
+                context.tasks.push_back(task.get());
+                context.ownedTasks.push_back(std::move(task));
+            }
+
+            context.cachedTargets.push_back(cached);
+        }
+
+        context.solverReady = !context.tasks.empty() && context.movable;
+        if (context.solverReady)
+            Require(context.solver.Setup(context.bones[0].get(), context.tasks), "Solver setup failed.");
+    }
+
+    void UpdateTaskGoals(XrIkContext &context, const XrIkTarget *targets, int32_t count)
+    {
+        for (int32_t index = 0; index < count; index++)
+        {
+            auto &cached = context.cachedTargets[index];
+
+            if (cached.positionTask)
+                cached.positionTask->SetGoal(ToVector(targets[index].pose.position));
+
+            if (cached.orientationTask)
+                cached.orientationTask->SetGoal(ToQuaternion(targets[index].pose.orientation).toRotationMatrix());
         }
     }
 }
@@ -235,10 +332,6 @@ int32_t xr_ik_solve(XrIkContext *context, const XrIkTarget *targets, int32_t cou
                 std::isfinite(options->orientation_tolerance) && options->orientation_tolerance >= 0,
                 "Tolerances must be finite and nonnegative.");
 
-        std::vector<std::unique_ptr<IK_QTask>> ownedTasks;
-        std::list<IK_QTask *> tasks;
-        ownedTasks.reserve(count * 2);
-
         for (int32_t index = 0; index < count; index++)
         {
             const auto &target = targets[index];
@@ -246,27 +339,15 @@ int32_t xr_ik_solve(XrIkContext *context, const XrIkTarget *targets, int32_t cou
             Require(std::isfinite(target.position_weight) && target.position_weight >= 0 &&
                     std::isfinite(target.orientation_weight) && target.orientation_weight >= 0,
                     "Target weights must be finite and nonnegative.");
-
-            const auto *bone = context->bones[target.bone].get();
-            if (target.position_weight > 0)
-            {
-                auto task = std::make_unique<IK_QPositionTask>(true, bone, ToVector(target.pose.position));
-                task->SetWeight(target.position_weight);
-                tasks.push_back(task.get());
-                ownedTasks.push_back(std::move(task));
-            }
-            if (target.orientation_weight > 0)
-            {
-                auto task = std::make_unique<IK_QOrientationTask>(
-                    true, bone, ToQuaternion(target.pose.orientation).toRotationMatrix());
-                task->SetWeight(target.orientation_weight);
-                tasks.push_back(task.get());
-                ownedTasks.push_back(std::move(task));
-            }
         }
 
+        if (!SameTaskLayout(*context, targets, count))
+            ConfigureTasks(*context, targets, count);
+
+        UpdateTaskGoals(*context, targets, count);
+
         *result = {};
-        IK_QJacobianSolver solver;
+        context->solver.ClearPoleVectorConstraint();
 
         if (pole)
         {
@@ -287,17 +368,16 @@ int32_t xr_ik_solve(XrIkContext *context, const XrIkTarget *targets, int32_t cou
 
             auto goal = ToVector(positionTarget->pose.position);
             auto poleGoal = ToVector(pole->position);
-            solver.SetPoleVectorConstraint(context->bones[pole->bone].get(), goal, poleGoal,
-                                           pole->angle, pole->compute_angle != 0);
+            context->solver.SetPoleVectorConstraint(context->bones[pole->bone].get(), goal, poleGoal,
+                                                    pole->angle, pole->compute_angle != 0);
         }
 
-        if (!tasks.empty() && context->movable)
+        if (context->solverReady)
         {
-            Require(solver.Setup(context->bones[0].get(), tasks), "Solver setup failed.");
-            result->solver_converged = solver.Solve(
-                context->bones[0].get(), tasks, options->position_tolerance, options->maximum_iterations);
+            result->solver_converged = context->solver.Solve(
+                context->bones[0].get(), context->tasks, options->position_tolerance, options->maximum_iterations);
             if (pole)
-                result->pole_angle = solver.GetPoleAngle();
+                result->pole_angle = context->solver.GetPoleAngle();
         }
 
         UpdateTransforms(*context);
@@ -324,6 +404,6 @@ int32_t xr_ik_solve(XrIkContext *context, const XrIkTarget *targets, int32_t cou
                                   result->orientation_error <= options->orientation_tolerance;
 
         if (poses)
-            ReadPose(*context, poses, pose_count);
+            ReadPose(*context, poses, pose_count, false);
     });
 }

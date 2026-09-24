@@ -76,6 +76,11 @@ class IK_QPositionTask : public IK_QTask {
  public:
   IK_QPositionTask(bool primary, const IK_QSegment *segment, const Vector3d &goal);
 
+  void SetGoal(const Vector3d &goal)
+  {
+    m_goal = goal;
+  }
+
   void ComputeJacobian(IK_QJacobian &jacobian) override;
 
   double Distance() const override;
@@ -98,6 +103,11 @@ class IK_QPositionTask : public IK_QTask {
 class IK_QOrientationTask : public IK_QTask {
  public:
   IK_QOrientationTask(bool primary, const IK_QSegment *segment, const Matrix3d &goal);
+
+  void SetGoal(const Matrix3d &goal)
+  {
+    m_goal = goal;
+  }
 
   double Distance() const override
   {

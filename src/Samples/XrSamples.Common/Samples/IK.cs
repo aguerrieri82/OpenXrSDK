@@ -1,7 +1,7 @@
 using OpenXr.Framework;
 using System.Numerics;
 using XrEngine;
-using XrEngine.Bullet;
+using XrEngine.IK;
 using XrEngine.OpenXr;
 using XrMath;
 
@@ -66,8 +66,8 @@ namespace XrSamples
             scene.AddChild(sphere3);
             scene.AddChild(grp);
 
-            var solver = new IkSolver();
-            solver.Build(IkBodies.CreateArms());
+            var solver = new IkSolver(IkBodies.CreateArms().Bones);
+
 
             var updated = grp.AddComponent<IkUpdater>();
             var viewer = grp.AddComponent<IkViewer>();
@@ -91,7 +91,7 @@ namespace XrSamples
 
                     scene.AddBehavior((scene, ctx) =>
                     {
-                        solver.WorldPose = grp.GetWorldPose();
+                        //solver.WorldPose = grp.GetWorldPose();
 
                         if (XrApp.Current?.IsStarted == false)
                             return;

@@ -10,28 +10,71 @@ namespace OpenAl.Framework.Helpers
         public const int ALC_DEVICE_CLOCK_LATENCY_SOFT = 0x1602;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public unsafe delegate void alGetSourcei64vSOFTDelegate(uint source, int param, long* values);
+        unsafe delegate void alGetSourcei64vSOFTDelegate(uint source, int param, long* values);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void alcGetInteger64vSOFTDelegate(IntPtr device, int param, int size, out long values);
+        unsafe delegate void alcGetInteger64vSOFTDelegate(Device* device, int param, int size, long* values);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public unsafe delegate void alGetSourcedvSOFTDelegate(uint source, int param, double* values);
+        unsafe delegate void alGetSourcedvSOFTDelegate(uint source, int param, double* values);
+
+        static alcGetInteger64vSOFTDelegate _getInteger64 = null!;
+        static alGetSourcei64vSOFTDelegate _getSourceInteger64 = null!;
+        static alGetSourcedvSOFTDelegate _getSourceDouble = null!;
 
         public static unsafe void Init(ALContext ctx, Device* device)
         {
-            GetInteger64 = Marshal.GetDelegateForFunctionPointer<alcGetInteger64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alcGetInteger64vSOFT"));
-
-            GetSourceInteger64 = Marshal.GetDelegateForFunctionPointer<alGetSourcei64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alcGetInteger64vSOFT"));
-
-            GetSourceDouble = Marshal.GetDelegateForFunctionPointer<alGetSourcedvSOFTDelegate>((nint)ctx.GetProcAddress(device, "alGetSourcedvSOFT"));
-
+            _getInteger64 = Marshal.GetDelegateForFunctionPointer<alcGetInteger64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alcGetInteger64vSOFT"));
+            _getSourceInteger64 = Marshal.GetDelegateForFunctionPointer<alGetSourcei64vSOFTDelegate>((nint)ctx.GetProcAddress(device, "alGetSourcei64vSOFT"));
+            _getSourceDouble = Marshal.GetDelegateForFunctionPointer<alGetSourcedvSOFTDelegate>((nint)ctx.GetProcAddress(device, "alGetSourcedvSOFT"));
         }
 
-        public static alcGetInteger64vSOFTDelegate? GetInteger64;
+        public static unsafe void GetInteger64(Device* device, int param, out long value)
+        {
+            long result;
+            _getInteger64(device, param, 1, &result);
+            value = result;
+        }
 
-        public static alGetSourcei64vSOFTDelegate? GetSourceInteger64;
+        public static unsafe void GetInteger64(Device* device, int param, Span<long> values)
+        {
+            if (values.IsEmpty)
+                return;
 
-        public static alGetSourcedvSOFTDelegate? GetSourceDouble;
+            fixed (long* ptr = values)
+                _getInteger64(device, param, values.Length, ptr);
+        }
+
+        public static unsafe void GetSourceInteger64(uint source, int param, out long value)
+        {
+            long result;
+            _getSourceInteger64(source, param, &result);
+            value = result;
+        }
+
+        public static unsafe void GetSourceInteger64(uint source, int param, Span<long> values)
+        {
+            if (values.IsEmpty)
+                return;
+
+            fixed (long* ptr = values)
+                _getSourceInteger64(source, param, ptr);
+        }
+
+        public static unsafe void GetSourceDouble(uint source, int param, out double value)
+        {
+            double result;
+            _getSourceDouble(source, param, &result);
+            value = result;
+        }
+
+        public static unsafe void GetSourceDouble(uint source, int param, Span<double> values)
+        {
+            if (values.IsEmpty)
+                return;
+
+            fixed (double* ptr = values)
+                _getSourceDouble(source, param, ptr);
+        }
     }
 }
