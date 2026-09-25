@@ -124,7 +124,7 @@ export class BaseBridge  {
         const reqId = randomUUID();
 
 
-        console.log("call: " + method, args);
+        //console.log("call: " + method, args);
 
         bridge.postMessage(JSON.stringify({
             type: "call",

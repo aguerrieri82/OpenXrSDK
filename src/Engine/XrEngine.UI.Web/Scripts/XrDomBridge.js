@@ -9,7 +9,7 @@ class XrDomBridge {
     getElevatedElements() {
         const elements = document.querySelectorAll(`.${XrDomBridge.ClassName}`);
         const result = [];
-        console.log("found:", elements.length);
+        //console.log("found:", elements.length);
         for (const element of elements) {
             const style = getComputedStyle(element);
             const depth = this.getDepth(style);
