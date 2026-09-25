@@ -14,7 +14,8 @@
 
         public void Dispose()
         {
-            FftwLib.fftw_free(Handle);
+            if (Handle != 0)
+                FftwLib.fftw_destroy_plan(Handle);
         }
 
         public readonly nint Handle;

@@ -22,6 +22,7 @@ namespace OpenAl.Framework
 
         private Device* _device;
         private Context* _context;
+        private string _deviceName;
         private readonly AL _al;
         private static readonly ALContext _alc;
 
@@ -78,6 +79,7 @@ namespace OpenAl.Framework
                 _context = _alc.CreateContext(_device, ptr);
 
             _alc.MakeContextCurrent(_context);
+
         }
 
         public static IList<string> ListDevices(bool onlyDefault)

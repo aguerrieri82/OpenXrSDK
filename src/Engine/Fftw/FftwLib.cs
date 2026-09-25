@@ -55,5 +55,11 @@ namespace Fftw
             var result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
             return new FftwPlan(result);
         }
+
+        public static FftwPlan DftPlan(FftwBuffer<Complex> inData, FftwBuffer<double> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
+        {
+            var result = fftw_plan_dft_c2r_1d(outData.Length, inData.Pointer, outData.Pointer, flags);
+            return new FftwPlan(result);
+        }
     }
 }
