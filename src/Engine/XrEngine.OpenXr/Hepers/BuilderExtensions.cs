@@ -26,6 +26,8 @@ namespace XrEngine.OpenXr
         public object[]? Bridges { get; set; }
 
         public string? AssetsPath { get; set; }
+
+        public Vector2? Size { get; set; }
     }
 
     public static class BuilderExtensions
@@ -46,6 +48,9 @@ namespace XrEngine.OpenXr
                     options.DestMesh = scene!.AddChild(new UIWebPanel(
                             e.Inputs!.Right.Button.AClick,
                             (PerspectiveCamera)scene.ActiveCamera!));
+
+                    if (options.Size != null)
+                        options.DestMesh.Transform.SetScale(options.Size.Value.X, options.Size.Value.Y, 1f);
                 }
 
                 var browser = factory.CreateBrowser(new WebBrowserOptions
