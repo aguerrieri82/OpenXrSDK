@@ -1,6 +1,5 @@
 using DrumsVR.Game;
 using XrEngine;
-using XrEngine.AI;
 using XrEngine.OpenXr;
 
 namespace XrSamples
@@ -22,7 +21,6 @@ namespace XrSamples
 
                 scene.AddComponent<DebugGizmos>();
                 scene.AddComponent<XrInputRecorder>();
-                scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
             });
 

@@ -220,6 +220,10 @@
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Music/XrEngine.Music.csproj" Id="0339b39c-c8df-4c79-877a-50b8380c486f">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
       <BuildType Project="Release" />
     </Project>
@@ -387,10 +391,6 @@
   <Folder Name="/Samples/DrumsVR/">
     <File Path="../../DrumsVR/src/Directory.Build.props" />
     <Project Path="../../DrumsVR/src/DrumsVR.Encoder/DrumsVR.Encoder.csproj">
-      <Platform Solution="*|x64" Project="x64" />
-      <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
-    </Project>
-    <Project Path="../../DrumsVR/src/DrumsVR.Entities/DrumsVR.Entities.csproj">
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
     </Project>
