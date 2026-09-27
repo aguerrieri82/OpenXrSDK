@@ -182,6 +182,15 @@ namespace XrEngine.Music
             base.StopRecord();
         }
 
+        public static DrumAudioTrack LoadSequence(DrumSequence sequence)
+        {
+            var track = new DrumAudioTrack();
+
+            track.AddBlock(new DrumAudioBlock(sequence.Events ?? []));
+
+            return track;
+        }
+
         public static DrumAudioTrack LoadSequence(string path)
         {
             var options = new JsonSerializerOptions
@@ -194,7 +203,6 @@ namespace XrEngine.Music
             var seq = JsonSerializer.Deserialize<DrumSequence>(json, options);
 
             Debug.Assert(seq?.Events != null);
-
 
             var track = new DrumAudioTrack();
             var block = new DrumAudioBlock(seq?.Events ?? []);

@@ -1,10 +1,24 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace XrEngine.Music
 {
     public class AudioSequenceLoader
     {
+        protected readonly JsonSerializerOptions _jsonOptions;
+
+        public AudioSequenceLoader()
+        {
+            _jsonOptions = new JsonSerializerOptions
+            {
+                Converters = { new JsonStringEnumConverter() },
+                PropertyNameCaseInsensitive = true, 
+                IncludeFields = true
+            };
+        }
+
         public AudioSequencer Load(AudioSequenceInfo sequence, string? sourcePath = null)
         {
             ArgumentNullException.ThrowIfNull(sequence);
@@ -24,15 +38,31 @@ namespace XrEngine.Music
 
         protected virtual AudioTrack LoadTrack(AudioTrackInfo info, string? sourcePath)
         {
-            var path = ResolveContent(info, sourcePath);
+            AudioTrack result;
 
-            AudioTrack result = info.Type switch
+            if (info.Type == AudioTrackType.Drum && info.Content is JsonElement json)
             {
-                AudioTrackType.Wave => WaveAudioTrack.Load(path, CachePath),
-                AudioTrackType.Drum => DrumAudioTrack.LoadSequence(path),
-                AudioTrackType.Midi => throw new NotSupportedException("MIDI tracks are not supported."),
-                _ => throw new NotSupportedException($"Unsupported audio track type '{info.Type}'.")
-            };
+                var sequence = json.Deserialize<DrumSequence>(_jsonOptions) ??
+                    throw new InvalidOperationException("Invalid embedded drum sequence.");
+
+                var track = new DrumAudioTrack();
+
+                track.AddBlock(new DrumAudioBlock(sequence.Events ?? []));
+
+                result = track;
+            }
+            else
+            {
+                var path = ResolveContent(info, sourcePath);
+
+                result = info.Type switch
+                {
+                    AudioTrackType.Wave => WaveAudioTrack.Load(path, CachePath),
+                    AudioTrackType.Drum => DrumAudioTrack.LoadSequence(path),
+                    AudioTrackType.Midi => throw new NotSupportedException("MIDI tracks are not supported."),
+                    _ => throw new NotSupportedException($"Unsupported audio track type '{info.Type}'.")
+                };
+            }
 
             result.Id = info.Id;
 
@@ -115,7 +145,6 @@ namespace XrEngine.Music
                 }
             };
         }
-
 
         public string? CachePath { get; set; }
     }
