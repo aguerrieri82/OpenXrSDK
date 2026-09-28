@@ -202,6 +202,12 @@ namespace XrEngine
                     self.WorldPosition = pose.Position;
             }
 
+            public void SetLocalPose(Pose3 pose)
+            {
+                self.Transform.Orientation = pose.Orientation;
+                self.Transform.Position = pose.Position;
+            }
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Pose3 GetWorldPose(bool fromOrigin = false)
             {
