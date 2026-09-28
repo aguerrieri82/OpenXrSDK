@@ -26,6 +26,9 @@ namespace XrEngine.OpenXr
         protected XrOculusPlugin? _oculus;
         protected readonly List<SpatialAnchor> _anchors = [];
         protected bool _isLoaded;
+        protected Guid? _referenceAnchorId;
+        protected Pose3 _referencePose;
+
         protected List<(SpatialAnchor Anchor, float Distance)> _changedAnchors = [];
 
         public SpatialAnchorGrid()
@@ -36,6 +39,8 @@ namespace XrEngine.OpenXr
             DistanceTollerance = 0.01f;
             _isAsync = true;
         }
+
+
 
         public SpatialAnchor? GetClosestAnchor(Vector3 worldPos, out float distance)
         {
@@ -84,6 +89,27 @@ namespace XrEngine.OpenXr
             }
 
             _anchors.Clear();
+        }
+
+        protected void ApplyReferenceAnchor()
+        {
+            if (_referenceAnchorId == null)
+                return;
+
+            var reference = _anchors.FirstOrDefault(a => a.Id == _referenceAnchorId.Value);
+
+            if (reference == null)
+                return;
+
+            _host.SetWorldPose(reference.CurrentWorldPose.Multiply(_referencePose));
+
+            var hostWorldPose = _host.GetWorldPose();
+
+            foreach (var anchor in _anchors)
+                anchor.LocalPose = hostWorldPose.Inverse().Multiply(anchor.CurrentWorldPose);
+
+            _referenceAnchorId = null;
+            _referencePose = default;
         }
 
         protected async Task LoadAnchorsAsync()
@@ -151,6 +177,8 @@ namespace XrEngine.OpenXr
             {
                 await LoadAnchorsAsync();
                 _isLoaded = true;
+
+                ApplyReferenceAnchor();
             }
 
             var head = _xrApp.SpacesTracker.GetLastLocation(_xrApp.Head);
@@ -206,6 +234,15 @@ namespace XrEngine.OpenXr
             }
 
             _lastPose = head.Pose;
+        }
+
+        public void SetReferenceAnchor(Guid anchorId, Pose3 pose)
+        {
+            _referenceAnchorId = anchorId;
+            _referencePose = pose;
+
+            if (_isLoaded)
+                ApplyReferenceAnchor();
         }
 
         public float CheckThreshold { get; set; }

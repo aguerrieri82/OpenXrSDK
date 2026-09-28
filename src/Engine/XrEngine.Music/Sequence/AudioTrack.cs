@@ -198,5 +198,7 @@ namespace XrEngine.Music
         public int Index => _index;
 
         public float Duration => _blocks.Count == 0 ? 0 : _blocks.Max(a => a.End);
+
+        public IReadOnlyList<BaseAudioBlock> Blocks => _blocks;
     }
 }

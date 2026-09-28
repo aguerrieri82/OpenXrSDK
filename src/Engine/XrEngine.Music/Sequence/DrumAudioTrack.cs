@@ -129,7 +129,7 @@ namespace XrEngine.Music
                 Thread.Sleep(2);
                 return;
             }
-            
+
             Debug.Assert(_sequencer != null);
 
             if (!GetNextEvents(_playCursor, _buffer))
@@ -138,19 +138,34 @@ namespace XrEngine.Music
                 return;
             }
 
+            var cursorVersion = _cursorVersion;
             var wait = (_playCursor.Time - _sequencer.Position) / _sequencer.TimeScale;
 
             foreach (var ev in _buffer)
                 _sequencer.OnEvent(this, ev, wait);
 
+            const double maxWait = 0.010;
+
+            while (wait > maxWait)
+            {
+                EngineNativeLib.SleepFor((ulong)(maxWait * 1000000000));
+
+                if (_state != AudioTrackState.Play || _cursorVersion != cursorVersion)
+                    return;
+
+                wait = (_playCursor.Time - _sequencer.Position) / _sequencer.TimeScale;
+            }
+
             if (wait > 0)
                 EngineNativeLib.SleepFor((ulong)(wait * 1000000000));
+
+            if (_state != AudioTrackState.Play || _cursorVersion != cursorVersion)
+                return;
 
             foreach (var ev in _buffer)
             {
                 if (ev.Type == DrumEventType.Hit)
                     _synth?.NoteOn(ev.MidiNote, ev.Force);
-
                 else if (ev.Type == DrumEventType.Control)
                     _synth?.ControlCode(ev.MidiNote, (int)(ev.Force * 127));
             }
