@@ -18,9 +18,7 @@ namespace XrEngine.OpenXr.Android
 
         public bool CanHandle(WebRequest request)
         {
-            return request.Uri?.Scheme == Scheme &&
-                   request.Uri.Host == _host &&
-                   request.Method == "GET";
+            return request.Uri?.Host == _host && request.Method == "GET";
         }
 
         public WebResponse? HandleRequest(WebRequest request)
@@ -71,7 +69,7 @@ namespace XrEngine.OpenXr.Android
 
         }
 
-        public string Scheme => "https";
+        public string Scheme => "ui";
 
     }
 }
