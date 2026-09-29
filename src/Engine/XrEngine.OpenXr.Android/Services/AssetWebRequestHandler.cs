@@ -18,7 +18,14 @@ namespace XrEngine.OpenXr.Android
 
         public bool CanHandle(WebRequest request)
         {
-            return request.Uri?.Host == _host && request.Method == "GET";
+            if (request.Method != "GET" || request.Uri == null)
+                return false;
+
+            var uri = request.Uri;
+
+            return
+                (uri.Scheme == Scheme && uri.Host == _host) ||
+                (uri.Scheme == "https" && uri.Host == _host);
         }
 
         public WebResponse? HandleRequest(WebRequest request)
@@ -58,7 +65,6 @@ namespace XrEngine.OpenXr.Android
             catch (Exception ex)
             {
                 Log.Warn(this, "Browser Handle Request exception: {0}", request.Uri);
-
                 Log.Error(this, ex);
 
                 return new WebResponse
@@ -66,10 +72,8 @@ namespace XrEngine.OpenXr.Android
                     Code = 404
                 };
             }
-
         }
 
         public string Scheme => "ui";
-
     }
 }

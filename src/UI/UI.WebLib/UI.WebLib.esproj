@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.6098695">
-
   <PropertyGroup>
     <StartupCommand>pnpm dev</StartupCommand>
     <ShouldRunNpmInstall>False</ShouldRunNpmInstall>
     <ShouldRunBuildScript>False</ShouldRunBuildScript>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="dist\types\" />
+  </ItemGroup>
 </Project>

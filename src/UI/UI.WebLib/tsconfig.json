@@ -5,16 +5,19 @@
     "sourceMap": true,
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
+    "strict": false,
+    "rootDir": "src",
     "outDir": "dist",
     "declarationDir": "dist/types",
     "declaration": true,
+
     "inlineSources": false,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true
   },
   "compileOnSave": true,
   "include": [
     "src/"
   ]
 }
- 
