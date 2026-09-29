@@ -19,6 +19,14 @@ namespace XrEngine.Music
         public float WaitTime;
     }
 
+    public class AudioSequencerLoopEvent
+    {
+        public float Position;
+        public float Target;
+        public bool Cancel;
+    }
+
+
     public class AudioSequencer
     {
         protected readonly List<AudioTrack> _tracks = [];
@@ -124,7 +132,16 @@ namespace XrEngine.Music
                     var duration = _loopEnd - _loopStart;
                     var target = _loopStart + (position - _loopStart) % duration;
 
-                    SetPosition(target);
+                    var args = new AudioSequencerLoopEvent
+                    {
+                        Position = position,
+                        Target = target
+                    };
+
+                    LoopBoundary?.Invoke(this, args);
+
+                    if (!args.Cancel)
+                        SetPosition(args.Target);
                 }
 
                 Thread.Sleep(2);
@@ -220,5 +237,7 @@ namespace XrEngine.Music
         public IReadOnlyList<AudioTrack> Tracks => _tracks;
 
         public event EventHandler<AudioSequencerEvent>? Event;
+
+        public event EventHandler<AudioSequencerLoopEvent>? LoopBoundary;
     }
 }
