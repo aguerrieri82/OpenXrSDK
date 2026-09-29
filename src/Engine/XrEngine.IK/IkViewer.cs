@@ -31,7 +31,7 @@ namespace XrEngine.IK
             if (_host == null || Solver == null || Body == null)
                 return;
 
-            _host.Clear();
+           // _host.Clear();
             _meshMap.Clear();
 
             for (var i = 0; i < Body.Bones.Length; i++)
