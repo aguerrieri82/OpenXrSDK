@@ -21,6 +21,7 @@ namespace XrEngine.Music
         protected readonly DrumCursor _playCursor;
         protected readonly List<DrumEvent> _buffer;
         protected int _cursorVersion;
+        private static bool _partsAssigned;
 
         public DrumAudioTrack() : base(AudioTrackType.Drum)
         {
@@ -165,9 +166,9 @@ namespace XrEngine.Music
             foreach (var ev in _buffer)
             {
                 if (ev.Type == DrumEventType.Hit)
-                    _synth?.NoteOn(ev.MidiNote, ev.Force);
+                    _synth?.NoteOn(ev.Key, ev.Value);
                 else if (ev.Type == DrumEventType.Control)
-                    _synth?.ControlCode(ev.MidiNote, (int)(ev.Force * 127));
+                    _synth?.ControlCode(ev.Key, (int)(ev.Value * 127));
             }
         }
 
@@ -220,9 +221,11 @@ namespace XrEngine.Music
             Debug.Assert(seq?.Events != null);
 
             var track = new DrumAudioTrack();
-            var block = new DrumAudioBlock(seq?.Events ?? []);
+            var block = new DrumAudioBlock(seq.Events);
 
             track.AddBlock(block);
+
+            _partsAssigned = seq.PartsAssigned;
 
             return track;
         }
@@ -246,5 +249,7 @@ namespace XrEngine.Music
 
             return result;
         }
+
+        public bool PartsAssigned { get; set; } 
     }
 }

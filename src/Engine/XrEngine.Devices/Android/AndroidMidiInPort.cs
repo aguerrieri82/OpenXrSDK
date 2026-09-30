@@ -3,7 +3,7 @@
 using Android.Media.Midi;
 using Java.Lang;
 using System.Runtime.Versioning;
-using XrEngine.Devices.Windows;
+
 
 namespace XrEngine.Devices.Android
 {
@@ -11,6 +11,8 @@ namespace XrEngine.Devices.Android
     public class AndroidMidiInPort : IMidiInPort
     {
         readonly MidiOutputPort _port;
+        private int _portNum;
+        private readonly AndroidMidiDevice _device;
 
         class Receiver : MidiReceiver
         {
@@ -28,8 +30,10 @@ namespace XrEngine.Devices.Android
 
         }
 
-        public AndroidMidiInPort(MidiOutputPort port)
+        public AndroidMidiInPort(MidiOutputPort port, int portNum, AndroidMidiDevice device)
         {
+            _portNum = portNum;
+            _device = device;
             _port = port;
             _port.Connect(new Receiver(OnReceive));
 
@@ -52,6 +56,10 @@ namespace XrEngine.Devices.Android
         }
 
         public ulong RefTimeMs => (ulong)JavaSystem.NanoTime() / 1000000;
+
+        public int Number => _portNum;
+
+        public IMidiDevice Device => _device;
 
         public event EventHandler<MidiData>? DataReceived;
     }

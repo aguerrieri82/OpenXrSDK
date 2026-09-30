@@ -15,5 +15,9 @@
         ulong RefTimeMs { get; }
 
         event EventHandler<MidiData> DataReceived;
+
+        int Number { get; }
+
+        IMidiDevice Device { get; }
     }
 }

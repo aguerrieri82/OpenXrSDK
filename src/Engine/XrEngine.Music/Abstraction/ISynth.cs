@@ -12,7 +12,6 @@ namespace XrEngine.Music
 
     public interface ISynth
     {
-
         void ControlCode(int number, int value);
 
         void NoteOn(int note, float velocity);

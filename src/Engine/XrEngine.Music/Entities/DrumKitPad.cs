@@ -36,6 +36,8 @@ namespace XrEngine.Music
 
         public IList<DrumKitTrigger>? Triggers { get; set; }
 
+        public IList<DrumKitControl>? Controls { get; set; }
+
         public Vector3 Position { get; set; }
     }
 }

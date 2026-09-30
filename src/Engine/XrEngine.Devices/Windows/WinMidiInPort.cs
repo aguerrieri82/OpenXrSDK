@@ -17,10 +17,12 @@ namespace XrEngine.Devices.Windows
         bool _opened;
         Win32.MidiInProc? _proc;
         GCHandle _gch;
+        private WinMidiDevice _device;
 
-        public WinMidiInPort(uint deviceIndex)
+        public WinMidiInPort(uint deviceIndex, WinMidiDevice device)
         {
             _deviceIndex = deviceIndex;
+            _device = device;   
             Open();
         }
 
@@ -172,6 +174,10 @@ namespace XrEngine.Devices.Windows
             _ = Win32.midiInGetErrorText(code, sb, (uint)sb.Capacity);
             return sb.ToString();
         }
+
+        public int Number => (int)_deviceIndex;
+
+        public IMidiDevice Device => _device;
 
         public event EventHandler<MidiData>? DataReceived;
     }

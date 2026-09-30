@@ -63,8 +63,8 @@ namespace XrEngine.Music
                 var pad = _pads[noteOn.Note];
                 DrumEvent?.Invoke(this, new DrumEvent
                 {
-                    Force = noteOn.Velocity / 127f,
-                    MidiNote = noteOn.Note,
+                    Value = noteOn.Velocity / 127f,
+                    Key = noteOn.Note,
                     Pad = pad.Type,
                     Trigger = trigger.Type,
                     Time = e.Timestamp,
@@ -79,8 +79,8 @@ namespace XrEngine.Music
 
                 DrumEvent?.Invoke(this, new DrumEvent
                 {
-                    Force = cc.Value / 127f,
-                    MidiNote = cc.Controller,
+                    Value = cc.Value / 127f,
+                    Key = cc.Controller,
                     Trigger = trigger.Type,
                     Type = DrumEventType.Control
                 });
@@ -90,6 +90,8 @@ namespace XrEngine.Music
         public bool IsOpen => _isOpen;
 
         public ulong RefTimeMs => _midiIn.RefTimeMs;
+
+        public IMidiInPort Input => _midiIn;
 
         public event EventHandler<DrumEvent>? DrumEvent;
 

@@ -96,7 +96,6 @@ namespace XrEngine.Music
             }
         }
 
-
         public AlSource Source => _source;
     }
 }

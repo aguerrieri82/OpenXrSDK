@@ -6,13 +6,19 @@ namespace XrEngine.IK
     public class IkViewer : Behavior<Group3D>, IDrawGizmos
     {
         readonly Dictionary<int, TriangleMesh> _meshMap = [];
-
         IkBodies.Body? _body;
         bool _isMeshCreated;
+        private PbrMaterial _material;
 
         public IkViewer()
         {
-            EnableGizmos = true;
+            EnableGizmos = false;
+
+            _material = new PbrMaterial
+            {
+                Color = "#3F8FA8CC",
+                Alpha = AlphaMode.Blend
+            };
         }
 
         protected override void Update(RenderContext ctx)
@@ -39,10 +45,7 @@ namespace XrEngine.IK
                 if (Body.Bones[i].Parent < 0)
                     continue;
 
-                var mat = MaterialFactory.CreatePbr(new Color(1f, 1, 0, 0.8f));
-                mat.Alpha = AlphaMode.Blend;
-
-                var mesh = new TriangleMesh(Cube3D.Default, (Material)mat)
+                var mesh = new TriangleMesh(Cube3D.Default, _material)
                 {
                     Name = Body.Names[i]
                 };
@@ -170,5 +173,7 @@ namespace XrEngine.IK
         public IkSolver? Solver { get; set; }
 
         public bool EnableGizmos { get; set; }
+
+
     }
 }

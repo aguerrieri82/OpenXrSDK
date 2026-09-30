@@ -13,7 +13,8 @@
         Rim,
         Edge,
         Bell,
-        Pedal
+        Pedal,
+        Choke
     }
 
     public class DrumKitTrigger

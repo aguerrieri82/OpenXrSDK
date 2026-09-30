@@ -47,7 +47,7 @@
             if (index != 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            return new WinMidiInPort(_deviceIndex);
+            return new WinMidiInPort(_deviceIndex, this);
         }
     }
 }

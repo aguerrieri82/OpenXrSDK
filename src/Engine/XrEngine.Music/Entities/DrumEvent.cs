@@ -20,9 +20,9 @@
 
         public float Time { get; set; }
 
-        public int MidiNote { get; set; }
+        public int Key { get; set; }
 
-        public float Force { get; set; }
+        public float Value { get; set; }
 
         public DrumTriggerType? Trigger { get; set; }
 

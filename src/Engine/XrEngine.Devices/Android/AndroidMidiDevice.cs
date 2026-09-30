@@ -70,7 +70,7 @@ namespace XrEngine.Devices.Android
             var port = _device?.OpenOutputPort(index);
             if (port == null)
                 throw new Exception("Failed to open MIDI output port.");
-            return new AndroidMidiInPort(port);
+            return new AndroidMidiInPort(port, index, this);
         }
 
         public int InputPortCount => _info.OutputPortCount;
