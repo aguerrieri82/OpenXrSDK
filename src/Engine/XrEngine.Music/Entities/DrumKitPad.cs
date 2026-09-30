@@ -25,7 +25,8 @@ namespace XrEngine.Music
         Splash,
 
         Cowbell,
-        Tamburine
+        Tamburine,
+        Unknown
     }
 
     public class DrumKitPad
