@@ -26,6 +26,8 @@
 
         public DrumTriggerType? Trigger { get; set; }
 
+        public DrumControlType? Control { get; set; }
+
         public DrumPadType? Pad { get; set; }
 
         public HiHatState? HiHat { get; set; }

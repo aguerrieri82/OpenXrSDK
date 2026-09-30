@@ -13,5 +13,7 @@ namespace XrEngine.Music
         event EventHandler<DrumEvent> DrumEvent;
 
         ulong RefTimeMs { get; }
+
+        DrumKit? Kit { get; }
     }
 }

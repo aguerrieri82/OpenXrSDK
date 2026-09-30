@@ -8,24 +8,29 @@ namespace XrEngine.Music
     {
         private IMidiDevice? _device;
         private IMidiOutPort? _port;
+        private int? _portNum;
 
         public MidiOutSynth()
         {
-            Channel = 10;
+            Channel = 9;
         }
 
         public async Task OpenAsync(string deviceId, int portNum)
         {
             Close();
+            
             _device = Context.Require<IMidiManager>().GetDevice(deviceId);
+            
             if (_device != null)
             {
                 await _device.OpenAsync();
                 _port = _device.OpenOutput(portNum);
             }
+            
             if (_port == null)
                 throw new Exception();
-
+            
+            _portNum = portNum;
         }
 
         public void Close()
@@ -35,6 +40,8 @@ namespace XrEngine.Music
 
             _device?.Close();
             _device = null;
+
+            _portNum = null;
         }
 
         public void ControlCode(int number, int value)
@@ -78,6 +85,11 @@ namespace XrEngine.Music
             _port?.Send(buffer, 0, len);
         }
 
+        public bool IsActive(string deviceId, int portNum)
+        {
+            return _port != null && _device?.Id == deviceId && PortNum == portNum;
+        }
+
         public IAudioStream? Stream => null;
 
         public float Volume
@@ -89,5 +101,8 @@ namespace XrEngine.Music
         public SynthCaps Caps => SynthCaps.None;
 
         public int Channel { get; set; }
+
+        public int? PortNum => _portNum;
+ 
     }
 }

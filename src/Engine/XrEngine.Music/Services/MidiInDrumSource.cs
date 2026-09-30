@@ -10,6 +10,7 @@ namespace XrEngine.Music
         readonly DrumKit _drumKit;
         readonly Dictionary<int, DrumKitTrigger> _triggers = [];
         readonly Dictionary<int, DrumKitPad> _pads = [];
+        readonly Dictionary<int, DrumKitControl> _controls = [];
 
         public MidiInDrumSource(IMidiInPort midiIn, DrumKit kit)
         {
@@ -23,20 +24,32 @@ namespace XrEngine.Music
         {
             _triggers.Clear();
             _pads.Clear();
+            _controls.Clear();
 
             if (_drumKit.Pads == null)
                 return;
 
             foreach (var pad in _drumKit.Pads)
             {
-                if (pad.Triggers == null)
-                    continue;
-
-                foreach (var trigger in pad.Triggers)
+                if (pad.Triggers != null)
                 {
-                    _triggers[trigger.MidiNote] = trigger;
-                    _pads[trigger.MidiNote] = pad;
+
+                    foreach (var trigger in pad.Triggers)
+                    {
+                        _triggers[trigger.MidiNote] = trigger;
+                        _pads[trigger.MidiNote] = pad;
+                    }
                 }
+
+                if (pad.Controls != null)
+                {
+                    foreach (var control in pad.Controls)
+                    {
+                        _controls[control.MidiCode] = control;
+                        _pads[control.MidiCode] = pad;
+                    }
+                }
+      
             }
         }
 
@@ -74,14 +87,14 @@ namespace XrEngine.Music
 
             else if (msg is ControlChangeMessage cc)
             {
-                if (!_triggers.TryGetValue(cc.Controller, out var trigger))
+                if (!_controls.TryGetValue(cc.Controller, out var control))
                     return;
 
                 DrumEvent?.Invoke(this, new DrumEvent
                 {
                     Value = cc.Value / 127f,
                     Key = cc.Controller,
-                    Trigger = trigger.Type,
+                    Control = control.Type,
                     Type = DrumEventType.Control
                 });
             }
@@ -93,7 +106,8 @@ namespace XrEngine.Music
 
         public IMidiInPort Input => _midiIn;
 
-        public event EventHandler<DrumEvent>? DrumEvent;
+        public DrumKit Kit => _drumKit;
 
+        public event EventHandler<DrumEvent>? DrumEvent;
     }
 }
