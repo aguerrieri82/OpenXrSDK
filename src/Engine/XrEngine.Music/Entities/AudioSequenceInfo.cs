@@ -12,6 +12,27 @@ namespace XrEngine.Music
         Expert
     }
 
+    [Flags]
+    public enum PracticeScoreType
+    {
+        None = 0,
+        Timing = 1,
+        Accuracy = 2,
+        HandAccuracy = 4,
+        Completeness = 8,
+        Dynamics = 16
+    }
+
+    public class PracticeFocusInfo
+    {
+        public PracticeScoreType ScoreTypes { get; set; }
+
+        public IList<DrumPadType>? Pads { get; set; }
+
+        public IList<DrumPlayerPart>? PlayerParts { get; set; }
+    }
+
+
     public enum AudioContentType
     {
         Song,
@@ -62,7 +83,19 @@ namespace XrEngine.Music
         public bool Score { get; set; }
 
         public float? MinScore { get; set; }
+
+        public IList<AudioTragetInfo>? Targets { get; set; }
+
+        public PracticeFocusInfo? Focus { get; set; }
     }
+
+    public class AudioTragetInfo
+    {
+        public float Offset { get; set; }
+
+        public float Duration { get; set; }
+    }
+
 
     public class AudioSectionInfo
     {
