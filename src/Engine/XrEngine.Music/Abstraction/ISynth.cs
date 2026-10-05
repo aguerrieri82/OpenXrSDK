@@ -25,5 +25,7 @@ namespace XrEngine.Music
         float Volume { get; set; }
 
         SynthCaps Caps { get; }
+
+        DrumKit DrumKit { get; set; }
     }
 }

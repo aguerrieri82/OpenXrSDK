@@ -1,6 +1,9 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using XrEngine.Audio.Midi;
+using static Sfizz.SfizzLib;
 
 
 namespace XrEngine.Music
@@ -21,7 +24,7 @@ namespace XrEngine.Music
         protected readonly DrumCursor _playCursor;
         protected readonly List<DrumEvent> _buffer;
         protected int _cursorVersion;
-        private static bool _partsAssigned;
+        protected readonly Dictionary<int, int> _noteMap = [];
 
         public DrumAudioTrack() : base(AudioTrackType.Drum)
         {
@@ -123,6 +126,18 @@ namespace XrEngine.Music
             base.SetPosition(value);
         }
 
+        int TranslateNote(int midiNote)
+        {
+            if (!_noteMap.TryGetValue(midiNote, out var note))
+            {
+                var result = DrumKits.TranslateNote(DrumKits.Gm, _synth!.DrumKit, midiNote);
+                result ??= midiNote;
+                _noteMap[midiNote] = result.Value;
+                return result.Value;
+            }
+            return note;
+        }
+
         protected override void PlayWork()
         {
             if (!IsAudible)
@@ -166,7 +181,11 @@ namespace XrEngine.Music
             foreach (var ev in _buffer)
             {
                 if (ev.Type == DrumEventType.Hit)
-                    _synth?.NoteOn(ev.Key, ev.Value);
+                {
+                    var realNote = TranslateNote(ev.Key);
+                    _synth?.NoteOn(realNote, ev.Value);
+                }
+
                 else if (ev.Type == DrumEventType.Control)
                     _synth?.ControlCode(ev.Key, (int)(ev.Value * 127));
             }
@@ -225,7 +244,7 @@ namespace XrEngine.Music
 
             track.AddBlock(block);
 
-            _partsAssigned = seq.PartsAssigned;
+            track.PartsAssigned = seq.PartsAssigned;
 
             return track;
         }
@@ -249,6 +268,7 @@ namespace XrEngine.Music
 
             return result;
         }
+
 
         public bool PartsAssigned { get; set; } 
     }

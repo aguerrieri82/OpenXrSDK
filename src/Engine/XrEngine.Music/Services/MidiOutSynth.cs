@@ -13,6 +13,7 @@ namespace XrEngine.Music
         public MidiOutSynth()
         {
             Channel = 9;
+            DrumKit = DrumKits.Gm;
         }
 
         public async Task OpenAsync(string deviceId, int portNum)
@@ -103,6 +104,8 @@ namespace XrEngine.Music
         public int Channel { get; set; }
 
         public int? PortNum => _portNum;
+
+        public DrumKit DrumKit { get; set; }    
  
     }
 }

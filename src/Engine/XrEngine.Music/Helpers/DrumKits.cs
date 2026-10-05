@@ -2,6 +2,27 @@
 {
     public static class DrumKits
     {
+        public static int? TranslateNote(DrumKit? source, DrumKit? target, int midiNote)
+        {
+            if (source == target || source == null || target == null)
+                return midiNote;
+
+            foreach (var pad in source.Pads!)
+            {
+                var trigger = pad.Triggers!.FirstOrDefault(a => a.MidiNote == midiNote);
+                if (trigger == null)
+                    continue;
+
+                return target.Pads!
+                    .Where(a => a.Type == pad.Type)
+                    .SelectMany(a => a.Triggers!)
+                    .FirstOrDefault(a => a.Type == trigger.Type && a.HiHatState == trigger.HiHatState)?.MidiNote;
+            }
+
+            return null;
+        }
+
+
         public static DrumKit Td9 = new DrumKit
         {
             Name = "Roland TD9",

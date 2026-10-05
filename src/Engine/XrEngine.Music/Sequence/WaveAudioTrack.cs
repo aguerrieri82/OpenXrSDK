@@ -8,6 +8,8 @@ namespace XrEngine.Music
 {
     public class WaveAudioTrack : AudioTrack
     {
+        private int _positionChanged;
+
         protected AudioFormat? _format;
         protected int _sampleIndex;
         protected IAudioTimeStretcher _timeStretcher;
@@ -59,19 +61,13 @@ namespace XrEngine.Music
 
         internal override void SetPosition(float value)
         {
-            _sampleIndex = -1;
-            _activeBlock = null;
-
-            _timeStretcher.Reset();
-
-            base.SetPosition(value);
+            Interlocked.Exchange(ref _positionChanged, 1);
         }
 
         protected override void StopPlay()
         {
             _sequencer?.MainOut?.Reset();
 
-            _sampleIndex = -1;
             _activeBlock = null;
 
             _timeStretcher.Reset();
@@ -86,6 +82,9 @@ namespace XrEngine.Music
             var pos = Math.Max(0, _sequencer.Position);
             var mainOut = _sequencer.MainOut;
             var timeScale = _sequencer.TimeScale;
+
+            if (Interlocked.Exchange(ref _positionChanged, 0) != 0)
+                _activeBlock = null;
 
             if (_activeBlock == null ||
                 pos < _activeBlock.Start ||

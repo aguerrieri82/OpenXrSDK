@@ -33,6 +33,8 @@ namespace XrEngine.Music
             {
                 Dispatcher = _dispatcher
             };
+
+            DrumKit = DrumKits.Gm;
         }
 
         public void NoteOn(int note, float velocity)
@@ -77,5 +79,8 @@ namespace XrEngine.Music
         }
 
         public SynthCaps Caps => SynthCaps.Volume | SynthCaps.Streamable;
+
+
+        public DrumKit DrumKit { get; set; }
     }
 }
