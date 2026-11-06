@@ -56,7 +56,8 @@
 
             var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node.Value == child.Value);
 
-            childView?.Remove();
+            if (childView != null)
+                _host.RemoveChild(childView);
         }
 
         protected async void OnChildAdded(INode sender, INode child)

@@ -70,5 +70,7 @@ namespace XrEditor.Nodes
             Color = "#7B1FA2",
             Name = "icon_videocam"
         };
+
+        public override bool IsLeaf => true;
     }
 }

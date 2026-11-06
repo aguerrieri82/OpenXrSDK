@@ -1,15 +1,28 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using XrEditor.Abstraction;
 
 namespace XrEditor
 {
+    /*
+     * Invariants
+     * ----------
+     * 1) ListTreeView.Items contains EXACTLY the visible rows (a node is in Items only if
+     *    all its ancestors are expanded and the root is in Items). There are no hidden rows:
+     *    hidden rows would be part of Shift-range selections and keyboard navigation.
+     * 2) Every node in Items has _index == its position in Items, every other node has _index == -1.
+     *    Indexes are rebuilt immediately after every mutation (InsertNodes / RemoveNodes).
+     * 3) ListTreeNodeView.IsSelected is the ONLY source of truth for the selection.
+     *    A view is a POSITION in the tree: the same model object can have many views
+     *    (e.g. a material shared by two meshes). Views are never reused: when a view leaves
+     *    the tree it is discarded and Removed is raised.
+     *    The WPF ListBox is never bound to it: ListTreeListBox pushes user changes into the model
+     *    and re-syncs its SelectedItems from the model (see XrEditor.App/Components/ListTreeListBox.cs).
+     */
     public class ListTreeNodeView : BaseView, IEditorUIElementHost
     {
         protected ListTreeNodeView? _parent;
         protected ListTreeView _host;
         protected internal int _index;
-        protected internal int _childInsertIndex;
         protected internal List<ListTreeNodeView>? _children;
         protected int _level;
         protected bool _childrenLoaded;
@@ -23,71 +36,74 @@ namespace XrEditor
         {
             _host = host;
             _parent = parent;
-            _childInsertIndex = -1;
             _index = -1;
             ToggleCommand = new Command(Toggle);
         }
 
+        /// <summary>Collapses and discards the children; they will be loaded again on next expand.</summary>
         public void Unload()
         {
             IsExpanded = false;
+            Clear();
             _childrenLoaded = false;
-            _children = [];
         }
 
         public void AddChild(ListTreeNodeView child)
         {
-            Debug.Assert(child._children == null || child._children.Count == 0);
-
             if (_children != null && _children.Contains(child))
                 return;
 
-            _host.BeginUpdate(this);
-            try
+            // Safety: a view can't be shown twice or be owned by two parents.
+            child.Detach();
+
+            _children ??= [];
+
+            child._parent = this;
+            child.SetLevel(_level + 1);
+
+            if (_isExpanded && IsVisible)
             {
-                _children ??= [];
-
-                child._level = _level + 1;
-                child._parent = this;
-
-                if (_isExpanded)
-                {
-                    if (_childInsertIndex == -1)
-                        _childInsertIndex = LastDescendant(true)!._index + 1;
-                    child._index = _childInsertIndex++;
-                    _host._items.Insert(child._index, child);
-                }
-
+                var insertIndex = _index + 1 + CountVisibleDescendants();
+                _children.Add(child);
+                _host.InsertNodes(insertIndex, child.SelfAndVisibleDescendants().ToList());
+            }
+            else
                 _children.Add(child);
 
-                if (child.IsSelected)
-                    _host._selectedItems.Add(child);
-            }
-            finally
-            {
-                _host.EndUpdate();
-            }
+            if (child._isSelected)
+                _host._selectedItems.Add(child);
+
+            IsLeaf = false;
         }
 
+        public void RemoveChild(ListTreeNodeView child)
+        {
+            if (child._parent == this)
+                child.Remove();
+            else
+                _children?.Remove(child);
+        }
+
+        /// <summary>
+        /// Discards all the child views. The selection of the underlying objects is NOT changed
+        /// (used by Refresh / Unload: the objects still exist, only the views are rebuilt).
+        /// </summary>
         public void Clear()
         {
             if (_children == null)
                 return;
 
-            _host.BeginUpdate(this);
-
+            _host.BeginUpdate(_children.Count > ListTreeView.MassiveThreshold);
             try
             {
                 for (var i = _children.Count - 1; i >= 0; i--)
                 {
-                    if (_children[i].Parent == null)
-                        _children.RemoveAt(i);
-                    else
-                        _children[i].Remove();
+                    var child = _children[i];
+                    if (child._parent == this)
+                        child.Discard();
                 }
 
-                _host.RebuildIndexes();
-
+                _children.Clear();
             }
             finally
             {
@@ -95,50 +111,54 @@ namespace XrEditor
             }
         }
 
+        /// <summary>
+        /// The object was removed: deselect it (and its descendants) and discard the view.
+        /// </summary>
         public void Remove()
         {
-            _host.BeginUpdate(this);
+            foreach (var item in DescendantsOrSelf().Where(a => a._isSelected).ToList())
+                item.IsSelected = false;
 
-            try
-            {
-                if (_isExpanded)
-                    Collapse();
+            Discard();
+        }
 
-                if (_isSelected)
-                    IsSelected = false;
+        /// <summary>
+        /// Removes the view (and its child views) from the tree without notifying selection changes,
+        /// then raises Removed for each discarded view. The view must not be used anymore.
+        /// </summary>
+        internal void Discard()
+        {
+            IsExpanded = false;
 
-                Clear();
+            Clear();
 
-                if (_index != -1)
-                    _host.Items.RemoveAt(_index);
+            // only drop the view from the host selection, the object selection is not changed
+            SetSelectedCore(false, notifySelectionChanged: false);
 
-                if (_parent != null)
-                    _parent._children!.Remove(this);
+            Detach();
 
-                _parent = null;
-                _index = -1;
-            }
-            finally
-            {
-                _host.EndUpdate();
-            }
+            Removed?.Invoke(this);
+        }
 
+        /// <summary>
+        /// Removes the node (and its visible descendants) from the rows and from its parent,
+        /// without touching selection / expansion state.
+        /// </summary>
+        internal void Detach()
+        {
+            if (IsVisible)
+                _host.RemoveNodes(_index, 1 + CountVisibleDescendants());
+
+            _parent?._children?.Remove(this);
+            _parent = null;
         }
 
         public void Refresh()
         {
-            _host.BeginUpdate(this);
-            try
-            {
-                Clear();
-                LoadChildrenWork();
-                _childrenLoaded = true;
-                IsLeaf = _children == null || _children.Count == 0;
-            }
-            finally
-            {
-                _host.EndUpdate();
-            }
+            Clear();
+            LoadChildrenWork();
+            _childrenLoaded = true;
+            IsLeaf = _children == null || _children.Count == 0;
         }
 
         protected virtual void LoadChildrenWork()
@@ -150,10 +170,7 @@ namespace XrEditor
 
             LoadChildren(this, result);
 
-            var isMassive = result.Count > 0;
-
-            _host.BeginUpdate(this, isMassive);
-
+            _host.BeginUpdate(result.Count > ListTreeView.MassiveThreshold);
             try
             {
                 foreach (var child in result)
@@ -161,90 +178,84 @@ namespace XrEditor
             }
             finally
             {
-                _host.EndUpdate(isMassive);
+                _host.EndUpdate();
             }
-
         }
 
         public IEnumerable<ListTreeNodeView> DescendantsOrSelf()
         {
-            static IEnumerable<ListTreeNodeView> Visit(ListTreeNodeView node)
+            yield return this;
+
+            if (_children == null)
+                yield break;
+
+            foreach (var child in _children)
             {
-                yield return node;
-
-                if (node._children != null)
-                {
-                    foreach (var child in node._children)
-                    {
-                        foreach (var innerChild in Visit(child))
-                            yield return innerChild;
-                    }
-                }
-
+                foreach (var item in child.DescendantsOrSelf())
+                    yield return item;
             }
-
-            return Visit(this);
         }
 
-        protected ListTreeNodeView? LastDescendant(bool includeSelf = false)
+        /// <summary>Descendants that are (or would be, if this node is visible) shown as rows.</summary>
+        public IEnumerable<ListTreeNodeView> VisibleDescendants()
         {
-            if (_children == null || _children.Count == 0)
-                return includeSelf ? this : null;
+            if (!_isExpanded || _children == null)
+                yield break;
 
-            return _children[_children.Count - 1].LastDescendant(true);
+            foreach (var child in _children)
+            {
+                yield return child;
+                foreach (var item in child.VisibleDescendants())
+                    yield return item;
+            }
+        }
+
+        protected IEnumerable<ListTreeNodeView> SelfAndVisibleDescendants()
+        {
+            yield return this;
+            foreach (var item in VisibleDescendants())
+                yield return item;
+        }
+
+        protected int CountVisibleDescendants() => VisibleDescendants().Count();
+
+        protected void SetLevel(int level)
+        {
+            if (_level != level)
+            {
+                _level = level;
+                OnPropertyChanged(nameof(Level));
+                OnPropertyChanged(nameof(Margin));
+            }
+
+            if (_children != null)
+            {
+                foreach (var child in _children)
+                    child.SetLevel(level + 1);
+            }
         }
 
         protected void Expand()
         {
             if (!_childrenLoaded)
-                Refresh();
+                Refresh(); // _isExpanded is still false here: children are not inserted as rows
 
-            var items = DescendantsOrSelf().Skip(1).ToArray();
-            _host._items.InsertRange(_index + 1, items);
-            _host.RebuildIndexes(_index);
-            /*
-            foreach (var item in DescendantsOrSelf())
-                item.OnPropertyChanged(nameof(IsVisible));
-            */
+            _isExpanded = true;
+
+            if (IsVisible)
+                _host.InsertNodes(_index + 1, VisibleDescendants().ToList());
         }
 
         protected void Collapse()
         {
-            if (_children == null || _children.Count == 0)
-                return;
-
-            if (_index == -1)
-                return;
-
-            var startIndex = _children[0]._index;
-            var endIndex = LastDescendant()!._index;
-
-            _host._items.RemoveRange(startIndex, endIndex - startIndex + 1);
-
-            foreach (var child in DescendantsOrSelf().Skip(1))
+            if (IsVisible)
             {
-                child._index = -1;
-                child._childInsertIndex = -1;
+                var count = CountVisibleDescendants(); // must be computed while still expanded
+                if (count > 0)
+                    _host.RemoveNodes(_index + 1, count);
             }
 
-            _host.RebuildIndexes(_index);
-
-            /*
-            foreach (var item in DescendantsOrSelf())
-                item.OnPropertyChanged(nameof(IsVisible));
-            */
-        }
-
-        protected virtual void OnSelectionChanged()
-        {
-            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
-
-            if (_isSelected)
-                _host._selectedItems.Add(this);
-            else
-                _host._selectedItems.Remove(this);
-
-            SelectionChanged?.Invoke(this);
+            _isExpanded = false;
         }
 
         public void Toggle()
@@ -255,10 +266,7 @@ namespace XrEditor
         public bool IsSelected
         {
             get => _isSelected;
-            set
-            {
-                SetSelectedCore(value, notifySelectionChanged: true);
-            }
+            set => SetSelectedCore(value, notifySelectionChanged: true);
         }
 
         internal void SetSelectedCore(bool value, bool notifySelectionChanged)
@@ -268,24 +276,23 @@ namespace XrEditor
 
             _isSelected = value;
 
-            //Log.Debug(this, "[Sel] IsSelected: {0} ({1})", value, Header);
-
-            Debug.Assert(_isSelected != _host._selectedItems.Contains(this));
-
             if (_isSelected)
                 _host._selectedItems.Add(this);
             else
                 _host._selectedItems.Remove(this);
 
+            OnPropertyChanged(nameof(IsSelected));
+
+            _host.NotifySelectionStateChanged();
+
             if (notifySelectionChanged)
                 SelectionChanged?.Invoke(this);
-
-            OnPropertyChanged(nameof(IsSelected));
         }
 
+        /// <summary>The node's own expanded flag (independent from the ancestors).</summary>
         public bool IsExpanded
         {
-            get => _isExpanded && (_parent == null || _parent.IsExpanded);
+            get => _isExpanded;
             set
             {
                 if (_isExpanded == value)
@@ -295,8 +302,6 @@ namespace XrEditor
                     Expand();
                 else
                     Collapse();
-
-                _isExpanded = value;
 
                 OnPropertyChanged(nameof(IsExpanded));
             }
@@ -332,8 +337,11 @@ namespace XrEditor
             set
             {
                 _uiElement = value;
-                if (ScrollOnCreate)
+                if (ScrollOnCreate && value != null)
+                {
+                    ScrollOnCreate = false;
                     _host.ScrollIntoView(this);
+                }
             }
         }
 
@@ -343,7 +351,11 @@ namespace XrEditor
 
         public event Action<ListTreeNodeView>? SelectionChanged;
 
-        public bool IsVisible => _parent == null || _parent.IsExpanded;
+        /// <summary>Raised when the view is discarded (removed from the tree, it will not be reused).</summary>
+        public event Action<ListTreeNodeView>? Removed;
+
+        /// <summary>True if the node is currently a row of ListTreeView.Items.</summary>
+        public bool IsVisible => _index >= 0;
 
         public Command ToggleCommand { get; }
 
@@ -362,11 +374,15 @@ namespace XrEditor
 
     public class ListTreeView : BaseView, IEditorUIElementHost
     {
+        internal const int MassiveThreshold = 50;
+
         protected internal BulkObservableCollection<ListTreeNodeView> _items;
         protected internal HashSet<ListTreeNodeView> _selectedItems;
 
         private int _updateCount;
-        private int? _minUpdateIndex;
+        private int _changingItems;
+        private ListTreeNodeView? _root;
+        private readonly Stack<bool> _massiveStack = new();
 
         public ListTreeView()
         {
@@ -374,40 +390,154 @@ namespace XrEditor
             _selectedItems = [];
         }
 
-        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive = false)
+        public void SetRoot(ListTreeNodeView? root)
         {
-            if (isMassive)
-                _items.BeginUpdate();
+            var oldRoot = _root;
+            _root = root;
 
-            _updateCount++;
+            // discard the old views (raises Removed, so the owner can release them)
+            if (oldRoot != null && oldRoot != root)
+                oldRoot.Discard();
 
-            if (refItem != null && refItem._index != -1)
-                _minUpdateIndex = Math.Min(_minUpdateIndex ?? int.MaxValue, refItem._index);
-
-        }
-
-        public void EndUpdate(bool isMassive = false)
-        {
-            _updateCount--;
-
-            if (_updateCount == 0)
+            _changingItems++;
+            try
             {
-                RebuildIndexes(_minUpdateIndex ?? 0);
-                _minUpdateIndex = null;
+                foreach (var item in _items)
+                    item._index = -1;
+
+                _items.Clear();
+
+                if (root != null)
+                {
+                    root.Detach();
+                    _items.Add(root);
+                    root._index = 0;
+                    InsertNodes(1, root.VisibleDescendants().ToList());
+                }
+            }
+            finally
+            {
+                _changingItems--;
             }
 
-            if (isMassive)
-                _items.EndUpdate();
+            NotifySelectionStateChanged();
+        }
 
+        /// <summary>
+        /// Groups many row changes in a single Reset notification.
+        /// Indexes are always kept up to date, only the WPF notification is delayed.
+        /// </summary>
+        public void BeginUpdate(bool isMassive = false)
+        {
+            _updateCount++;
+            if (isMassive)
+                _items.BeginUpdate();
+            _massiveStack.Push(isMassive);
+        }
+
+        public void EndUpdate()
+        {
+            var isMassive = _massiveStack.Pop();
+            _updateCount--;
+
+            if (isMassive)
+            {
+                _changingItems++;
+                try
+                {
+                    _items.EndUpdate(); // may raise Reset: ListBox selection changes here are not user changes
+                }
+                finally
+                {
+                    _changingItems--;
+                }
+            }
+
+            if (_updateCount == 0)
+                NotifySelectionStateChanged();
+        }
+
+        internal void InsertNodes(int index, IList<ListTreeNodeView> nodes)
+        {
+            if (nodes.Count == 0)
+                return;
+
+            var isMassive = nodes.Count > MassiveThreshold;
+
+            _changingItems++;
+            try
+            {
+                if (isMassive)
+                    _items.BeginUpdate();
+                try
+                {
+                    for (var i = 0; i < nodes.Count; i++)
+                        _items.Insert(index + i, nodes[i]);
+                }
+                finally
+                {
+                    if (isMassive)
+                        _items.EndUpdate();
+                }
+
+                RebuildIndexes(index);
+            }
+            finally
+            {
+                _changingItems--;
+            }
+
+            if (_updateCount == 0)
+                NotifySelectionStateChanged();
+        }
+
+        internal void RemoveNodes(int index, int count)
+        {
+            if (count <= 0)
+                return;
+
+            var isMassive = count > MassiveThreshold;
+
+            _changingItems++;
+            try
+            {
+                if (isMassive)
+                    _items.BeginUpdate();
+                try
+                {
+                    for (var i = index + count - 1; i >= index; i--)
+                    {
+                        var node = _items[i];
+                        _items.RemoveAt(i);
+                        node._index = -1;
+                    }
+                }
+                finally
+                {
+                    if (isMassive)
+                        _items.EndUpdate();
+                }
+
+                RebuildIndexes(index);
+            }
+            finally
+            {
+                _changingItems--;
+            }
+
+            if (_updateCount == 0)
+                NotifySelectionStateChanged();
         }
 
         protected internal void RebuildIndexes(int startIndex = 0)
         {
-            for (var i = startIndex; i < _items.Count; i++)
-            {
+            for (var i = Math.Max(0, startIndex); i < _items.Count; i++)
                 _items[i]._index = i;
-                _items[i]._childInsertIndex = -1;
-            }
+        }
+
+        internal void NotifySelectionStateChanged()
+        {
+            SelectionStateChanged?.Invoke();
         }
 
         public void ScrollIntoView(ListTreeNodeView node)
@@ -423,10 +553,22 @@ namespace XrEditor
             }
         }
 
+        /// <summary>
+        /// Raised when the selection of any node changes or the rows change.
+        /// Used by the UI to re-sync its own selection from the model.
+        /// </summary>
+        public event Action? SelectionStateChanged;
+
+        /// <summary>True while rows are being inserted / removed / reset.</summary>
+        public bool IsChangingItems => _changingItems > 0;
+
         public IEditorUIElement? UIElement { get; set; }
 
         public IReadOnlySet<ListTreeNodeView> SelectedItems => _selectedItems;
 
+        public ListTreeNodeView? Root => _root;
+
+        /// <summary>Visible rows. Do not modify directly, use SetRoot / node methods.</summary>
         public ObservableCollection<ListTreeNodeView> Items => _items;
     }
 }

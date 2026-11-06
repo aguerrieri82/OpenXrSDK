@@ -23,7 +23,6 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidAsset Include="Models/*" Link="Models/%(Filename)%(Extension)" />
-		<AndroidManifestOverlay Include="AndroidManifest.xml" />
 	</ItemGroup>
 	
 	<ItemGroup>

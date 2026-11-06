@@ -31,7 +31,6 @@
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*" Abi="arm64-v8a" />
-		<AndroidManifestOverlay Include="AndroidManifest.xml" />
 	</ItemGroup>
 
 </Project>

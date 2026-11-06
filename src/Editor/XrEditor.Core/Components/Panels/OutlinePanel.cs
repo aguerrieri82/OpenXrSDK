@@ -9,7 +9,9 @@ namespace XrEditor
     [DisplayName("Outline")]
     public class OutlinePanel : BasePanel
     {
-        static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];
+        // One INode can be shown in many positions (e.g. a material shared by two meshes):
+        // one view per position, all the views of a node are registered here.
+        protected readonly Dictionary<INode, List<ListTreeNodeView>> _listNodeMap = [];
 
         protected SceneView? _sceneView;
         protected readonly ListTreeView _treeView;
@@ -25,33 +27,47 @@ namespace XrEditor
             _treeView = new ListTreeView();
         }
 
-        public void ExpandNode(INode target)
+        public IReadOnlyList<ListTreeNodeView> FindViews(INode node)
         {
-            var nodeList = new List<INode>();
-            var curNode = target;
-            while (curNode != null)
-            {
-                nodeList.Insert(0, curNode);
-                curNode = curNode.Parent;
-            }
+            return _listNodeMap.TryGetValue(node, out var views) ? views : [];
+        }
 
-            var lastNode = nodeList[^1];
+        /// <summary>
+        /// Expands the ancestors of target (following INode.Parent) and scrolls to its view.
+        /// Cost is proportional to the depth, the tree is not scanned: at each level the view
+        /// whose parent is the view chosen at the previous level is taken from the map.
+        /// Expanding a level creates (and registers) the views of the next level.
+        /// </summary>
+        public ListTreeNodeView? ExpandNode(INode target)
+        {
+            var path = new List<INode>();
+            for (var curNode = target; curNode != null; curNode = curNode.Parent)
+                path.Insert(0, curNode);
 
-            foreach (var node in nodeList)
+            ListTreeNodeView? curView = null;
+            ListTreeNodeView? targetView = null;
+
+            foreach (var node in path)
             {
-                if (!_listNodeMap.TryGetValue(node, out var listNode))
+                if (!_listNodeMap.TryGetValue(node, out var views) || views.Count == 0)
                     continue;
 
-                if (node != lastNode)
-                {
-                    listNode.IsExpanded = true;
-                }
+                var parentView = curView;
+
+                curView = views.FirstOrDefault(a => a.Parent == parentView) ??
+                          views.FirstOrDefault(a => a.IsVisible) ??
+                          views[0];
+
+                if (node == target)
+                    targetView = curView;
                 else
-                {
-                    _treeView.ScrollIntoView(listNode);
-                }
+                    curView.IsExpanded = true;
             }
 
+            if (targetView != null)
+                _treeView.ScrollIntoView(targetView);
+
+            return targetView;
         }
 
         private async void OnNodeSelectionChanged(ListTreeNodeView obj)
@@ -81,15 +97,17 @@ namespace XrEditor
             {
                 var node = ((NodeView)curSel.Header!).Node;
                 if (!newSelection.Contains(node))
-                    curSel.IsSelected = false;
+                    curSel.SetSelectedCore(false, false);
             }
 
+            // all the positions of a selected node are selected
             foreach (var item in newSelection)
             {
-                //Log.Debug(this, "[Sel-Man] new-selection: {0}", item.Value);
-
-                if (_listNodeMap.TryGetValue(item, out var listNode))
-                    listNode.SetSelectedCore(true, false);
+                if (_listNodeMap.TryGetValue(item, out var views))
+                {
+                    foreach (var view in views.ToArray())
+                        view.SetSelectedCore(true, false);
+                }
             }
 
             _mainDispatcher.Execute(() =>
@@ -107,23 +125,36 @@ namespace XrEditor
 
             var node = _nodeFactory.CreateNode(value);
 
-            if (!_listNodeMap.TryGetValue(node, out var listNode))
-            {
-                listNode = new ListTreeNodeView(_treeView, parent);
-                listNode.SelectionChanged += OnNodeSelectionChanged;
-                listNode.Header = new NodeView(listNode, this, node);
-                listNode.IsSelected = _selection.IsSelected(node);
+            // Always a new view: a view is a position in the tree, never reused
+            var listNode = new ListTreeNodeView(_treeView, parent);
+            listNode.Header = new NodeView(listNode, this, node);
+            listNode.SetSelectedCore(_selection.IsSelected(node), false);
+            listNode.SelectionChanged += OnNodeSelectionChanged;
+            listNode.Removed += OnNodeRemoved;
 
-                _listNodeMap[node] = listNode;
-            }
-            else
-            {
-                listNode.Parent = parent;
-                if (listNode.IsExpanded)
-                    listNode.Unload();
-            }
+            if (!_listNodeMap.TryGetValue(node, out var views))
+                _listNodeMap[node] = views = [];
+
+            views.Add(listNode);
 
             return listNode;
+        }
+
+        private void OnNodeRemoved(ListTreeNodeView listNode)
+        {
+            listNode.SelectionChanged -= OnNodeSelectionChanged;
+            listNode.Removed -= OnNodeRemoved;
+
+            var nodeView = (NodeView)listNode.Header!;
+
+            if (_listNodeMap.TryGetValue(nodeView.Node, out var views))
+            {
+                views.Remove(listNode);
+                if (views.Count == 0)
+                    _listNodeMap.Remove(nodeView.Node);
+            }
+
+            nodeView.Dispose(); // unsubscribe from the INode events
         }
 
         protected override async Task LoadAsync()
@@ -144,9 +175,7 @@ namespace XrEditor
         protected void LoadScene()
         {
             var root = CreateNode(_sceneView?.Scene, null);
-            _treeView.Items.Clear();
-            if (root != null)
-                _treeView.Items.Add(root);
+            _treeView.SetRoot(root);
         }
 
         public static OutlinePanel? Instance { get; internal set; }

@@ -14,7 +14,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="4.152.0" />
+		<PackageReference Include="SkiaSharp" Version="4.154.0" />
 		<PackageReference Include="System.IO.Hashing" Version="$(MsExtVersion)" />
 	</ItemGroup>
 
