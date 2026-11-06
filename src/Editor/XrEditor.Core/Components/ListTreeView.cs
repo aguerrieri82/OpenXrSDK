@@ -3,21 +3,6 @@ using XrEditor.Abstraction;
 
 namespace XrEditor
 {
-    /*
-     * Invariants
-     * ----------
-     * 1) ListTreeView.Items contains EXACTLY the visible rows (a node is in Items only if
-     *    all its ancestors are expanded and the root is in Items). There are no hidden rows:
-     *    hidden rows would be part of Shift-range selections and keyboard navigation.
-     * 2) Every node in Items has _index == its position in Items, every other node has _index == -1.
-     *    Indexes are rebuilt immediately after every mutation (InsertNodes / RemoveNodes).
-     * 3) ListTreeNodeView.IsSelected is the ONLY source of truth for the selection.
-     *    A view is a POSITION in the tree: the same model object can have many views
-     *    (e.g. a material shared by two meshes). Views are never reused: when a view leaves
-     *    the tree it is discarded and Removed is raised.
-     *    The WPF ListBox is never bound to it: ListTreeListBox pushes user changes into the model
-     *    and re-syncs its SelectedItems from the model (see XrEditor.App/Components/ListTreeListBox.cs).
-     */
     public class ListTreeNodeView : BaseView, IEditorUIElementHost
     {
         protected ListTreeNodeView? _parent;
@@ -40,7 +25,6 @@ namespace XrEditor
             ToggleCommand = new Command(Toggle);
         }
 
-        /// <summary>Collapses and discards the children; they will be loaded again on next expand.</summary>
         public void Unload()
         {
             IsExpanded = false;
@@ -84,10 +68,7 @@ namespace XrEditor
                 _children?.Remove(child);
         }
 
-        /// <summary>
-        /// Discards all the child views. The selection of the underlying objects is NOT changed
-        /// (used by Refresh / Unload: the objects still exist, only the views are rebuilt).
-        /// </summary>
+
         public void Clear()
         {
             if (_children == null)
@@ -111,9 +92,6 @@ namespace XrEditor
             }
         }
 
-        /// <summary>
-        /// The object was removed: deselect it (and its descendants) and discard the view.
-        /// </summary>
         public void Remove()
         {
             foreach (var item in DescendantsOrSelf().Where(a => a._isSelected).ToList())
@@ -122,17 +100,12 @@ namespace XrEditor
             Discard();
         }
 
-        /// <summary>
-        /// Removes the view (and its child views) from the tree without notifying selection changes,
-        /// then raises Removed for each discarded view. The view must not be used anymore.
-        /// </summary>
         internal void Discard()
         {
             IsExpanded = false;
 
             Clear();
 
-            // only drop the view from the host selection, the object selection is not changed
             SetSelectedCore(false, notifySelectionChanged: false);
 
             Detach();
@@ -140,10 +113,6 @@ namespace XrEditor
             Removed?.Invoke(this);
         }
 
-        /// <summary>
-        /// Removes the node (and its visible descendants) from the rows and from its parent,
-        /// without touching selection / expansion state.
-        /// </summary>
         internal void Detach()
         {
             if (IsVisible)
@@ -351,10 +320,8 @@ namespace XrEditor
 
         public event Action<ListTreeNodeView>? SelectionChanged;
 
-        /// <summary>Raised when the view is discarded (removed from the tree, it will not be reused).</summary>
         public event Action<ListTreeNodeView>? Removed;
 
-        /// <summary>True if the node is currently a row of ListTreeView.Items.</summary>
         public bool IsVisible => _index >= 0;
 
         public Command ToggleCommand { get; }
@@ -395,7 +362,6 @@ namespace XrEditor
             var oldRoot = _root;
             _root = root;
 
-            // discard the old views (raises Removed, so the owner can release them)
             if (oldRoot != null && oldRoot != root)
                 oldRoot.Discard();
 
@@ -423,10 +389,6 @@ namespace XrEditor
             NotifySelectionStateChanged();
         }
 
-        /// <summary>
-        /// Groups many row changes in a single Reset notification.
-        /// Indexes are always kept up to date, only the WPF notification is delayed.
-        /// </summary>
         public void BeginUpdate(bool isMassive = false)
         {
             _updateCount++;
@@ -445,7 +407,7 @@ namespace XrEditor
                 _changingItems++;
                 try
                 {
-                    _items.EndUpdate(); // may raise Reset: ListBox selection changes here are not user changes
+                    _items.EndUpdate(); 
                 }
                 finally
                 {
@@ -553,13 +515,9 @@ namespace XrEditor
             }
         }
 
-        /// <summary>
-        /// Raised when the selection of any node changes or the rows change.
-        /// Used by the UI to re-sync its own selection from the model.
-        /// </summary>
+
         public event Action? SelectionStateChanged;
 
-        /// <summary>True while rows are being inserted / removed / reset.</summary>
         public bool IsChangingItems => _changingItems > 0;
 
         public IEditorUIElement? UIElement { get; set; }

@@ -7,10 +7,7 @@
     <app:DoubleToThicknessLeft x:Key="DoubleToThicknessLeft"/>
     
     <DataTemplate DataType="{x:Type local:ListTreeView}">
-        <!-- 
-            No binding on ListBoxItem.IsSelected and no hidden rows: 
-            the selection is synchronized by ListTreeListBox (see Components/ListTreeListBox.cs) 
-        -->
+
         <app:ListTreeListBox app:EditorExt.Container="{Binding}" 
                   Style="{StaticResource {x:Type ListBox}}"
                   VirtualizingPanel.IsVirtualizing="True" 

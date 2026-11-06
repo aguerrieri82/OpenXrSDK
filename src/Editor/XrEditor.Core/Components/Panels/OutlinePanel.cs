@@ -9,8 +9,6 @@ namespace XrEditor
     [DisplayName("Outline")]
     public class OutlinePanel : BasePanel
     {
-        // One INode can be shown in many positions (e.g. a material shared by two meshes):
-        // one view per position, all the views of a node are registered here.
         protected readonly Dictionary<INode, List<ListTreeNodeView>> _listNodeMap = [];
 
         protected SceneView? _sceneView;
@@ -32,12 +30,6 @@ namespace XrEditor
             return _listNodeMap.TryGetValue(node, out var views) ? views : [];
         }
 
-        /// <summary>
-        /// Expands the ancestors of target (following INode.Parent) and scrolls to its view.
-        /// Cost is proportional to the depth, the tree is not scanned: at each level the view
-        /// whose parent is the view chosen at the previous level is taken from the map.
-        /// Expanding a level creates (and registers) the views of the next level.
-        /// </summary>
         public ListTreeNodeView? ExpandNode(INode target)
         {
             var path = new List<INode>();
@@ -78,8 +70,6 @@ namespace XrEditor
 
             var curSelected = _selection.IsSelected(node);
 
-            //Log.Debug(this, "[Sel-Node] OnSelectionChanged: {0} ({1})", obj.IsSelected, obj.Header);
-
             if (!obj.IsSelected && curSelected)
                 _selection.Items.Remove(node);
 
@@ -91,8 +81,6 @@ namespace XrEditor
         {
             await UiThread;
 
-            //Log.Debug(this, "[Sel-Man] OnSelectionChanged: {0}", newSelection.Count);
-
             foreach (var curSel in _treeView.SelectedItems.ToArray())
             {
                 var node = ((NodeView)curSel.Header!).Node;
@@ -100,7 +88,6 @@ namespace XrEditor
                     curSel.SetSelectedCore(false, false);
             }
 
-            // all the positions of a selected node are selected
             foreach (var item in newSelection)
             {
                 if (_listNodeMap.TryGetValue(item, out var views))
@@ -125,7 +112,6 @@ namespace XrEditor
 
             var node = _nodeFactory.CreateNode(value);
 
-            // Always a new view: a view is a position in the tree, never reused
             var listNode = new ListTreeNodeView(_treeView, parent);
             listNode.Header = new NodeView(listNode, this, node);
             listNode.SetSelectedCore(_selection.IsSelected(node), false);
@@ -154,7 +140,7 @@ namespace XrEditor
                     _listNodeMap.Remove(nodeView.Node);
             }
 
-            nodeView.Dispose(); // unsubscribe from the INode events
+            nodeView.Dispose(); 
         }
 
         protected override async Task LoadAsync()
