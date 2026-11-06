@@ -59,7 +59,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Avatar",
+                //SampleName = "Avatar",
                 Msaa = 1,
                 Scale = 1f,
                 ViewPlaneGrid = false,

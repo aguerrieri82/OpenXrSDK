@@ -9,6 +9,8 @@ namespace XrEngine.Media.Windows
         public void Load()
         {
             Context.Implement<IAudioDecoder>(() => new MfAudioDecoder());
+            Context.Implement<IAudioEncoder>(() => new MfAudioEncoder());
+           
         }
 
         public void Shutdown()

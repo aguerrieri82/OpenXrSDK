@@ -4,6 +4,7 @@ using XrEngine.Media;
 
 namespace XrEngine.Music
 {
+    [AIGenerated]
     public class PhaseVocoderTimeStretcher : IAudioTimeStretcher
     {
         readonly List<float> _input = [];

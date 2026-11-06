@@ -4,6 +4,11 @@
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="ManagedBass" Version="4.0.2" />
+	  <PackageReference Include="ManagedBass.Midi" Version="4.0.2" />
+	</ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\OpenAl.Framework\OpenAl.Framework.csproj" />
     <ProjectReference Include="..\Fftw\Fftw.csproj" />
@@ -11,5 +16,20 @@
     <ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />
     <ProjectReference Include="..\XrEngine.Devices\XrEngine.Devices.csproj" />
   </ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)bass\android-arm64\*.so" />
+	</ItemGroup>
+
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content PackagePath="runtimes/win-x64/native/" Include="$(NativeLibsDir)bass\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Visible="False" UseLink="True" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <Folder Include="Scripts\" />
+	</ItemGroup>
+
 
 </Project>

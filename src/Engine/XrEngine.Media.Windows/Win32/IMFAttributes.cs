@@ -45,6 +45,7 @@ namespace XrEngine.Media.Windows
 
         int DeleteAllItems();
 
+        [PreserveSig]
         int SetUINT32(ref Guid guidKey, uint value);
 
         int SetUINT64(ref Guid guidKey, ulong value);

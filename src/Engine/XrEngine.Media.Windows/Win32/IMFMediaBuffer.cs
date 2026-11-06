@@ -9,6 +9,7 @@ namespace XrEngine.Media.Windows
     public partial interface IMFMediaBuffer
     {
         // HRESULT Lock(BYTE **ppbBuffer, DWORD *pcbMaxLength, DWORD *pcbCurrentLength)
+        [PreserveSig]
         int Lock(
             out IntPtr ppbBuffer,
             out int pcbMaxLength,
@@ -16,12 +17,14 @@ namespace XrEngine.Media.Windows
         );
 
         // HRESULT Unlock()
+        [PreserveSig]
         int Unlock();
 
         // HRESULT GetCurrentLength(DWORD *pcbCurrentLength)
         int GetCurrentLength(out int pcbCurrentLength);
 
         // HRESULT SetCurrentLength(DWORD cbCurrentLength)
+        [PreserveSig]
         int SetCurrentLength(int cbCurrentLength);
 
         // HRESULT GetMaxLength(DWORD *pcbMaxLength)

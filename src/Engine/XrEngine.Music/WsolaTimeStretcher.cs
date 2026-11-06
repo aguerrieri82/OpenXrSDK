@@ -3,6 +3,7 @@ using XrEngine.Media;
 
 namespace XrEngine.Music
 {
+    [AIGenerated]
     public class WsolaTimeStretcher : IAudioTimeStretcher
     {
         AudioFormat? _format;

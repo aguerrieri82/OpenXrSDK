@@ -37,6 +37,22 @@ namespace XrEngine.Media.Windows
         {
             throw new NotImplementedException();
         }
+
+        [DllImport("mfreadwrite.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        public static extern int MFCreateSinkWriterFromURL(
+            string path, IntPtr byteStream, IntPtr attributes, out IMFSinkWriter writer);
+
+        [DllImport("mfplat.dll", ExactSpelling = true)]
+        public static extern int MFCreateSample(out IMFSample sample);
+
+        [DllImport("ole32.dll", ExactSpelling = true)]
+        public static extern int CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool deleteOnRelease, out System.Runtime.InteropServices.ComTypes.IStream stream);
+
+        [DllImport("mfplat.dll", ExactSpelling = true)]
+        public static extern int MFCreateMFByteStreamOnStream(
+            System.Runtime.InteropServices.ComTypes.IStream stream, out IntPtr byteStream);
+
+
     }
 
     [StructLayout(LayoutKind.Sequential)]

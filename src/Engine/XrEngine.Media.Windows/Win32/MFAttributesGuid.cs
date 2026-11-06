@@ -22,5 +22,7 @@
         public static Guid PCM = new("00000001-0000-0010-8000-00AA00389B71");
 
         public static Guid Float = new("00000003-0000-0010-8000-00AA00389B71");
+
+        public static Guid MP3 = new("00000055-0000-0010-8000-00AA00389B71");
     }
 }
