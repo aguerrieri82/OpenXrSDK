@@ -1,0 +1,73 @@
+@use "_Common" as *;
+@use "@eusoft/webapp-ui/themes/Default" as *;
+@use "Theme";
+@use "Controls";
+
+body {
+    background-color: var(--app-background);
+    padding: 0;
+    margin: 0;
+    color: var(--text-color);
+}
+
+h2 {
+    color: var(--header-color);
+}
+
+:root .popup {
+    color: var(--text-color);
+
+    > .message {
+        border: 1px solid var(--surface-border-color);
+        border-radius: var(--radius-surface);
+
+        > main {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-color) transparent;
+            overflow-y: auto;
+
+            &::-webkit-scrollbar {
+                width: 7px;
+                height: 7px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: var(--scrollbar-color);
+                border-radius: var(--radius-small);
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: var(--scrollbar-hover-color);
+            }
+
+            &::-webkit-scrollbar-corner {
+                background: transparent;
+            }
+        }
+    }
+}
+
+.content-host {
+    overflow: hidden;
+    height: 100%;
+
+    > .content {
+        overflow: hidden;
+        height: 100%;
+    }
+}
+
+.page {
+    overflow: hidden;
+    height: 100%;
+}
+
+.content.page{
+    > header{
+        display: none;
+    }
+}

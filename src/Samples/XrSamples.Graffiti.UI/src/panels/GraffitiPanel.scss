@@ -1,0 +1,54 @@
+@use "../_Common" as *;
+
+.graffiti-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+
+    .graffiti-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .graffiti-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+    }
+
+    .graffiti-thumb {
+        width: 96px;
+        height: 64px;
+        object-fit: contain;
+        background: #000;
+        border-radius: var(--radius-small);
+    }
+
+    .graffiti-name {
+        flex: 1;
+        min-width: 0;
+        font-size: 16px;
+    }
+
+    .graffiti-actions {
+        display: flex;
+        gap: 8px;
+
+        .ui-button {
+            padding: 14px;
+        }
+    }
+
+    .graffiti-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 16px;
+    }
+}

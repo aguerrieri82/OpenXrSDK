@@ -3,18 +3,19 @@ using XrEngine;
 
 namespace XrSamples.Graffiti
 {
-    public enum PaintSelectorMode
+    public enum ToolSelectorMode
     {
         Color,
-        Cap
+        Cap,
+        WebUI
     }
 
-    public class PaintSelector : Group3D
+    public class ToolSelector : Group3D
     {
-        protected PaintSelectorMode _mode;
+        protected ToolSelectorMode _mode;
         protected float _transition;
 
-        public PaintSelector()
+        public ToolSelector()
         {
             SwapOffset = 0.04f;
             AnimationSpeed = 12.0f;
@@ -25,14 +26,14 @@ namespace XrSamples.Graffiti
             Preview = AddChild(new CapPreview());
             Preview.Transform.Position = new Vector3(0, 0.055f, CapRing.Radius);
 
-            Mode = PaintSelectorMode.Color;
+            Mode = ToolSelectorMode.Color;
             LayoutRings();
             IsVisible = false;
         }
 
         public override void Update(RenderContext ctx)
         {
-            var target = _mode == PaintSelectorMode.Cap ? 1f : 0f;
+            var target = (float)_mode;
 
             if (_transition != target)
             {
@@ -50,19 +51,19 @@ namespace XrSamples.Graffiti
         void LayoutRings()
         {
             ColorRing.Transform.Position = new Vector3(0, -_transition * SwapOffset, 0);
-            ColorRing.Opacity = 1 - _transition;
+            ColorRing.Opacity = Math.Clamp(1 - _transition, 0, 1);
 
             CapRing.Transform.Position = new Vector3(0, (1 - _transition) * SwapOffset, 0);
-            CapRing.Opacity = _transition;
+            CapRing.Opacity = Math.Clamp(1 - MathF.Abs(1 - _transition), 0, 1);
         }
 
-        public PaintSelectorMode Mode
+        public ToolSelectorMode Mode
         {
             get => _mode;
             set
             {
                 _mode = value;
-                Preview.IsVisible = value == PaintSelectorMode.Cap;
+                Preview.IsVisible = value == ToolSelectorMode.Cap;
             }
         }
 
@@ -70,7 +71,7 @@ namespace XrSamples.Graffiti
 
         public float AnimationSpeed { get; set; }
 
-        public SelectorRing ActiveRing => _mode == PaintSelectorMode.Color ? ColorRing : CapRing;
+        public SelectorRing ActiveRing => _mode == ToolSelectorMode.Color ? ColorRing : CapRing;
 
         public ColorSelector ColorRing { get; }
 

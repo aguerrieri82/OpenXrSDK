@@ -9,25 +9,10 @@ namespace XrSamples.Graffiti
         [Sample("Graffiti")]
         public static XrEngineAppBuilder CreateGraffiti(this XrEngineAppBuilder builder, bool reconstructMode = false)
         {
-            var halfAngle = MathF.PI / 20f;
-            var bottomRadius = 0.01f;
-            var distance = 0.8f;
-            var baseDensity = 1f;
-
-            var topRadius = bottomRadius + distance * MathF.Sin(halfAngle);
-
-            var area1 = MathF.PI * bottomRadius * bottomRadius;
-            var area2 = MathF.PI * topRadius * topRadius;
-
-            var ratio = area1 / area2;
-
-            var newDensity = baseDensity * ratio;
-
-            var coneDensityK = MathF.Sin(halfAngle) / bottomRadius;
-            var x = 1.0f + distance * coneDensityK;
-            var ratio2 = 1.0f / (x * x);
 
             Embedded.Register(typeof(Builder).Assembly);
+
+            Context.Implement<GraffitiStore>();
 
             var app = new EngineApp();
 
@@ -46,6 +31,15 @@ namespace XrSamples.Graffiti
                       .AddAction(b => b.Right.Thumbstick)
                       .AddAction(b => b.Right.ThumbstickClick))
                   .AddPassthrough()
+                  .UseRayCollider()
+                  .AddRightPointer()
+                  .AddXrRoot()
+                  .AddWebUI(new WebUIOptions
+                  {
+                      Bridges = [new Bridge()],
+                      DevServer = "https://localhost:4541/",
+                      DisableMoveForward = true
+                  })
                   .ConfigureApp(scene.Configure);
 
             return builder;

@@ -59,7 +59,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Avatar",
+                SampleName = "Graffiti",
                 Msaa = 1,
                 Scale = 1f,
                 ViewPlaneGrid = false,
@@ -77,8 +77,8 @@ namespace XrSamples
                 UseRayCollider = false,
                 UsePrimitiveBoundingBox = false,
                 ToneMap = ToneMapMode.Aces,
-                UseSharedSsbo = true,
-                UseMeshCompression = true,
+                UseSharedSsbo = false,
+                UseMeshCompression = false,
                 UseProfileOverlay = false,
                 UseAsyncShaderCompile = false,
                 IsBenchmark = false

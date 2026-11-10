@@ -33,7 +33,11 @@ namespace XrEngine.OpenXr.Android
 
             var mainActivity = Context.Require<IMainActivity>();
 
-            var webViewLayer = eApp.XrApp!.Layers.AddWebView(mainActivity.Context, options.DestMesh.BindToQuad(), controller);
+            var destMesh = options.DestMesh;
+
+            var webViewLayer = eApp.XrApp!.Layers.AddWebView(mainActivity.Context, destMesh.BindToQuad(), controller, out var quadLayer);
+
+            destMesh.AddBehavior((_, _) => quadLayer.IsEnabled = destMesh.IsVisible);
 
             var browser = new AndroidWebViewBrowser(webViewLayer);
 

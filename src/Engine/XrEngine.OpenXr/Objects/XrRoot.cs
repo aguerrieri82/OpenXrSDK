@@ -9,6 +9,14 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
+    public enum XrControllerMode
+    {
+        Auto,
+        Visible,
+        Hidden,
+    }
+
+
     public class XrRoot : Group3D
     {
         protected XrApp _xrApp;
@@ -130,7 +138,12 @@ namespace XrEngine.OpenXr
                     group.WorldOrientation = pose.Orientation;
                 }
 
-                model?.IsVisible = input.IsActive && (curProfile == null || !curProfile.Contains("hand"));
+                model?.IsVisible = (isLeft ? LeftControllerMode : RightControllerMode) switch
+                {
+                    XrControllerMode.Visible => input.IsActive,
+                    XrControllerMode.Hidden => false,
+                    _ => input.IsActive && (curProfile == null || !curProfile.Contains("hand"))
+                };
 
             });
 
@@ -182,5 +195,10 @@ namespace XrEngine.OpenXr
         public Group3D? RightController { get; }
 
         public Group3D? LeftController { get; }
+
+        public XrControllerMode RightControllerMode { get; set; }
+
+
+        public XrControllerMode LeftControllerMode { get; set; }
     }
 }

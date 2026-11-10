@@ -382,6 +382,12 @@
       <Platform Solution="ReleaseStore|Any CPU" Project="x64" />
       <Deploy Solution="Release|*" />
     </Project>
+    <Project Path="Samples/XrSamples.Graffiti.UI/XrSamples.Graffiti.UI.esproj">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="AnyCPU" />
+      <Build />
+      <Deploy />
+    </Project>
     <Project Path="Samples/XrSamples.Graffiti/XrSamples.Graffiti.csproj" Id="681b55b9-388a-41bb-8c6f-00dde9ac1156">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Solution="*|x64" Project="x64" />

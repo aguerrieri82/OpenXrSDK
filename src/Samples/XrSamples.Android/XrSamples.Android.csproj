@@ -59,6 +59,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AndroidAsset Include="..\XrSamples.Graffiti.UI\dist\**\*" Link="UI/%(RecursiveDir)/%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Media.Android\XrEngine.Media.Android.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr.Android\XrEngine.OpenXr.Android.csproj" />

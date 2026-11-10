@@ -13,7 +13,7 @@ namespace OpenXr.Framework
             return layers.Add(new XrQuadLayer(getQuad, source));
         }
 
-        public static XrWebViewLayerSource AddWebView(this XrLayerManager layers, Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
+        public static XrWebViewLayerSource AddWebView(this XrLayerManager layers, Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput, out XrQuadLayer layer)
         {
             var quad = getQuad();
 
@@ -25,7 +25,7 @@ namespace OpenXr.Framework
 
             var source = new XrWebViewLayerSource(context, size, surfaceInput);
 
-            layers.Add(new XrQuadLayer(getQuad, source)
+            layer = layers.Add(new XrQuadLayer(getQuad, source)
             {
                 FlipY = true
             });

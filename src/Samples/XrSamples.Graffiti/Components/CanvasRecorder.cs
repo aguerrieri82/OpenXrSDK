@@ -19,6 +19,10 @@ namespace XrSamples.Graffiti
         protected Pose3 _lastCanvasPose;
         protected Vector2 _lastCanvasSize;
         protected double _startRecordTime = 0;
+        protected string? _fileName;
+        protected string _history = "[";
+        protected float _historyTime;
+        protected int _historyCount;
         private bool _wasSpraying;
 
         public enum OpType
@@ -197,7 +201,7 @@ namespace XrSamples.Graffiti
         [Action]
         public void StopRecord()
         {
-            if (!_isRecording)
+            if (_writer == null)
                 return;
 
             Write("\n]");
@@ -211,10 +215,33 @@ namespace XrSamples.Graffiti
             _lastCanvasPose = Pose3.Identity;
             _lastColor = Color.Transparent;
             _lastCap = null;
-            _entryCount = 0;
             _wasSpraying = false;
 
             _isRecording = false;
+        }
+
+        public void Resume(string json)
+        {
+            StopRecord();
+
+            var recording = CanvasRecordingReader.Read(json);
+
+            json = json.TrimEnd();
+
+            _history = json.EndsWith("\n]", StringComparison.Ordinal) ? json[..^2] : json;
+            _historyCount = recording.Commands.Count;
+            _historyTime = _historyCount > 0 ? recording.Commands[^1].Time : 0;
+        }
+
+        public void SaveTo(string filePath)
+        {
+            if (_writer != null)
+            {
+                StopRecord();
+                Resume(File.ReadAllText(_fileName!));
+            }
+
+            File.WriteAllText(filePath, _history + "\n]");
         }
 
         protected override void OnDisabled()
@@ -227,14 +254,12 @@ namespace XrSamples.Graffiti
         {
             if (_writer == null)
             {
-                var fileName = Path.Combine(_outPath, $"Graffiti-{DateTime.Now:yyyyMMdd-HHmmss}.json");
-                var stream = File.Create(fileName);
-                _writer = new StreamWriter(stream);
-                _startRecordTime = time;
+                _fileName = Path.Combine(_outPath, $"Graffiti-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+                _writer = new StreamWriter(File.Create(_fileName));
+                _startRecordTime = time - _historyTime;
+                _entryCount = _historyCount;
+                Write(_history);
             }
-
-            if (!_isRecording)
-                Write("[");
 
             if (_entryCount > 0)
                 Write(",");

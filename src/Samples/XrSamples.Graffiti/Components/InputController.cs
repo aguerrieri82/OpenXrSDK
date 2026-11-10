@@ -11,9 +11,13 @@ namespace XrSamples.Graffiti
     {
         private XrOculusTouchController? _inputs;
         private PaintCanvas? _canvas;
-        private PaintSelector? _paintSelector;
+        private ToolSelector? _paintSelector;
         private Can? _can;
         private SprayTracker? _tracker;
+        private UIWebPanel? _webPanel;
+        private RayPointerCollider? _rayCollider;
+        private XrRoot? _xrRoot;
+        private int _lastThumbStep;
         private double _lastScrollTime;
         private double _clearStartTime;
         private float _lastTrigger;
@@ -25,15 +29,16 @@ namespace XrSamples.Graffiti
             _inputs = e.GetInputs<XrOculusTouchController>();
         }
 
-        public void PlaceSelector(Pose3 gripPose, Vector3 localOffset)
+        public void PlaceSelector()
         {
-            var forward = (Vector3.UnitY).Transform(gripPose.Orientation);
+            var camera = _host.ActiveCamera!;
+            var forward = camera.Forward;
 
             forward.Y = 0;
             forward = Vector3.Normalize(forward);
 
-            _paintSelector!.Forward = forward;
-            _paintSelector.WorldPosition = gripPose.Position + localOffset;
+            _paintSelector!.Forward = -forward;
+            _paintSelector.WorldPosition = camera.WorldPosition + forward * 0.3f - new Vector3(0, 0.2f, 0);
         }
 
         protected override void Update(RenderContext ctx)
@@ -45,41 +50,46 @@ namespace XrSamples.Graffiti
             Debug.Assert(_inputs?.Right?.GripPose != null);
 
             _canvas ??= _host.Scene!.Descendants<PaintCanvas>().First();
-            _paintSelector ??= _host.Scene!.Descendants<PaintSelector>().First();
+            _paintSelector ??= _host.Scene!.Descendants<ToolSelector>().First();
             _can ??= _host.Scene!.Descendants<Can>().First();
 
             _tracker ??= _can.Component<SprayTracker>();
+            _webPanel ??= _host.Scene!.Descendants<UIWebPanel>().First();
+            _rayCollider ??= _host.Scene!.Component<RayPointerCollider>();
+            _xrRoot ??= _host.Scene!.Descendants<XrRoot>().First();
 
             var clearButton = _inputs.Right.Button.BClick;
             var selectButton = _inputs.Right.ThumbstickClick;
             var hideButton = _inputs.Right.Button.AClick;
             var trigger = _inputs.Right.TriggerValue?.Value ?? 0;
 
-            if (selectButton.IsChanged && selectButton.Value)
+            if (selectButton.IsChanged && selectButton.Value && _host.ActiveTool != GraffitiTool.CanvasPlace)
             {
                 if (!_paintSelector.IsVisible)
                 {
-                    var pose = _inputs.Right.GripPose.Value;
-                    PlaceSelector(pose, new Vector3(0, 0.03f, 0));
+                    PlaceSelector();
                     _paintSelector.IsVisible = true;
                     _host.ActiveTool = GraffitiTool.PaintSelector;
                 }
                 else
-                {
-                    DiscardTestStroke();
-                    _paintSelector.IsVisible = false;
-                    _host.ActiveTool = GraffitiTool.None;
-                }
+                    CloseSelector();
             }
 
             if (_paintSelector.IsVisible)
             {
                 var thumbValue = _inputs.Right.Thumbstick!.Value!;
 
-                if (thumbValue.Y > 0.7f)
-                    _paintSelector.Mode = PaintSelectorMode.Cap;
-                else if (thumbValue.Y < -0.7f)
-                    _paintSelector.Mode = PaintSelectorMode.Color;
+                var thumbStep = MathF.Abs(thumbValue.Y) > 0.95f ? MathF.Sign(thumbValue.Y) : 0;
+
+                if (thumbStep != 0 && thumbStep != _lastThumbStep)
+                    _paintSelector.Mode = (ToolSelectorMode)Math.Clamp((int)_paintSelector.Mode + thumbStep, 0, (int)ToolSelectorMode.WebUI);
+
+                _lastThumbStep = thumbStep;
+            }
+
+            if (_paintSelector.IsVisible && _paintSelector.Mode != ToolSelectorMode.WebUI)
+            {
+                var thumbValue = _inputs.Right.Thumbstick!.Value!;
 
                 var scrollDir = MathF.Abs(thumbValue.X) > 0.5f ? MathF.Sign(thumbValue.X) : 0;
 
@@ -114,7 +124,7 @@ namespace XrSamples.Graffiti
                     _hasTestStroke = true;
                 }
             }
-            else
+            else if (!_paintSelector.IsVisible && _host.ActiveTool != GraffitiTool.CanvasPlace)
             {
                 var clearDt = ctx.Time - _clearStartTime;
 
@@ -146,11 +156,41 @@ namespace XrSamples.Graffiti
             if (_host.ActiveTool == GraffitiTool.CanvasDraw)
                 _isFrameTogglePending = false;
 
-            _tracker.IsEnabled = _paintSelector.IsVisible && _paintSelector.Mode == PaintSelectorMode.Cap;
+            _tracker.IsEnabled = _paintSelector.IsVisible && _paintSelector.Mode == ToolSelectorMode.Cap;
+
+            var isWebMode = _paintSelector.IsVisible && _paintSelector.Mode == ToolSelectorMode.WebUI;
+
+            if (isWebMode && !_webPanel.IsVisible)
+            {
+                DiscardTestStroke();
+
+                var forward = _paintSelector.WorldPosition - _host.ActiveCamera!.WorldPosition;
+                forward.Y = 0;
+                forward = Vector3.Normalize(forward);
+
+                _webPanel.WorldPosition = _paintSelector.WorldPosition + new Vector3(0, 0.2f, 0) + forward * 0.2f;
+                _webPanel.WorldOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.Atan2(-forward.X, -forward.Z));
+            }
+
+            _webPanel.IsVisible = isWebMode;
+
+            var isPointerMode = isWebMode || _host.ActiveTool == GraffitiTool.CanvasPlace;
+
+            _can.IsVisible = !isPointerMode;
+            _rayCollider.IsEnabled = isPointerMode;
+            _rayCollider.RayView.IsVisible = isPointerMode;
+            _xrRoot.RightControllerMode = isPointerMode ? XrControllerMode.Auto : XrControllerMode.Hidden;
 
             _lastTrigger = trigger;
 
             base.Update(ctx);
+        }
+
+        public void CloseSelector()
+        {
+            DiscardTestStroke();
+            _paintSelector!.IsVisible = false;
+            _host.ActiveTool = GraffitiTool.None;
         }
 
         void DiscardTestStroke()

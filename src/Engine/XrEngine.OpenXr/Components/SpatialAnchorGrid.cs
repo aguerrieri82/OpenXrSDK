@@ -245,6 +245,8 @@ namespace XrEngine.OpenXr
                 ApplyReferenceAnchor();
         }
 
+        public IReadOnlyList<SpatialAnchor> Anchors => _anchors;
+
         public float CheckThreshold { get; set; }
 
         public float MaxDistance { get; set; }

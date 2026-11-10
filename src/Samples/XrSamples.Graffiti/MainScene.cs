@@ -12,7 +12,8 @@ namespace XrSamples.Graffiti
     {
         None,
         CanvasDraw,
-        PaintSelector
+        PaintSelector,
+        CanvasPlace
     }
 
     public class MainScene : Scene3D
@@ -23,7 +24,8 @@ namespace XrSamples.Graffiti
         private readonly SprayRays _sprayRays;
         private readonly CanvasDrawer _canvasDrawer;
         private readonly InputController _input;
-        private readonly PaintSelector _paintSelector;
+        private readonly CanvasPlacer _canvasPlacer;
+        private readonly ToolSelector _paintSelector;
 
         public MainScene(bool reconstructMode)
         {
@@ -52,6 +54,8 @@ namespace XrSamples.Graffiti
             _canvasDrawer = this.AddComponent<CanvasDrawer>();
 
             _input = this.AddComponent<InputController>();
+
+            _canvasPlacer = this.AddComponent<CanvasPlacer>();
 
             if (XrPlatform.IsEditor)
             {
@@ -106,7 +110,7 @@ namespace XrSamples.Graffiti
                 Orientation = new Quaternion(0f, 0.551937f, 0f, 0.8338858f)
             });
 
-            _paintSelector = AddChild(new PaintSelector());
+            _paintSelector = AddChild(new ToolSelector());
 
             /*
             var geo = new BrickGeometry();
@@ -181,6 +185,9 @@ namespace XrSamples.Graffiti
             _can.Configure(e);
             _input.Configure(e);
             _canvasDrawer.Configure(e);
+            _canvasPlacer.Configure(e);
+
+            this.Descendants<XrRoot>().First().LeftControllerMode = XrControllerMode.Hidden;
 
             if (!ReconstructMode)
             {

@@ -183,6 +183,17 @@ namespace XrSamples.Graffiti
             IsTestUndo = true;
         }
 
+        public Task<CanvasState> ReadStateAsync()
+        {
+            ReadStateRequest = new TaskCompletionSource<CanvasState>(TaskCreationOptions.RunContinuationsAsynchronously);
+            return ReadStateRequest.Task;
+        }
+
+        public void LoadState(CanvasState state)
+        {
+            LoadStateRequest = state;
+        }
+
         public void Update(GlUpdateContext ctx, ref PaintSimUniforms block)
         {
             _can ??= _scene!.Descendants<Can>().First()!;
@@ -288,6 +299,10 @@ namespace XrSamples.Graffiti
         internal bool UndoRequest { get; set; }
 
         internal bool IsTestUndo { get; set; }
+
+        internal TaskCompletionSource<CanvasState>? ReadStateRequest { get; set; }
+
+        internal CanvasState? LoadStateRequest { get; set; }
 
         public bool CanUndo { get; internal set; }
 

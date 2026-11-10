@@ -291,6 +291,25 @@ namespace XrSamples.Graffiti
                 _canvas.IsTestUndo = false;
             }
 
+            if (_canvas.LoadStateRequest != null)
+            {
+                _wetTex.UpdateFull(_canvas.LoadStateRequest.Wet);
+                _dryTex.UpdateFull(_canvas.LoadStateRequest.Dry);
+                _canvas.CanUndo = false;
+                _canvas.LoadStateRequest = null;
+            }
+
+            if (_canvas.ReadStateRequest != null)
+            {
+                _canvas.ReadStateRequest.SetResult(new CanvasState
+                {
+                    Wet = _wetTex.Read(TextureFormat.RgbaFloat16)![0],
+                    Dry = _dryTex.Read(TextureFormat.RgbaFloat16)![0],
+                    Color = _canvas.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba8)![0]
+                });
+                _canvas.ReadStateRequest = null;
+            }
+
             var glState = GlState.Current;
 
             glState.LoadBuffer(_paintUniformsBuffer, 11);

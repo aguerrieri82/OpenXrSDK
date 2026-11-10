@@ -138,7 +138,7 @@ namespace XrSamples.Graffiti
 
             if (trigger != null && trigger.IsActive)
             {
-                SprayAperture = trigger.Value;
+                SprayAperture = IsVisible ? trigger.Value : 0;
                 if (SprayAperture > 0)
                     _inputs.Right.Haptic!.VibrateStart(20, 0.7f, TimeSpan.FromSeconds(0.5));
                 else

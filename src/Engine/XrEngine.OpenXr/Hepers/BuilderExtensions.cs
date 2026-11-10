@@ -28,6 +28,8 @@ namespace XrEngine.OpenXr
         public string? AssetsPath { get; set; }
 
         public Vector2? Size { get; set; }
+
+        public bool DisableMoveForward { get; set; }
     }
 
     public static class BuilderExtensions
@@ -46,7 +48,7 @@ namespace XrEngine.OpenXr
                 if (options.DestMesh == null)
                 {
                     options.DestMesh = scene!.AddChild(new UIWebPanel(
-                            e.Inputs!.Right.Button.AClick,
+                            options.DisableMoveForward ? null : e.Inputs!.Right.Button.AClick,
                             (PerspectiveCamera)scene.ActiveCamera!));
 
                     if (options.Size != null)

@@ -8,7 +8,7 @@ namespace XrEngine.OpenXr
     {
         bool _isFirstPose = true;
 
-        public UIWebPanel(XrBoolInput moveInput, PerspectiveCamera camera)
+        public UIWebPanel(XrBoolInput? moveInput, PerspectiveCamera camera)
             : base(Quad3D.Default)
         {
             Materials.Add(new ColorMaterial(Color.Transparent)
@@ -22,15 +22,18 @@ namespace XrEngine.OpenXr
 
             this.AddComponent<QuadCollider>();
 
-            this.AddBehavior((_, _) =>
+            if (moveInput != null)
             {
-                if (_isFirstPose || (moveInput.IsChanged && moveInput.Value))
+                this.AddBehavior((_, _) =>
                 {
-                    WorldPosition = camera.WorldPosition + camera.Forward * 0.5f;
-                    WorldOrientation = camera.WorldOrientation;
-                    _isFirstPose = false;
-                }
-            });
+                    if (_isFirstPose || (moveInput.IsChanged && moveInput.Value))
+                    {
+                        WorldPosition = camera.WorldPosition + camera.Forward * 0.5f;
+                        WorldOrientation = camera.WorldOrientation;
+                        _isFirstPose = false;
+                    }
+                });
+            }
         }
     }
 }

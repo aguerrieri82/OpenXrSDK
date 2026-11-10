@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "sourceMap": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "strict": false,
+    "jsx": "preserve",
+    "inlineSources": false,
+    "resolveJsonModule": true,
+    "noImplicitOverride": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["vite/client"]
+  },
+  "include": [
+    "src/",
+    "../../../../WebApp/src/webapp-ui/src",
+    "../../../../WebApp/src/webapp-framework/src",
+    "../../../../WebApp/src/webapp-core/src",
+    "../../../../WebApp/src/webapp-jsx/src"
+  ]
+}
