@@ -98,7 +98,7 @@ namespace XrSamples.Graffiti
 
             if (_state == State.Point1 && isChanged)
             {
-                if (isOn)
+                if (isOn && _inputs.Right.Button!.AClick!.Value)
                 {
                     _point1 = controller.Value.Position;
                     _point2 = controller.Value.Position;

@@ -2,6 +2,7 @@
 using System.Numerics;
 using XrEngine;
 using XrEngine.OpenGL;
+using XrEngine.OpenXr;
 using XrMath;
 using XrSamples.Graffiti.Objects;
 using XrSamples.Graffiti.Shaders;
@@ -29,9 +30,11 @@ namespace XrSamples.Graffiti
         protected PaintCanvasDebug _debug;
         protected readonly PaintFrame _frame;
         protected readonly TriangleMesh _canvas;
+        protected ImageLight? _light;
 
         public PaintCanvas(Quad3 quad, float texelSize = 0.001f, bool useMips = true)
         {
+            LightRotation = 100f * MathF.PI / 180;
             DryRate = 0.3f;
             DensityToCoverage = 1.0f;
             NormalScale = 2.0f * 0.025f;
@@ -98,6 +101,8 @@ namespace XrSamples.Graffiti
             AddChild(_frame);
 
             this.SetWorldPose(quad.Pose);
+
+            this.AddComponent<SpatialAnchorGrid>();
         }
 
         public void SetCanvasSize(Vector2 newSize, Pose3 pose, float texelSize)
@@ -125,6 +130,25 @@ namespace XrSamples.Graffiti
             this.SetWorldPose(pose);
         }
 
+        public override void Update(RenderContext ctx)
+        {
+            _light ??= _scene?.Descendants<ImageLight>().FirstOrDefault();
+
+            if (_light != null)
+            {
+                var forward = Vector3.TransformNormal(Vector3.UnitZ, WorldMatrix);
+                var rotation = LightRotation + MathF.Atan2(forward.X, forward.Z);
+
+                if (rotation != _light.RotationY)
+                {
+                    _light.RotationY = rotation;
+                    _light.NotifyChanged(ChangeType.Property);
+                }
+            }
+
+            base.Update(ctx);
+        }
+
         Vector2 ComputeCanvasGravity()
         {
             Vector3 worldGravity = new(0.0f, 1.0f, 0.0f);
@@ -149,7 +173,14 @@ namespace XrSamples.Graffiti
         [Action]
         public void Undo()
         {
+            if (CanUndo)
+                UndoRequest = true;
+        }
+
+        public void DiscardTestStroke()
+        {
             UndoRequest = true;
+            IsTestUndo = true;
         }
 
         public void Update(GlUpdateContext ctx, ref PaintSimUniforms block)
@@ -213,6 +244,9 @@ namespace XrSamples.Graffiti
 
         public string? SaveImageName { get; set; }
 
+        [ValueType(XrEngine.ValueType.Radiant)]
+        public float LightRotation { get; set; }
+
         public PaintFrame Frame => _frame;
 
         public Texture2D[]? PaintTextures { get; set; }
@@ -252,6 +286,10 @@ namespace XrSamples.Graffiti
         internal bool ClearRequest { get; set; }
 
         internal bool UndoRequest { get; set; }
+
+        internal bool IsTestUndo { get; set; }
+
+        public bool CanUndo { get; internal set; }
 
         public PaintCanvasDebug Debug
         {

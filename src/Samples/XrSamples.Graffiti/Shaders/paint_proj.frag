@@ -24,7 +24,14 @@ void RegisterWrittenFragment()
 
 void main()
 {
-    float radialSq01 = dot(vBrushCoord01, vBrushCoord01);
+    float maskSin = sin(-uMaskAngle);
+    float maskCos = cos(-uMaskAngle);
+
+    vec2 maskCoord = vec2(
+        vBrushCoord01.x * maskCos - vBrushCoord01.y * maskSin,
+        vBrushCoord01.x * maskSin + vBrushCoord01.y * maskCos) / min(uMaskSize, vec2(1.0));
+
+    float radialSq01 = dot(maskCoord, maskCoord);
 
     if (radialSq01 > 1.0)
         discard;

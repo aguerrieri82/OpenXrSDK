@@ -25,6 +25,7 @@ namespace XrSamples.Graffiti.Objects
 
             CompressionMode = MeshCompressionMode.Never;
             Geometry = newGeo;
+            Flags |= EngineObjectFlags.NoFrustumCulling;
         }
     }
 }

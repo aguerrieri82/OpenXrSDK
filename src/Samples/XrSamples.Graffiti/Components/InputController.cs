@@ -13,8 +13,12 @@ namespace XrSamples.Graffiti
         private PaintCanvas? _canvas;
         private PaintSelector? _paintSelector;
         private Can? _can;
+        private SprayTracker? _tracker;
         private double _lastScrollTime;
         private double _clearStartTime;
+        private float _lastTrigger;
+        private bool _hasTestStroke;
+        private bool _isFrameTogglePending;
 
         public void Configure(XrEngineApp e)
         {
@@ -44,24 +48,12 @@ namespace XrSamples.Graffiti
             _paintSelector ??= _host.Scene!.Descendants<PaintSelector>().First();
             _can ??= _host.Scene!.Descendants<Can>().First();
 
-            var clearButton = _inputs.Right.Button.AClick;
+            _tracker ??= _can.Component<SprayTracker>();
+
+            var clearButton = _inputs.Right.Button.BClick;
             var selectButton = _inputs.Right.ThumbstickClick;
-            var hideButton = _inputs.Right.Button.BClick;
-
-            var clearDt = ctx.Time - _clearStartTime;
-
-            if (clearButton.IsChanged)
-            {
-                if (clearButton.Value)
-                    _clearStartTime = ctx.Time;
-                else if (clearDt < 2)
-                    _canvas.Undo();
-            }
-            else if (clearButton.Value && clearDt >= 2 && _clearStartTime > 0)
-            {
-                _canvas.Clear();
-                _clearStartTime = 0;
-            }
+            var hideButton = _inputs.Right.Button.AClick;
+            var trigger = _inputs.Right.TriggerValue?.Value ?? 0;
 
             if (selectButton.IsChanged && selectButton.Value)
             {
@@ -74,7 +66,7 @@ namespace XrSamples.Graffiti
                 }
                 else
                 {
-                    _can.Color = _paintSelector.Colors[(int)_paintSelector.ActiveIndex];
+                    DiscardTestStroke();
                     _paintSelector.IsVisible = false;
                     _host.ActiveTool = GraffitiTool.None;
                 }
@@ -82,24 +74,92 @@ namespace XrSamples.Graffiti
 
             if (_paintSelector.IsVisible)
             {
-                var scrollValue = _inputs.Right.Thumbstick!.Value!;
+                var thumbValue = _inputs.Right.Thumbstick!.Value!;
 
-                var scrollDir = MathF.Abs(scrollValue.X) > 0.5f ? MathF.Sign(scrollValue.X) : 0;
+                if (thumbValue.Y > 0.7f)
+                    _paintSelector.Mode = PaintSelectorMode.Cap;
+                else if (thumbValue.Y < -0.7f)
+                    _paintSelector.Mode = PaintSelectorMode.Color;
 
-                var waitTime = 0.3f - (MathF.Abs(scrollValue.X) * 0.2f);
+                var scrollDir = MathF.Abs(thumbValue.X) > 0.5f ? MathF.Sign(thumbValue.X) : 0;
 
-                if (scrollDir != 0 && (ctx.Time - _lastScrollTime) > waitTime)
+                var waitTime = 0.3f - (MathF.Abs(thumbValue.X) * 0.2f);
+
+                if (scrollDir != 0 && trigger == 0 && (ctx.Time - _lastScrollTime) > waitTime)
                 {
-                    var newIndex = Math.Min(_paintSelector.Colors.Count - 1, Math.Max(0, _paintSelector.ActiveIndex + scrollDir));
-                    _paintSelector.SetActiveIndex((int)newIndex);
+                    var ring = _paintSelector.ActiveRing;
+                    var oldIndex = ring.ActiveIndex;
+
+                    ring.SetActiveIndex(oldIndex + scrollDir);
+
+                    if (ring.ActiveIndex != oldIndex)
+                    {
+                        DiscardTestStroke();
+                        _can.Color = _paintSelector.ColorRing.ActiveColor;
+                        _can.Cap = _paintSelector.CapRing.ActiveCap;
+                    }
+
                     _lastScrollTime = ctx.Time;
+                }
+
+                if (clearButton.IsChanged && clearButton.Value)
+                    _paintSelector.Preview.Distance += 0.05f;
+
+                if (hideButton.IsChanged && hideButton.Value)
+                    _paintSelector.Preview.Distance -= 0.05f;
+
+                if (trigger > 0 && _lastTrigger == 0)
+                {
+                    DiscardTestStroke();
+                    _hasTestStroke = true;
+                }
+            }
+            else
+            {
+                var clearDt = ctx.Time - _clearStartTime;
+
+                if (clearButton.IsChanged)
+                {
+                    if (clearButton.Value)
+                        _clearStartTime = ctx.Time;
+                    else if (clearDt < 2)
+                        _canvas.Undo();
+                }
+                else if (clearButton.Value && clearDt >= 2 && _clearStartTime > 0)
+                {
+                    _canvas.Clear();
+                    _clearStartTime = 0;
+                }
+
+                if (hideButton.IsChanged)
+                {
+                    if (hideButton.Value)
+                        _isFrameTogglePending = true;
+                    else if (_isFrameTogglePending)
+                    {
+                        _canvas.Frame.IsVisible = !_canvas.Frame.IsVisible;
+                        _isFrameTogglePending = false;
+                    }
                 }
             }
 
-            if (hideButton.IsChanged && hideButton.Value)
-                _canvas.Frame.IsVisible = !_canvas.Frame.IsVisible;
+            if (_host.ActiveTool == GraffitiTool.CanvasDraw)
+                _isFrameTogglePending = false;
+
+            _tracker.IsEnabled = _paintSelector.IsVisible && _paintSelector.Mode == PaintSelectorMode.Cap;
+
+            _lastTrigger = trigger;
 
             base.Update(ctx);
+        }
+
+        void DiscardTestStroke()
+        {
+            if (!_hasTestStroke)
+                return;
+
+            _canvas!.DiscardTestStroke();
+            _hasTestStroke = false;
         }
 
         void IDrawGizmos.DrawGizmos(Canvas3D canvas, RenderContext ctx)

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -9,8 +8,6 @@ namespace XrSamples.Graffiti
 {
     public class SprayTracker : Behavior<Can>, IDrawGizmos
     {
-        Geometry3D? _originalGeo;
-        SprayBrush? _brush;
         PaintCanvas? _canvas;
         Ray3[]? _rays;
         Vector3[]? _intersets;
@@ -23,23 +20,20 @@ namespace XrSamples.Graffiti
             SprayCenter = new Vector3(0.3f, 1.81f, 0f);
             RadialFalloff = 2.0f;
             BaseDensity = 8f;
+            FlowExponent = 1.5f;
+            MaskSize = Vector2.One;
             IsEnabled = XrPlatform.IsEditor && false;
-        }
-
-        protected override void Start(RenderContext ctx)
-        {
-            _brush = _host.Scene!.Descendants<SprayBrush>().First();
-
-            Debug.Assert(_brush.Geometry != null);
-
-            _intersets = new Vector3[_brush.Geometry.Vertices.Length];
-            _rays = new Ray3[_brush.Geometry.Vertices.Length];
-            _originalGeo = _brush.Geometry.Clone();
         }
 
         protected override void Update(RenderContext ctx)
         {
             ComputeRays();
+        }
+
+        protected override void OnDisabled()
+        {
+            Footprint?.IsVisible = false;
+            base.OnDisabled();
         }
 
         public void Update(ref SprayUniforms uniforms)
@@ -65,17 +59,39 @@ namespace XrSamples.Graffiti
 
             uniforms.CanvasSize = _canvas.Size;
 
-            var flow = MathF.Pow(_host.SprayAperture, 1.5f);
+            var flow = MathF.Pow(_host.SprayAperture, FlowExponent);
             uniforms.DensityScale = BaseDensity * flow;
             uniforms.RadialFalloff = RadialFalloff;
+            uniforms.MaskSize = MaskSize;
+            uniforms.MaskAngle = MaskAngle;
         }
 
         void ComputeRays()
         {
-            if (_originalGeo == null || _host == null || _brush == null)
+            if (_host == null || Footprint == null)
                 return;
 
             _canvas ??= _host.Scene!.Descendants<PaintCanvas>().First();
+
+            Footprint.SetMask(MaskSize, MaskAngle);
+
+            var geometry = Footprint.Geometry!;
+            var vertices = geometry.Vertices;
+
+            if (_rays == null || _rays.Length != vertices.Length)
+            {
+                _rays = new Ray3[vertices.Length];
+                _intersets = new Vector3[vertices.Length];
+            }
+
+            var wireframe = (WireframeMaterial)Footprint.Materials[0];
+            var wireColor = new Color(_host.Color.R, _host.Color.G, _host.Color.B, wireframe.Color.A);
+
+            if (wireframe.Color != wireColor)
+            {
+                wireframe.Color = wireColor;
+                wireframe.Invalidate();
+            }
 
             var world = _host.Transform.Matrix;
 
@@ -91,17 +107,19 @@ namespace XrSamples.Graffiti
             var h = radius / MathF.Tan(angle);
             var localApex = localCenter - localDirection * h;
 
-            BuildBasis(localDirection, out var tangent, out var bitangent);
+            MathUtils.BuildBasis(localDirection, out var tangent, out var bitangent);
 
-            var wordQuod = new Quad3()
+            var canvasPlane = new Quad3()
             {
                 Pose = _canvas.GetWorldPose(),
                 Size = _canvas.Size
-            };
+            }.ToPlane();
 
-            for (var i = 0; i < _rays!.Length; i++)
+            var isOnPlane = true;
+
+            for (var i = 0; i < _rays.Length; i++)
             {
-                var vertex = _originalGeo!.Vertices[i].Pos;
+                var vertex = vertices[i].UV - new Vector2(0.5f);
 
                 var x = vertex.X * radius * 2f;
                 var y = vertex.Y * radius * 2f;
@@ -123,17 +141,20 @@ namespace XrSamples.Graffiti
 
                 _rays[i] = ray;
 
-                if (ray.Intersects(wordQuod, out var intPoint))
-                    _intersets![i] = intPoint;
+                if (ray.Intersects(canvasPlane, out var intPoint))
+                    _intersets![i] = intPoint - worldDirection * 0.002f;
                 else
+                {
                     _intersets![i] = ray.PointAt(2f);
+                    isOnPlane = false;
+                }
 
-                _brush.Geometry!.Vertices[i].Pos = _intersets[i];
+                vertices[i].Pos = _intersets[i];
             }
 
-            _brush.Geometry!.NotifyChanged(ChangeType.Geometry);
-            _brush.Geometry.ComputeNormals();
-            _brush.IsVisible = true;
+            geometry.NotifyChanged(ChangeType.Geometry);
+            geometry.ComputeNormals();
+            Footprint.IsVisible = isOnPlane;
         }
 
         void IDrawGizmos.DrawGizmos(Canvas3D canvas, RenderContext ctx)
@@ -150,19 +171,7 @@ namespace XrSamples.Graffiti
             canvas.Restore();
         }
 
-        private static void BuildBasis(Vector3 normal, out Vector3 tangent, out Vector3 bitangent)
-        {
-            normal = Vector3.Normalize(normal);
-
-            var helper = MathF.Abs(Vector3.Dot(normal, Vector3.UnitY)) < 0.999f
-                ? Vector3.UnitY
-                : Vector3.UnitX;
-
-            tangent = Vector3.Normalize(Vector3.Cross(helper, normal));
-            bitangent = Vector3.Normalize(Vector3.Cross(normal, tangent));
-        }
-
-        bool IDrawGizmos.IsEnabled => _isEnabled;
+        bool IDrawGizmos.IsEnabled => _isEnabled && ShowRays;
 
         [ValueType(XrEngine.ValueType.Radiant)]
         public float SpreadAngle { get; set; }
@@ -176,5 +185,18 @@ namespace XrSamples.Graffiti
         public float RadialFalloff { get; set; }
 
         public float BaseDensity { get; set; }
+
+        public float FlowExponent { get; set; }
+
+        public Vector2 MaskSize { get; set; }
+
+        [ValueType(XrEngine.ValueType.Radiant)]
+        public float MaskAngle { get; set; }
+
+        public SprayBrush? Brush { get; set; }
+
+        public SprayBrush? Footprint { get; set; }
+
+        public bool ShowRays { get; set; }
     }
 }

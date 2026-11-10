@@ -50,7 +50,10 @@ namespace XrSamples.Graffiti
         Vector3 SprayDirection,
         float SprayRadius,
         float RadialFalloff,
-        float BaseDensity
+        float BaseDensity,
+        float FlowExponent,
+        Vector2 MaskSize,
+        float MaskAngle
     ) : CanvasRecordCommand(Time);
 
     public sealed class CanvasRecording
@@ -204,7 +207,9 @@ namespace XrSamples.Graffiti
 
         static ParamsCommand ReadParams(JsonElement e, int index, float time)
         {
-            RequireCount(e, index, 14);
+            var hasCap = e.GetArrayLength() == 17;
+
+            RequireCount(e, index, hasCap ? 17 : 14);
 
             return new ParamsCommand(
                 time,
@@ -221,7 +226,10 @@ namespace XrSamples.Graffiti
                 SprayDirection: ReadVector3(e[10]),
                 SprayRadius: e[11].GetSingle(),
                 RadialFalloff: e[12].GetSingle(),
-                BaseDensity: e[13].GetSingle()
+                BaseDensity: e[13].GetSingle(),
+                FlowExponent: hasCap ? e[14].GetSingle() : 1.5f,
+                MaskSize: hasCap ? ReadVector2(e[15]) : Vector2.One,
+                MaskAngle: hasCap ? e[16].GetSingle() : 0
             );
         }
 

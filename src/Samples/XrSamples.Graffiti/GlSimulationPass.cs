@@ -57,7 +57,6 @@ namespace XrSamples.Graffiti
         protected readonly GlBuffer<PaintStateBuffer> _paintStateBuffer;
         protected PaintStateBuffer _paintState;
         protected IMemoryBuffer<byte>[] _readBuffer = new IMemoryBuffer<byte>[1];
-        protected bool _hasUndo;
         protected float _lastTextSize;
 
         public GlSimulationPass(OpenGLRender renderer, bool reconstructMode)
@@ -289,6 +288,7 @@ namespace XrSamples.Graffiti
             {
                 Undo();
                 _canvas.UndoRequest = false;
+                _canvas.IsTestUndo = false;
             }
 
             var glState = GlState.Current;
@@ -311,9 +311,9 @@ namespace XrSamples.Graffiti
         protected void Intialize(GlUpdateContext ctx)
         {
             _canvas = ctx.Scene!.Descendants<PaintCanvas>().First();
-            _brush = ctx.Scene!.Descendants<SprayBrush>().First();
             _can = ctx.Scene!.Descendants<Can>().First();
             _tracker = _can.Component<SprayTracker>();
+            _brush = _tracker.Brush!;
 
             void InitTexture(Texture2D tex)
             {
@@ -399,7 +399,7 @@ namespace XrSamples.Graffiti
 
             //_readBuffer[0] ??= MemoryBuffer.Create<byte>(data.Width * data.Height * 2);
 
-            _hasUndo = false;
+            _canvas!.CanUndo = false;
         }
 
         public void ClearCanvas()
@@ -498,13 +498,13 @@ namespace XrSamples.Graffiti
 
         protected void Undo()
         {
-            if (!_hasUndo)
+            if (!_canvas!.CanUndo)
                 return;
 
             _undoDryTex?.CopyTo(_dryTex);
             _undoWetTex?.CopyTo(_wetTex);
 
-            _hasUndo = false;
+            _canvas!.CanUndo = false;
         }
 
         protected void CreateUndoEntry()
@@ -514,7 +514,7 @@ namespace XrSamples.Graffiti
 
             _dryTex.CopyTo(_undoDryTex!);
             _wetTex.CopyTo(_undoWetTex!);
-            _hasUndo = true;
+            _canvas!.CanUndo = true;
         }
 
         protected void RenderSpray(GlUpdateContext ctx)
@@ -579,7 +579,12 @@ namespace XrSamples.Graffiti
 
                 _sprayProgram.Use();
 
-                _brushSource!.Bind();
+                _brush!.SetMask(_tracker.MaskSize, _tracker.MaskAngle);
+
+                if (_brushSource!.NeedUpdate)
+                    _brushSource.Update();
+
+                _brushSource.Bind();
 
                 _sprayUniforms.DensityScale = _sprayUniforms.DensityScale / sampleCount;
 

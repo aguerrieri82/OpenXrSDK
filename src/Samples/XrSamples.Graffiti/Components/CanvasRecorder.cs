@@ -15,6 +15,7 @@ namespace XrSamples.Graffiti
         protected int _entryCount;
         protected StreamWriter? _writer;
         protected Color _lastColor;
+        protected SprayCap? _lastCap;
         protected Pose3 _lastCanvasPose;
         protected Vector2 _lastCanvasSize;
         protected double _startRecordTime = 0;
@@ -44,18 +45,18 @@ namespace XrSamples.Graffiti
             _can ??= _host.Descendants<Can>().First();
             _canvas ??= _host.Descendants<PaintCanvas>().First();
 
-            if (_canvas.UndoRequest)
+            if (_canvas.UndoRequest && !_canvas.IsTestUndo)
                 Append(OpType.Undo, ctx.Time);
 
             if (_canvas.ClearRequest)
                 Append(OpType.Clear, ctx.Time);
 
-            if (_can.SprayAperture > 0)
+            if (_can.SprayAperture > 0 && _host.ActiveTool != GraffitiTool.PaintSelector)
             {
                 var canvasPose = _canvas.GetWorldPose();
                 var canPose = _can.GetWorldPose();
 
-                if (!_isRecording)
+                if (!_isRecording || _lastCap != _can.Cap)
                 {
                     var tracker = _can.Component<SprayTracker>();
 
@@ -72,10 +73,14 @@ namespace XrSamples.Graffiti
                         tracker.SprayDirection,
                         tracker.SprayRadius,
                         tracker.RadialFalloff,
-                        tracker.BaseDensity
+                        tracker.BaseDensity,
+                        tracker.FlowExponent,
+                        tracker.MaskSize,
+                        tracker.MaskAngle
                      );
 
                     _isRecording = true;
+                    _lastCap = _can.Cap;
                 }
 
                 if (_lastCanvasSize != _canvas.Size || _lastCanvasPose != canvasPose)
@@ -205,6 +210,7 @@ namespace XrSamples.Graffiti
             _lastCanvasSize = Vector2.Zero;
             _lastCanvasPose = Pose3.Identity;
             _lastColor = Color.Transparent;
+            _lastCap = null;
             _entryCount = 0;
             _wasSpraying = false;
 

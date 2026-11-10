@@ -1,6 +1,7 @@
 ﻿
 using OpenXr.Framework.Oculus;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
@@ -28,6 +29,7 @@ namespace XrSamples.Graffiti
         private IAudioControl? _sprayControl;
         private readonly SprayTracker? _tracker;
         private Color _color;
+        private SprayCap _sprayCap;
         private SprayRays? _spray;
         private readonly bool _reconstructMode;
 
@@ -87,6 +89,8 @@ namespace XrSamples.Graffiti
             Offset = new Vector3(0, -0.04f, 0);
 
             Color = new Color(1, 0, 0);
+
+            Cap = SprayCap.Stock;
 
             SoundEnabled = !XrPlatform.IsEditor;
         }
@@ -199,6 +203,23 @@ namespace XrSamples.Graffiti
                     var mat = (CanMaterial)((TriangleMesh)_canBody).Materials[0];
                     mat.CanColor = _color;
                 }
+            }
+        }
+
+        public SprayCap Cap
+        {
+            get => _sprayCap;
+            [MemberNotNull(nameof(_sprayCap))]
+            set
+            {
+                _sprayCap = value;
+                _tracker!.SpreadAngle = value.SpreadAngle;
+                _tracker.SprayRadius = value.SprayRadius;
+                _tracker.RadialFalloff = value.RadialFalloff;
+                _tracker.BaseDensity = value.BaseDensity;
+                _tracker.FlowExponent = value.FlowExponent;
+                _tracker.MaskSize = value.MaskSize;
+                _tracker.MaskAngle = value.MaskAngle;
             }
         }
 

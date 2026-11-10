@@ -26,6 +26,10 @@ layout(std140, binding = 13) uniform SprayProjectionBlock
     int uStepCount;
 
     vec3 uHostScale;
+
+    float uMaskAngle;
+
+    vec2 uMaskSize;
 };
 
 layout(std430, binding = 12) buffer PaintStateBuffer

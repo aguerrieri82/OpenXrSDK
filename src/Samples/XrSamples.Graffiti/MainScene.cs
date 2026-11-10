@@ -46,7 +46,7 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<AudioSystem>();
             this.AddComponent<DebugGizmos>();
-            this.AddComponent<SpatialAnchorGrid>();
+
             this.AddComponent<CanvasRecorder>();
 
             _canvasDrawer = this.AddComponent<CanvasDrawer>();
@@ -76,7 +76,7 @@ namespace XrSamples.Graffiti
                 Size = new Vector2(2, 2)
             }, 0.0010f, !reconstructMode);
 
-            _spray = new SprayBrush(30, 10);
+            _spray = new SprayBrush();
 
             _sprayRays = new SprayRays(_spray.Geometry!);
 
@@ -84,6 +84,21 @@ namespace XrSamples.Graffiti
             AddChild(_canvas);
             AddChild(_spray);
             AddChild(_sprayRays);
+
+            var tracker = _can.Component<SprayTracker>();
+            tracker.Brush = _spray;
+            tracker.Footprint = AddChild(new SprayBrush());
+            tracker.Footprint.Materials[0].UseDepth = false;
+            tracker.Footprint.Materials[0].WriteDepth = false;
+            tracker.Footprint.Materials[0].Priority = 11;
+            tracker.Footprint.Materials[0].Alpha = AlphaMode.Blend;
+            ((WireframeMaterial)tracker.Footprint.Materials[0]).Color = new Color(1, 1, 1, 0.05f);
+            tracker.Footprint.Materials.Add(new FootprintMaterial
+            {
+                UseDepth = false,
+                WriteDepth = false,
+                Priority = 10
+            });
 
             _can.SetWorldPose(new Pose3()
             {

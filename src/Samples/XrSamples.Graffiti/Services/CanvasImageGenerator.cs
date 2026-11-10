@@ -83,9 +83,13 @@ namespace XrSamples.Graffiti
                         removeFrom = 0;
                     }
 
-                    newCommands.RemoveRange(removeFrom, newCommands.Count - removeFrom);
+                    for (var j = newCommands.Count - 1; j >= removeFrom; j--)
+                    {
+                        if (newCommands[j] is not (ParamsCommand or ChangeColorCommand or CanvasCommand))
+                            newCommands.RemoveAt(j);
+                    }
 
-                    while (undoPoints.Count > 0 && undoPoints[^1] >= newCommands.Count)
+                    while (undoPoints.Count > 0 && undoPoints[^1] >= removeFrom)
                         undoPoints.RemoveAt(undoPoints.Count - 1);
 
                     openSprayStart = null;
@@ -159,6 +163,9 @@ namespace XrSamples.Graffiti
                     tracker.SprayRadius = paramsCmd.SprayRadius;
                     tracker.RadialFalloff = paramsCmd.RadialFalloff;
                     tracker.BaseDensity = paramsCmd.BaseDensity;
+                    tracker.FlowExponent = paramsCmd.FlowExponent;
+                    tracker.MaskSize = paramsCmd.MaskSize;
+                    tracker.MaskAngle = paramsCmd.MaskAngle;
                 }
                 else if (action is CanvasCommand canvasCmd)
                 {

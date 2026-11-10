@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace XrSamples.Graffiti.Shaders
 {
-    [StructLayout(LayoutKind.Explicit, Size = 352)]
+    [StructLayout(LayoutKind.Explicit, Size = 368)]
     public struct SprayUniforms
     {
         [FieldOffset(0)]
@@ -57,5 +57,11 @@ namespace XrSamples.Graffiti.Shaders
 
         [FieldOffset(336)]
         public Vector3 CanScale;
+
+        [FieldOffset(348)]
+        public float MaskAngle;
+
+        [FieldOffset(352)]
+        public Vector2 MaskSize;
     }
 }
