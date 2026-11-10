@@ -105,6 +105,9 @@ namespace XrEditor
                 if (!prop.CanRead)
                     continue;
 
+                if (prop.GetIndexParameters().Length > 0)
+                    continue;
+
                 var editableAttr = prop.GetCustomAttribute<EditableAttribute>();
 
                 if ((!prop.CanWrite && editableAttr == null) ||

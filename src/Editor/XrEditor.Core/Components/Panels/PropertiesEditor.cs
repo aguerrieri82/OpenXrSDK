@@ -175,7 +175,7 @@ namespace XrEditor
             if (_activeNode != null)
             {
                 var mainGrp = CreateProps(_activeNode);
-                if (mainGrp != null && mainGrp.Properties.Count > 0)
+                if (mainGrp != null && (mainGrp.Properties.Count > 0 || mainGrp.Groups.Count > 0))
                 {
                     mainGrp.Header = _activeNode.Types.First();
                     _groups.Add(mainGrp);

@@ -1,6 +1,8 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples.Dnd;
+using XrSamples.Graffiti;
+
 
 
 #if DEVELOPMENT
@@ -109,7 +111,7 @@ namespace XrEditor
               .EnableDebugNotRelease(sync: true)
               .SetRenderQuality(1f, sampleCount: 2)
               .UseProjDepth(XrProjDepthMode.DepthCopyImage, 0.25f)
-              .CreateDrums()
+              .CreateGraffiti()
               .Build();
 
 #else

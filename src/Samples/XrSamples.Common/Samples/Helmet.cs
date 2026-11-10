@@ -13,8 +13,6 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            GetAssetPath("Helmet/DamagedHelmet.bin");
-
             var mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
