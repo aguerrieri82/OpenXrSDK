@@ -137,6 +137,7 @@ namespace XrEngine
         {
             var newMat = (Material)MemberwiseClone();
 
+            newMat._id = default;
             newMat._hosts = [];
 
             if (newMat._props != null)

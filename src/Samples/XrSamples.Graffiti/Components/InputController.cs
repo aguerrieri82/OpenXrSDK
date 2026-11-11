@@ -79,7 +79,7 @@ namespace XrSamples.Graffiti
             {
                 var thumbValue = _inputs.Right.Thumbstick!.Value!;
 
-                var thumbStep = MathF.Abs(thumbValue.Y) > 0.95f ? MathF.Sign(thumbValue.Y) : 0;
+                var thumbStep = MathF.Abs(thumbValue.Y) > 0.85f ? MathF.Sign(thumbValue.Y) : 0;
 
                 if (thumbStep != 0 && thumbStep != _lastThumbStep)
                     _paintSelector.Mode = (ToolSelectorMode)Math.Clamp((int)_paintSelector.Mode + thumbStep, 0, (int)ToolSelectorMode.WebUI);
@@ -133,11 +133,11 @@ namespace XrSamples.Graffiti
                     if (clearButton.Value)
                         _clearStartTime = ctx.Time;
                     else if (clearDt < 2)
-                        _canvas.Undo();
+                        _ = _canvas.UndoAsync();
                 }
                 else if (clearButton.Value && clearDt >= 2 && _clearStartTime > 0)
                 {
-                    _canvas.Clear();
+                    _ = _canvas.ClearAsync();
                     _clearStartTime = 0;
                 }
 
@@ -198,7 +198,7 @@ namespace XrSamples.Graffiti
             if (!_hasTestStroke)
                 return;
 
-            _canvas!.DiscardTestStroke();
+            _ = _canvas!.DiscardTestStrokeAsync();
             _hasTestStroke = false;
         }
 

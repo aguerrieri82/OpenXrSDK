@@ -59,14 +59,15 @@ namespace XrSamples.Graffiti
         {
             await EngineApp.MainThread;
 
-            Scene.Descendants<PaintCanvas>().First().Clear();
+            await Scene.Descendants<PaintCanvas>().First().ClearAsync();
         }
 
         public async Task NewAsync()
         {
             await EngineApp.MainThread;
 
-            Scene.Descendants<PaintCanvas>().First().Clear();
+            var clear = Scene.Descendants<PaintCanvas>().First().ClearAsync();
+
             Scene.Component<CanvasRecorder>().Resume("[\n]");
             Scene.Component<InputController>().CloseSelector();
 
@@ -75,6 +76,8 @@ namespace XrSamples.Graffiti
             placer.IsEnabled = true;
 
             _currentId = null;
+
+            await clear;
         }
 
         public async Task<GraffitiInfo> SaveAsync(bool asNew)
@@ -151,7 +154,7 @@ namespace XrSamples.Graffiti
             _currentId = id;
 
             canvas.SetCanvasSize(info.Size, canvas.GetWorldPose(), info.TexelSize);
-            canvas.LoadState(state);
+            var load = canvas.LoadStateAsync(state);
 
             scene.Component<CanvasRecorder>().Resume(recording);
             scene.Component<InputController>().CloseSelector();
@@ -166,6 +169,8 @@ namespace XrSamples.Graffiti
                 placer.Mode = CanvasPlacerMode.Place;
                 placer.IsEnabled = true;
             }
+
+            await load;
         }
 
         public void Delete(Guid id)

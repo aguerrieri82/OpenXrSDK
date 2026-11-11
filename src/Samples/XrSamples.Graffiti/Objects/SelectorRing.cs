@@ -6,10 +6,9 @@ namespace XrSamples.Graffiti
 {
     public abstract class SelectorRing : Group3D
     {
-        readonly List<TriangleMesh> _buttons = [];
-        readonly List<PbrMaterial> _materials = [];
+        readonly List<Object3D> _buttons = [];
+        readonly List<(PbrMaterial Material, Color Color)[]> _materials = [];
 
-        protected Geometry3D? _buttonGeometry;
         protected readonly TriangleMesh _selectedMesh;
         protected float _visualIndex = -1;
         protected int _activeIndex;
@@ -63,29 +62,25 @@ namespace XrSamples.Graffiti
             _activeIndex = Count == 0 ? 0 : Math.Clamp(index, 0, Count - 1);
         }
 
-        protected abstract Color GetColor(int index);
+        protected abstract Object3D CreateButton(int index);
 
         void EnsureButtons()
         {
-            if (_buttonGeometry == null)
-                return;
-
             while (_buttons.Count < Count)
             {
-                var mat = new PbrMaterial
-                {
-                    Color = new Color(1, 1, 1, 1),
-                    Metalness = 0,
-                    Roughness = 0.12f,
-                    Alpha = AlphaMode.Blend,
-                    DoubleSided = true
-                };
-
-                var button = new TriangleMesh(_buttonGeometry);
+                var button = CreateButton(_buttons.Count);
                 button.Transform.SetScale(ButtonScale);
-                button.Materials.Add(mat);
 
-                _materials.Add(mat);
+                var materials = button.DescendantsOrSelf()
+                    .OfType<TriangleMesh>()
+                    .SelectMany(a => a.Materials)
+                    .OfType<PbrMaterial>()
+                    .ToArray();
+
+                foreach (var mat in materials)
+                    mat.Alpha = AlphaMode.Blend;
+
+                _materials.Add(materials.Select(a => (a, a.Color)).ToArray());
                 _buttons.Add(button);
                 AddChild(button);
 
@@ -102,8 +97,6 @@ namespace XrSamples.Graffiti
             for (var i = 0; i < Count; i++)
             {
                 var button = _buttons[i];
-                var mat = _materials[i];
-                var color = GetColor(i);
 
                 var rel = i - _visualIndex;
                 var absRel = MathF.Abs(rel);
@@ -122,12 +115,17 @@ namespace XrSamples.Graffiti
                     0,
                     MathF.Cos(angle) * Radius);
 
+                button.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, angle + MathF.PI);
+
                 var normalizedAway = halfSlots <= 0 ? 0 : Math.Clamp(absRel / halfSlots, 0, 1);
 
-                color.A *= MathF.Pow(1.0f - normalizedAway, 0.65f) * _opacity;
+                var alpha = MathF.Pow(1.0f - normalizedAway, 0.65f) * _opacity;
 
-                mat.Color = color;
-                mat.Invalidate();
+                foreach (var (mat, color) in _materials[i])
+                {
+                    mat.Color = new Color(color.R, color.G, color.B, color.A * alpha);
+                    mat.Invalidate();
+                }
             }
         }
 

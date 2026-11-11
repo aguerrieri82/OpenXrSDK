@@ -53,7 +53,7 @@ namespace XrEngine
                     action();
                     return null;
                 },
-                Completion = new TaskCompletionSource<object?>()
+                Completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously)
             };
 
             _queue.Enqueue(task);
@@ -72,7 +72,7 @@ namespace XrEngine
             {
                 Action = () =>
                     action()!,
-                Completion = new TaskCompletionSource<object?>()
+                Completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously)
             };
 
             _queue.Enqueue(task);

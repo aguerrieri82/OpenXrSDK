@@ -5,6 +5,8 @@ namespace XrSamples.Graffiti
 {
     public class ColorSelector : SelectorRing
     {
+        readonly Geometry3D _buttonGeometry;
+
         public ColorSelector()
         {
             Colors =
@@ -41,10 +43,16 @@ namespace XrSamples.Graffiti
 
             source.Geometry!.ComputeIndices();
 
-            _buttonGeometry = source.Geometry;
+            _buttonGeometry = source.Geometry!;
         }
 
-        protected override Color GetColor(int index) => Colors[index];
+        protected override Object3D CreateButton(int index) => new TriangleMesh(_buttonGeometry, new PbrMaterial
+        {
+            Color = Colors[index],
+            Metalness = 0,
+            Roughness = 0.12f,
+            DoubleSided = true
+        });
 
         public Color ActiveColor => Colors[_activeIndex];
 

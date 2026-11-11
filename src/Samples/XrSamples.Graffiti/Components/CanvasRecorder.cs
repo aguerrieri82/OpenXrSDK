@@ -47,13 +47,13 @@ namespace XrSamples.Graffiti
         protected override void Update(RenderContext ctx)
         {
             _can ??= _host.Descendants<Can>().First();
-            _canvas ??= _host.Descendants<PaintCanvas>().First();
 
-            if (_canvas.UndoRequest && !_canvas.IsTestUndo)
-                Append(OpType.Undo, ctx.Time);
-
-            if (_canvas.ClearRequest)
-                Append(OpType.Clear, ctx.Time);
+            if (_canvas == null)
+            {
+                _canvas = _host.Descendants<PaintCanvas>().First();
+                _canvas.Undone += () => Append(OpType.Undo, ((IReferenceTime)EngineApp.Current!).Time);
+                _canvas.Cleared += () => Append(OpType.Clear, ((IReferenceTime)EngineApp.Current!).Time);
+            }
 
             if (_can.SprayAperture > 0 && _host.ActiveTool != GraffitiTool.PaintSelector)
             {

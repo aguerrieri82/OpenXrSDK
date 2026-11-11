@@ -387,7 +387,7 @@ namespace XrEngine
         {
             var obj3d = (Object3D)newObj;
 
-            obj3d._transform = _transform.Clone();
+            obj3d._transform = _transform.Clone(obj3d);
             obj3d._worldDirty = true;
             obj3d._worldInverseDirty = true;
             obj3d._visibleDirty = true;

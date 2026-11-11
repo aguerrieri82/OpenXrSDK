@@ -1,36 +1,28 @@
-﻿using System.Numerics;
-using XrEngine;
-using XrMath;
+﻿using XrEngine;
 
 namespace XrSamples.Graffiti
 {
     public class CapSelector : SelectorRing
     {
+        static readonly Dictionary<SprayCap, CapType> MODELS = new()
+        {
+            [SprayCap.ExtraSkinny] = CapType.SuperSkinny,
+            [SprayCap.Skinny] = CapType.Banana,
+            [SprayCap.SoftSkinny] = CapType.Soft,
+            [SprayCap.Stock] = CapType.Mtn94,
+            [SprayCap.Fat] = CapType.FatPink,
+            [SprayCap.SuperFat] = CapType.AstroFat,
+            [SprayCap.Calligraphy] = CapType.Transversal
+        };
+
         public CapSelector()
         {
-            ButtonScale = 0.01f;
+            ButtonScale = 1;
             Caps = SprayCap.Presets;
             _activeIndex = Caps.IndexOf(SprayCap.Stock);
-
-            var profile = new Poly2D
-            {
-                Points =
-                [
-                    new Vector2(0, 0),
-                    new Vector2(1, 0),
-                    new Vector2(1, 0.8f),
-                    new Vector2(0.9f, 1.0f),
-                    new Vector2(0.6f, 1.15f),
-                    new Vector2(0, 1.2f)
-                ]
-            };
-
-            _buttonGeometry = new MeshBuilder()
-                .AddRevolve(profile, 24, UVMode.Normalized)
-                .ToGeometry();
         }
 
-        protected override Color GetColor(int index) => Caps[index].Color;
+        protected override Object3D CreateButton(int index) => CapModel.Create(MODELS[Caps[index]]);
 
         public SprayCap ActiveCap => Caps[_activeIndex];
 

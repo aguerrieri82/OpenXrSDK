@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using XrMath;
 
 namespace XrSamples.Graffiti
 {
@@ -12,8 +11,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 0.6f,
             BaseDensity = 3f,
-            FlowExponent = 2f,
-            Color = new Color(0.85f, 0.75f, 0.60f)
+            FlowExponent = 2f
         };
 
         public static readonly SprayCap Skinny = new()
@@ -23,8 +21,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 0.8f,
             BaseDensity = 5f,
-            FlowExponent = 2f,
-            Color = new Color(1.00f, 0.45f, 0.70f)
+            FlowExponent = 2f
         };
 
         public static readonly SprayCap SoftSkinny = new()
@@ -34,8 +31,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 3f,
             BaseDensity = 5f,
-            FlowExponent = 1.8f,
-            Color = new Color(0.55f, 0.55f, 0.55f)
+            FlowExponent = 1.8f
         };
 
         public static readonly SprayCap Stock = new()
@@ -45,8 +41,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 2f,
             BaseDensity = 8f,
-            FlowExponent = 1.5f,
-            Color = new Color(0.95f, 0.95f, 0.95f)
+            FlowExponent = 1.5f
         };
 
         public static readonly SprayCap Fat = new()
@@ -56,8 +51,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 1.5f,
             BaseDensity = 16f,
-            FlowExponent = 1.2f,
-            Color = new Color(0.05f, 0.05f, 0.05f)
+            FlowExponent = 1.2f
         };
 
         public static readonly SprayCap SuperFat = new()
@@ -67,8 +61,7 @@ namespace XrSamples.Graffiti
             SprayRadius = 0.01f,
             RadialFalloff = 2.5f,
             BaseDensity = 24f,
-            FlowExponent = 1.2f,
-            Color = new Color(1.00f, 0.45f, 0.05f)
+            FlowExponent = 1.2f
         };
 
         public static readonly SprayCap Calligraphy = new()
@@ -79,8 +72,7 @@ namespace XrSamples.Graffiti
             RadialFalloff = 1f,
             BaseDensity = 10f,
             FlowExponent = 1.5f,
-            MaskSize = new Vector2(1f, 0.2f),
-            Color = new Color(0.20f, 0.40f, 0.90f)
+            MaskSize = new Vector2(1f, 0.2f)
         };
 
         public static readonly SprayCap[] Presets = [ExtraSkinny, Skinny, SoftSkinny, Stock, Fat, SuperFat, Calligraphy];
@@ -100,7 +92,5 @@ namespace XrSamples.Graffiti
         public Vector2 MaskSize { get; init; } = Vector2.One;
 
         public float MaskAngle { get; init; }
-
-        public Color Color { get; init; }
     }
 }

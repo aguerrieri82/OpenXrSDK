@@ -271,44 +271,7 @@ namespace XrSamples.Graffiti
             if (ctx.Frame == _lastFrame)
                 return;
 
-            if (_lastCanvasSize != _canvas!.Size || _lastTextSize != _canvas.TexelSize)
-            {
-                UpdateCanvasSize();
-                _lastCanvasSize = _canvas.Size;
-                _lastTextSize = _canvas.TexelSize;
-            }
-
-            if (_canvas!.ClearRequest)
-            {
-                ClearCanvas();
-                _canvas.ClearRequest = false;
-            }
-
-            if (_canvas!.UndoRequest)
-            {
-                Undo();
-                _canvas.UndoRequest = false;
-                _canvas.IsTestUndo = false;
-            }
-
-            if (_canvas.LoadStateRequest != null)
-            {
-                _wetTex.UpdateFull(_canvas.LoadStateRequest.Wet);
-                _dryTex.UpdateFull(_canvas.LoadStateRequest.Dry);
-                _canvas.CanUndo = false;
-                _canvas.LoadStateRequest = null;
-            }
-
-            if (_canvas.ReadStateRequest != null)
-            {
-                _canvas.ReadStateRequest.SetResult(new CanvasState
-                {
-                    Wet = _wetTex.Read(TextureFormat.RgbaFloat16)![0],
-                    Dry = _dryTex.Read(TextureFormat.RgbaFloat16)![0],
-                    Color = _canvas.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba8)![0]
-                });
-                _canvas.ReadStateRequest = null;
-            }
+            UpdateCanvasSize();
 
             var glState = GlState.Current;
 
@@ -351,11 +314,18 @@ namespace XrSamples.Graffiti
             _brushSource = _brush.GetGlResource(a => GlVertexSourceHandle.Create(_gl, _brush));
             _brushSource.Update();
 
+            _canvas.Simulation = this;
+
             _isInit = true;
         }
 
         protected void UpdateCanvasSize()
         {
+            if (_lastCanvasSize == _canvas!.Size && _lastTextSize == _canvas.TexelSize)
+                return;
+
+            _lastCanvasSize = _canvas.Size;
+            _lastTextSize = _canvas.TexelSize;
 
             var data = new TextureData
             {
@@ -515,7 +485,27 @@ namespace XrSamples.Graffiti
             }
         }
 
-        protected void Undo()
+        public void LoadState(CanvasState state)
+        {
+            UpdateCanvasSize();
+
+            _wetTex.UpdateFull(state.Wet);
+            _dryTex.UpdateFull(state.Dry);
+
+            _canvas!.CanUndo = false;
+        }
+
+        public CanvasState ReadState()
+        {
+            return new CanvasState
+            {
+                Wet = _wetTex.Read(TextureFormat.RgbaFloat16)![0],
+                Dry = _dryTex.Read(TextureFormat.RgbaFloat16)![0],
+                Color = _canvas!.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba8)![0]
+            };
+        }
+
+        public void Undo()
         {
             if (!_canvas!.CanUndo)
                 return;

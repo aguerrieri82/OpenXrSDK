@@ -22,9 +22,9 @@ namespace XrEngine
             _matrix = Matrix4x4.Identity;
         }
 
-        public Transform3D Clone()
+        public Transform3D Clone(Object3D host)
         {
-            return new Transform3D
+            return new Transform3D(host)
             {
                 LocalPivot = _localPivot,
                 Position = _position,

@@ -62,21 +62,6 @@ namespace XrSamples.Graffiti
             _normalTexture = CreateTexture();
             _roughnessTexture = CreateTexture();
 
-            /*
-           _geo = new BrickGeometry()
-           {
-               WallSize = _size,
-           };
-
-           _canvas = new TriangleMesh(_geo, new BrickMaterial()
-           {
-               ColorMap = _colorTexture,
-               NormalMap = _normalTexture,
-               MetallicRoughnessMap = _roughnessTexture,
-               Alpha = AlphaMode.Blend
-           });
-           */
-
             _geo = new Quad3D(_size);
 
             _canvas = new TriangleMesh(_geo, new PbrMaterial()
@@ -130,7 +115,7 @@ namespace XrSamples.Graffiti
             this.SetWorldPose(pose);
         }
 
-        public override void Update(RenderContext ctx)
+        protected override void UpdateSelf(RenderContext ctx)
         {
             _light ??= _scene?.Descendants<ImageLight>().FirstOrDefault();
 
@@ -146,7 +131,7 @@ namespace XrSamples.Graffiti
                 }
             }
 
-            base.Update(ctx);
+            base.UpdateSelf(ctx);
         }
 
         Vector2 ComputeCanvasGravity()
@@ -165,33 +150,35 @@ namespace XrSamples.Graffiti
         }
 
         [Action]
-        public void Clear()
+        public Task ClearAsync()
         {
-            ClearRequest = true;
+            Cleared?.Invoke();
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.ClearCanvas());
         }
 
         [Action]
-        public void Undo()
+        public Task UndoAsync()
         {
-            if (CanUndo)
-                UndoRequest = true;
+            if (!CanUndo)
+                return Task.CompletedTask;
+
+            Undone?.Invoke();
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.Undo());
         }
 
-        public void DiscardTestStroke()
+        public Task DiscardTestStrokeAsync()
         {
-            UndoRequest = true;
-            IsTestUndo = true;
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.Undo());
         }
 
         public Task<CanvasState> ReadStateAsync()
         {
-            ReadStateRequest = new TaskCompletionSource<CanvasState>(TaskCreationOptions.RunContinuationsAsynchronously);
-            return ReadStateRequest.Task;
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.ReadState());
         }
 
-        public void LoadState(CanvasState state)
+        public Task LoadStateAsync(CanvasState state)
         {
-            LoadStateRequest = state;
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.LoadState(state));
         }
 
         public void Update(GlUpdateContext ctx, ref PaintSimUniforms block)
@@ -294,15 +281,13 @@ namespace XrSamples.Graffiti
         [Range(0, 1, 0.001f)]
         public float SpraySpacing { get; set; }
 
-        internal bool ClearRequest { get; set; }
+        public event Action? Cleared;
 
-        internal bool UndoRequest { get; set; }
+        public event Action? Undone;
 
-        internal bool IsTestUndo { get; set; }
+        static IDispatcher RenderDispatcher => EngineApp.Current!.Renderer.Dispatcher;
 
-        internal TaskCompletionSource<CanvasState>? ReadStateRequest { get; set; }
-
-        internal CanvasState? LoadStateRequest { get; set; }
+        internal GlSimulationPass? Simulation { get; set; }
 
         public bool CanUndo { get; internal set; }
 
