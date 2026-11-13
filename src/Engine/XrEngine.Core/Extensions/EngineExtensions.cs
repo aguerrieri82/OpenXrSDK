@@ -93,7 +93,15 @@ namespace XrEngine
                 }
                 return result;
             }
+
+
+            public Task NotifyChangedAsync(ObjectChange change)
+            {
+                return EngineApp.Current.Dispatcher.ExecuteAsync(() => self.NotifyChanged(change));
+            }
         }
+
+
         extension<T>(T self) where T : EngineObject
         {
             public Behavior<T> AddBehavior(Action<T, RenderContext> action)
@@ -141,6 +149,7 @@ namespace XrEngine
                 VisitChildren(self);
 
             }
+
 
             public void UseEnvDepth(bool value)
             {
@@ -1084,7 +1093,7 @@ namespace XrEngine
                 for (var i = 0; i < array.Length; i++)
                     selector(ref self.Vertices[i], array[i]);
 
-                self.NotifyChanged(ChangeType.Geometry);
+                //_ = self.NotifyChangedAsync(ChangeType.Geometry);
             }
 
             public Bounds3 ComputeBounds(Matrix4x4 transform)

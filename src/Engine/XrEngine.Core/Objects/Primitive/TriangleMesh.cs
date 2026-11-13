@@ -179,9 +179,9 @@ namespace XrEngine
             var curGeo = _originalGeometry ?? _geometry;
 
             if ((flags & ObjectCloneFlags.CloneGeometry) != 0)
-                mesh._geometry = curGeo?.Clone(flags);
+                mesh.Geometry = curGeo?.Clone(flags);
             else
-                mesh._geometry = curGeo;
+                mesh.Geometry = curGeo;
 
             foreach (var mat in _materials)
             {
