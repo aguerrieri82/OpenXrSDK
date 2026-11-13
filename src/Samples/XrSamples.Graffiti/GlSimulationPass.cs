@@ -29,6 +29,7 @@ namespace XrSamples.Graffiti
         protected readonly GlComputeProgram _dryProgram;
         protected readonly GlComputeProgram _dripProgram;
         protected readonly GlComputeProgram _resolveProgram;
+        protected readonly GlComputeProgram _resolveColorProgram;
         protected readonly GlSimpleProgram _sprayProgram;
 
         protected GlTexture _wetTex;
@@ -58,6 +59,17 @@ namespace XrSamples.Graffiti
         protected PaintStateBuffer _paintState;
         protected IMemoryBuffer<byte>[] _readBuffer = new IMemoryBuffer<byte>[1];
         protected float _lastTextSize;
+        protected GlTextureFrameBuffer? _stateReadFrameBuffer;
+        protected readonly List<StateRead> _stateReads = [];
+
+        protected class StateRead
+        {
+            public required (uint Buffer, TextureData Data)[] Items;
+
+            public required GlFence Fence;
+
+            public required TaskCompletionSource<CanvasState> Completion;
+        }
 
         public GlSimulationPass(OpenGLRender renderer, bool reconstructMode)
             : base(renderer)
@@ -84,9 +96,16 @@ namespace XrSamples.Graffiti
             _dripProgram = new GlComputeProgram(renderer.GL, "paint_drip.comp", str => Embedded.GetString<GlSimulationPass>(str));
             _dripProgram.Build();
 
-            _resolveProgram = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
-            _resolveProgram.AddFeature($"COLOR_ONLY {(reconstructMode ? 1 : 0)}");
-            _resolveProgram.Build();
+            GlComputeProgram CreateResolveProgram(bool colorOnly)
+            {
+                var program = new GlComputeProgram(renderer.GL, "paint_res.comp", str => Embedded.GetString<GlSimulationPass>(str));
+                program.AddFeature($"COLOR_ONLY {(colorOnly ? 1 : 0)}");
+                program.Build();
+                return program;
+            }
+
+            _resolveProgram = CreateResolveProgram(false);
+            _resolveColorProgram = CreateResolveProgram(true);
 
             _sprayUniformsBuffer = new GlBuffer<SprayUniforms>(_gl, BufferTargetARB.UniformBuffer);
             _sprayUniforms = new SprayUniforms();
@@ -264,6 +283,8 @@ namespace XrSamples.Graffiti
         {
             if (!_isInit)
                 Intialize(ctx);
+
+            CompleteStateReads();
 
             if (ctx.DeltaTime == 0)
                 return;
@@ -460,7 +481,9 @@ namespace XrSamples.Graffiti
 
         protected void RenderResolve(GlUpdateContext ctx)
         {
-            _resolveProgram.Use();
+            var program = ReconstructMode ? _resolveColorProgram : _resolveProgram;
+
+            program.Use();
 
             _gl.BindImageTexture(0, _wetTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
             _gl.BindImageTexture(1, _dryTex, 0, false, 0, BufferAccessARB.ReadOnly, InternalFormat.Rgba16f);
@@ -495,14 +518,82 @@ namespace XrSamples.Graffiti
             _canvas!.CanUndo = false;
         }
 
-        public CanvasState ReadState()
+        public unsafe Task<CanvasState> BeginReadState()
         {
-            return new CanvasState
+            _stateReadFrameBuffer ??= GlTempAllocator.FrameBuffer(_gl, "STATE_READ");
+            _stateReadFrameBuffer.BindRead(ReadBufferMode.ColorAttachment0);
+
+            (uint, TextureData) Read(GlTexture texture, TextureFormat format)
             {
-                Wet = _wetTex.Read(TextureFormat.RgbaFloat16)![0],
-                Dry = _dryTex.Read(TextureFormat.RgbaFloat16)![0],
-                Color = _canvas!.ColorTexture.ToGlTexture().Read(TextureFormat.Rgba8)![0]
+                GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+                var size = format.GetPixelSizeBit() / 8 * texture.Width * texture.Height;
+                var buffer = _gl.GenBuffer();
+
+                GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, buffer);
+                _gl.BufferData(BufferTargetARB.PixelPackBuffer, size, null, BufferUsageARB.StreamRead);
+
+                _gl.FramebufferTexture2D(FramebufferTarget.ReadFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, texture.Handle, 0);
+                _gl.ReadPixels(0, 0, texture.Width, texture.Height, pixelFormat, pixelType, null);
+
+                return (buffer, new TextureData
+                {
+                    Width = texture.Width,
+                    Height = texture.Height,
+                    Format = format,
+                    Content = MemoryBuffer.Create<byte>(size)
+                });
+            }
+
+            var read = new StateRead
+            {
+                Items =
+                [
+                    Read(_wetTex, TextureFormat.RgbaFloat16),
+                    Read(_dryTex, TextureFormat.RgbaFloat16),
+                    Read(_canvas!.ColorTexture.ToGlTexture(), TextureFormat.Rgba8)
+                ],
+                Fence = GlFence.Create(_gl),
+                Completion = new TaskCompletionSource<CanvasState>(TaskCreationOptions.RunContinuationsAsynchronously)
             };
+
+            GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
+            _stateReadFrameBuffer.Unbind();
+
+            _stateReads.Add(read);
+
+            return read.Completion.Task;
+        }
+
+        protected unsafe void CompleteStateReads()
+        {
+            foreach (var read in _stateReads.Where(a => a.Fence.WaitClient(0)).ToArray())
+            {
+                foreach (var (buffer, data) in read.Items)
+                {
+                    GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, buffer);
+
+                    var source = _gl.MapBufferRange(BufferTargetARB.PixelPackBuffer, 0, data.Content!.Size, MapBufferAccessMask.ReadBit);
+
+                    using (var dest = data.Content.MemoryLock())
+                        EngineNativeLib.CopyMemory((nint)source, dest, data.Content.Size);
+
+                    _gl.UnmapBuffer(BufferTargetARB.PixelPackBuffer);
+                    _gl.DeleteBuffer(buffer);
+                }
+
+                GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
+
+                read.Fence.Dispose();
+                _stateReads.Remove(read);
+
+                read.Completion.SetResult(new CanvasState
+                {
+                    Wet = read.Items[0].Data,
+                    Dry = read.Items[1].Data,
+                    Color = read.Items[2].Data
+                });
+            }
         }
 
         public void Undo()

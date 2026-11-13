@@ -6,6 +6,10 @@
 		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Xamarin.AndroidX.Core" Version="1.19.1" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />

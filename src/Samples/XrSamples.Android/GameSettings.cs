@@ -60,7 +60,7 @@ namespace XrSamples
             return new GameSettings
             {
                 SampleName = "Graffiti",
-                Msaa = 1,
+                Msaa = 2,
                 Scale = 1f,
                 ViewPlaneGrid = false,
                 DepthScale = 0.25f,

@@ -247,6 +247,8 @@ namespace XrEngine.OpenXr
 
         public IReadOnlyList<SpatialAnchor> Anchors => _anchors;
 
+        public bool IsLoaded => _isLoaded;
+
         public float CheckThreshold { get; set; }
 
         public float MaxDistance { get; set; }

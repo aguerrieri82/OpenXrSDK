@@ -94,9 +94,12 @@ namespace XrSamples.Graffiti
             {
                 var thumbValue = _inputs.Right.Thumbstick!.Value!;
 
-                var scrollDir = MathF.Abs(thumbValue.X) > 0.5f ? MathF.Sign(thumbValue.X) : 0;
+                var absX = MathF.Abs(thumbValue.X);
+                var absY = MathF.Abs(thumbValue.Y);
 
-                var waitTime = 0.3f - (MathF.Abs(thumbValue.X) * 0.2f);
+                var scrollDir = absX > 0.5f && absX >= absY ? MathF.Sign(thumbValue.X) : 0;
+
+                var waitTime = 0.3f - (absX * 0.2f);
 
                 if (scrollDir != 0 && trigger == 0 && (ctx.Time - _lastScrollTime) > waitTime)
                 {

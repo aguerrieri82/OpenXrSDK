@@ -88,7 +88,10 @@ namespace XrSamples.Graffiti
 
             this.SetWorldPose(quad.Pose);
 
-            this.AddComponent<SpatialAnchorGrid>();
+            AddComponent(new SpatialAnchorGrid
+            {
+                IsPersistent = true
+            });
         }
 
         public void SetCanvasSize(Vector2 newSize, Pose3 pose, float texelSize)
@@ -174,7 +177,7 @@ namespace XrSamples.Graffiti
 
         public Task<CanvasState> ReadStateAsync()
         {
-            return RenderDispatcher.ExecuteAsync(() => Simulation!.ReadState());
+            return RenderDispatcher.ExecuteAsync(() => Simulation!.BeginReadState()).Unwrap();
         }
 
         public Task LoadStateAsync(CanvasState state)

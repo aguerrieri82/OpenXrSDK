@@ -30,6 +30,10 @@ class Bridge extends BaseBridge {
     async deleteGraffitiAsync(id: Guid) {
         return await this.callAsync("DeleteGraffiti", { id });
     }
+
+    async shareColorImageAsync(id: Guid) {
+        return await this.callAsync("ShareColorImageAsync", { graffitiId: id });
+    }
 }
 
 export const appBridge = new Bridge();

@@ -11,6 +11,7 @@ namespace XrEngine.OpenXr.Android
         public void Load()
         {
             Context.Implement<IWebBrowserFactory>(() => new AndroidWebBrowserFactory());
+            Context.Implement<IShareService>(() => new AndroidShareService());
         }
 
         public void Shutdown()

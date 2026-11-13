@@ -25,7 +25,7 @@ export class GraffitiPanel extends BasePanel {
                 <div className="graffiti-list">
 
                     {m.items.forEach(item =>
-                        <div className="graffiti-item ui-item">
+                        <div className="graffiti-item ui-item" on-click={(_, e: Event) => m.loadGraffitiAsync(e, item, true)}>
 
                             <img className="graffiti-thumb" src={item.thumbnail} />
 
@@ -35,18 +35,18 @@ export class GraffitiPanel extends BasePanel {
 
                             <div className="graffiti-actions">
 
-                                <button className="ui-button ghost" title={formatText("load-original") as string}
-                                    on-click={() => appBridge.loadGraffitiAsync(item.info.id, true)}>
-                                    <MaterialIcon name="my_location" />
-                                </button>
-
                                 <button className="ui-button ghost" title={formatText("load-place") as string}
-                                    on-click={() => appBridge.loadGraffitiAsync(item.info.id, false)}>
+                                    on-click={(_, e: Event) => m.loadGraffitiAsync(e, item, false) }>
                                     <MaterialIcon name="ads_click" />
                                 </button>
 
+                                <button className="ui-button ghost" title={formatText("share") as string}
+                                    on-click={(_, e: Event) => m.shareAsync(e, item) }>
+                                    <MaterialIcon name="share" />
+                                </button>
+
                                 <button className="ui-button ghost danger" title={formatText("delete") as string}
-                                    on-click={() => m.deleteAsync(item)}>
+                                    on-click={(_, e: Event) =>  m.deleteAsync(e, item)}>
                                     <MaterialIcon name="delete" />
                                 </button>
 
@@ -109,6 +109,14 @@ export class GraffitiPanel extends BasePanel {
             item.thumbnail = await appBridge.getThumbnailAsync(item.info.id);
     }
 
+    protected async loadGraffitiAsync(ev: Event, item: IGraffitiView, autoPlace: boolean) {
+
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+
+        await appBridge.loadGraffitiAsync(item.info.id, autoPlace)
+    }
+
     protected async saveAsync(asNew: boolean) {
 
         await appBridge.saveGraffitiAsync(asNew);
@@ -116,11 +124,22 @@ export class GraffitiPanel extends BasePanel {
         await this.refreshAsync();
     }
 
-    protected async deleteAsync(item: IGraffitiView) {
+    protected async deleteAsync(ev: Event, item: IGraffitiView) {
+
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
 
         await appBridge.deleteGraffitiAsync(item.info.id);
 
         await this.refreshAsync();
+    }
+
+    protected async shareAsync(ev: Event, item: IGraffitiView) {
+
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+
+        await appBridge.shareColorImageAsync(item.info.id);
     }
 
     items: IGraffitiView[] = [];

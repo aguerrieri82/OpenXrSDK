@@ -51,6 +51,9 @@ namespace XrSamples.Graffiti
 
             this.AddComponent<CanvasRecorder>();
 
+            if (!reconstructMode)
+                this.AddComponent<AutoSave>();
+
             _canvasDrawer = this.AddComponent<CanvasDrawer>();
 
             _input = this.AddComponent<InputController>();
@@ -160,7 +163,7 @@ namespace XrSamples.Graffiti
         [Action]
         public async Task Reproduce()
         {
-            var record = CanvasRecordingReader.ReadFile("D:\\Projects\\XrEditor\\Graffiti\\Recording\\Graffiti-20260608-130312.json");
+            var record = CanvasRecordingReader.ReadFile("D:\\Graffiti\\Saves\\201b2a59-d2d7-45fd-bdb5-91ac9e98d217\\recording.json");
 
             await EngineApp.RenderThread;
 

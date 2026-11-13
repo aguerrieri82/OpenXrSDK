@@ -7,8 +7,8 @@ localTable.add({
     "save-new": "Salva come nuovo",
     "clear": "Pulisci",
     "new": "Nuovo",
-    "load-original": "Posizione originale",
     "load-place": "Posiziona",
+    "share": "Condividi",
     "delete": "Elimina",
     "no-graffiti": "Nessun graffito salvato"
 }, { lang: "IT" });

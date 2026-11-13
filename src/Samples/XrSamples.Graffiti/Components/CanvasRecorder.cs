@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -220,17 +221,30 @@ namespace XrSamples.Graffiti
             _isRecording = false;
         }
 
-        public void Resume(string json)
+        public void Resume(string json, int count = int.MaxValue)
         {
             StopRecord();
 
-            var recording = CanvasRecordingReader.Read(json);
+            var entries = json.Split('\n')
+                .Select(a => a.TrimEnd().TrimEnd(','))
+                .Where(a => a.Length > 1 && a[0] == '[')
+                .Take(count)
+                .ToArray();
 
-            json = json.TrimEnd();
+            _history = "[" + string.Join(",", entries.Select(a => "\n" + a));
+            _historyCount = entries.Length;
+            _historyTime = 0;
 
-            _history = json.EndsWith("\n]", StringComparison.Ordinal) ? json[..^2] : json;
-            _historyCount = recording.Commands.Count;
-            _historyTime = _historyCount > 0 ? recording.Commands[^1].Time : 0;
+            if (_historyCount > 0)
+            {
+                using var last = JsonDocument.Parse(entries[^1]);
+                _historyTime = last.RootElement[1].GetSingle();
+            }
+        }
+
+        public (string? FilePath, string? History, int Count) Snapshot()
+        {
+            return _writer != null ? (_fileName, null, _entryCount) : (null, _history, _historyCount);
         }
 
         public void SaveTo(string filePath)
@@ -255,7 +269,7 @@ namespace XrSamples.Graffiti
             if (_writer == null)
             {
                 _fileName = Path.Combine(_outPath, $"Graffiti-{DateTime.Now:yyyyMMdd-HHmmss}.json");
-                _writer = new StreamWriter(File.Create(_fileName));
+                _writer = new StreamWriter(new FileStream(_fileName, FileMode.Create, FileAccess.Write, FileShare.Read));
                 _startRecordTime = time - _historyTime;
                 _entryCount = _historyCount;
                 Write(_history);
