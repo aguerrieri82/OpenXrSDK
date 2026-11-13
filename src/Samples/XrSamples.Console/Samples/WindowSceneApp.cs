@@ -25,7 +25,7 @@ namespace XrSamples
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
-            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
+            @"D:\Development\Personal\Git\GraffitiVR\src\GraffitiVR.Game\Assets\",
             @"D:\Projects\"];
 
         public static Task Run(IServiceProvider services)

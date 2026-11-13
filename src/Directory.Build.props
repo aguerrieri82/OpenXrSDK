@@ -20,7 +20,7 @@
 		<IsAndroid>false</IsAndroid>
 		<NativeFolder>$(Configuration)</NativeFolder>
 		<NativePlatform>x64</NativePlatform>
-		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
+		<NativeLibsDir>$(MSBuildThisFileDirectory)..\libs\</NativeLibsDir>
 		<FilamentLink>PreBuilt</FilamentLink>
 		<AndroidNativeOutDir>$(ProjectDir)libs\arm64-v8a\</AndroidNativeOutDir>
 		<SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
@@ -29,7 +29,7 @@
 		<UseAngle>false</UseAngle>
 	    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
 		<CreateSymbolicLinksForCopyLocalIfPossible>false</CreateSymbolicLinksForCopyLocalIfPossible>
-		<PackageOutputPath>$(SolutionDir)..\packages</PackageOutputPath>
+		<PackageOutputPath>$(MSBuildThisFileDirectory)..\packages</PackageOutputPath>
 		<IsDev>true</IsDev>
 		<IsPacking>false</IsPacking>
 	</PropertyGroup>
@@ -74,7 +74,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(MSBuildProjectName)' != 'XrEngine.Generator'">
-		<ProjectReference Include="$(SolutionDir)\Engine\XrEngine.Generator\XrEngine.Generator.csproj"
+		<ProjectReference Include="$(MSBuildThisFileDirectory)Engine\XrEngine.Generator\XrEngine.Generator.csproj"
 						  OutputItemType="Analyzer"
 						  ReferenceOutputAssembly="false" />
 	</ItemGroup>
@@ -184,7 +184,7 @@
 			$(ProjectDir)android-build.cmd;
 			$(ProjectDir)Android.mk;
 			$(ProjectDir)Application.mk;
-			$(SolutionDir)..\third-party\vars.cmd"
+			$(MSBuildThisFileDirectory)..\third-party\vars.cmd"
 		Outputs="$(IntDir)android-build.stamp">
 
 		<Exec

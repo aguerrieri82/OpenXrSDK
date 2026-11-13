@@ -1,6 +1,0 @@
-@use "@eusoft/webapp-ui/themes/_vars" as *;
-
-@mixin primary-bk {
-    background-color: var(--primary-color);
-    color: var(--primary-color-contrast);
-}

@@ -36,7 +36,6 @@ namespace XrSamples
 
             var manager = XrEngine.Context.Require<SampleManager>();
             manager.AddType(typeof(Dnd.Builder));
-            manager.AddType(typeof(Graffiti.Builder));
         }
     }
 

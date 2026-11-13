@@ -1,7 +1,6 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples.Dnd;
-using XrSamples.Graffiti;
 
 
 
@@ -48,7 +47,7 @@ namespace XrEditor
             @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
-            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Graffiti\Assets\",
+            @"D:\Development\Personal\Git\GraffitiVR\src\GraffitiVR.Game\Assets\",
             @"D:\Projects\"];
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()

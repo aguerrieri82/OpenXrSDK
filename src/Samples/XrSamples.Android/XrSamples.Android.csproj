@@ -59,7 +59,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AndroidAsset Include="..\XrSamples.Graffiti.UI\dist\**\*" Link="UI/%(RecursiveDir)/%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\..\..\..\GraffitiVR\src\GraffitiVR.Game.UI\dist\**\*" Link="UI/%(RecursiveDir)/%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -70,9 +70,7 @@
 
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Android\XrWebLink.Android.csproj" />
-		<ProjectReference Include="..\XrSamples.Dnd\XrSamples.Dnd.csproj" />
-		<ProjectReference Include="..\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
-	</ItemGroup>
+		<ProjectReference Include="..\XrSamples.Dnd\XrSamples.Dnd.csproj" />	</ItemGroup>
 
 	<Import Condition="'$(UseWebLink)' == 'true'" Project="..\..\AspNetCoreMini.props" />
 

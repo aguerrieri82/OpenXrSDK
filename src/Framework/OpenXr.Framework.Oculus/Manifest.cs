@@ -24,7 +24,5 @@ using OpenXr.Framework.Oculus;
 [assembly: UsesFeature(OculusFeatures.VirtualKeyboard, Required = false)]
 [assembly: UsesFeature(OculusFeatures.RenderModel, Required = false)]
 [assembly: UsesFeature(OculusFeatures.Passthrough)]
-[assembly: UsesFeature(OculusFeatures.ContextualBoundarylessApp)]
-[assembly: UsesFeature(OculusFeatures.ExperimentalEnabled)]
 
 #endif

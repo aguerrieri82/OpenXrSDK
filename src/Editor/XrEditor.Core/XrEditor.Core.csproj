@@ -32,7 +32,5 @@
 	<ItemGroup Condition="'$(IsDev)' == 'true'">
 		<ProjectReference Include="..\..\Samples\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\Samples\XrSamples.Dnd\XrSamples.Dnd.csproj" />
-		<ProjectReference Include="..\..\Samples\XrSamples.Earth\XrSamples.Earth.csproj" />
-		<ProjectReference Include="..\..\Samples\XrSamples.Graffiti\XrSamples.Graffiti.csproj" />
-	</ItemGroup>
+		<ProjectReference Include="..\..\Samples\XrSamples.Earth\XrSamples.Earth.csproj" />	</ItemGroup>
 </Project>
