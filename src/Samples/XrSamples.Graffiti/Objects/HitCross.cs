@@ -4,9 +4,9 @@ using XrMath;
 
 namespace XrSamples.Graffiti
 {
-    public class WallCross : TriangleMesh
+    public class HitCross : TriangleMesh
     {
-        public WallCross()
+        public HitCross()
         {
             var builder = new MeshBuilder();
 

@@ -34,6 +34,10 @@ namespace XrSamples.Graffiti
                   .UseRayCollider()
                   .AddRightPointer()
                   .AddXrRoot()
+                  .UseOculus(cgf =>
+                  {
+                      cgf.UseBothHandAndControllers = false;
+                  })
                   .AddWebUI(new WebUIOptions
                   {
                       Bridges = [new Bridge()],

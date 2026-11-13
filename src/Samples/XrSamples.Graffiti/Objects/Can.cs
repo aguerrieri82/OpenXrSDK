@@ -1,4 +1,5 @@
 ﻿
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +18,9 @@ namespace XrSamples.Graffiti
     public class Can : Group3D
     {
         private readonly Object3D _canBody;
-        private readonly Object3D _cap;
+        private const float CAP_BASE_Y = 1.43f;
+
+        private readonly Group3D _cap;
         private float _sprayAperture;
         private XrOculusTouchController? _inputs;
         private readonly AudioLooper _shakeLoop;
@@ -38,10 +41,7 @@ namespace XrSamples.Graffiti
             _reconstructMode = reconstructMode;
 
             if (reconstructMode)
-            {
                 _canBody = new TriangleMesh();
-                _cap = new TriangleMesh();
-            }
             else
             {
                 var mesh = AssetLoader.Instance.Load<Group3D>("res://asset/uploads_files_4848386_spray_can.glb",
@@ -50,14 +50,18 @@ namespace XrSamples.Graffiti
                         MaterialFactory = matId => matId == 0 ? new CanMaterial() : new PbrMaterial()
                     });
                 _canBody = mesh.FindByName<Object3D>("CanYellow")!;
-                _cap = mesh.FindByName<Object3D>("Cap")!;
-                _cap.Transform.Orientation = new Quaternion(-6.181724E-08f, 0.70710677f, 0f, 0.70710677f);
             }
 
-            AddChild(_canBody!);
-            AddChild(_cap!);
+            _cap = new Group3D();
+            _cap.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2);
+            _cap.Transform.SetPositionY(CAP_BASE_Y);
+
+            AddChild(_canBody);
+            AddChild(_cap);
 
             Transform.SetScale(0.03f);
+
+            _cap.Transform.SetScale(1 / Transform.Scale.X);
 
             _sprayLoop = new AudioLooper
             {
@@ -126,7 +130,7 @@ namespace XrSamples.Graffiti
             var pose = _inputs.Right.GripPose;
             var trigger = _inputs.Right.TriggerValue;
 
-            if (pose != null && pose.IsActive)
+            if (pose != null && pose.IsActive && XrApp.Current!.RightIntProfile?.Contains("hand") == false)
             {
                 this.SetWorldPose(pose.Value.Multiply(new Pose3
                 {
@@ -183,7 +187,7 @@ namespace XrSamples.Graffiti
             set
             {
                 _sprayAperture = value;
-                _cap!.Transform.SetPositionY(1.8865331f - _sprayAperture * 0.2f);
+                _cap.Transform.SetPositionY(CAP_BASE_Y - _sprayAperture * 0.2f);
 
                 if (!_isSpraying && _sprayAperture > 0)
                     OnSprayStart();
@@ -220,6 +224,14 @@ namespace XrSamples.Graffiti
                 _tracker.FlowExponent = value.FlowExponent;
                 _tracker.MaskSize = value.MaskSize;
                 _tracker.MaskAngle = value.MaskAngle;
+
+                if (_reconstructMode)
+                    return;
+
+                foreach (var child in _cap.Children.ToArray())
+                    _cap.RemoveChild(child);
+
+                _cap.AddChild(CapFactory.Create(value));
             }
         }
 

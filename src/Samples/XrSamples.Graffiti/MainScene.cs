@@ -25,7 +25,7 @@ namespace XrSamples.Graffiti
         private readonly CanvasDrawer _canvasDrawer;
         private readonly InputController _input;
         private readonly CanvasPlacer _canvasPlacer;
-        private readonly ToolSelector _paintSelector;
+
 
         public MainScene(bool reconstructMode)
         {
@@ -110,7 +110,7 @@ namespace XrSamples.Graffiti
                 Orientation = new Quaternion(0f, 0.551937f, 0f, 0.8338858f)
             });
 
-            _paintSelector = AddChild(new ToolSelector());
+            AddChild(new ToolSelector());
 
             /*
             var geo = new BrickGeometry();

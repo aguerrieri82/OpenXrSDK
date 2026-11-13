@@ -18,7 +18,7 @@ namespace XrSamples.Graffiti
         private XrOculusTouchController? _inputs;
         private PaintCanvas? _canvas;
         private IEnvRayCollider? _rayCollider;
-        private WallCross? _cross;
+        private HitCross? _cross;
         private PaintFrame? _frame;
         private bool _isPlaced;
         private bool _isDrawing;
@@ -67,7 +67,7 @@ namespace XrSamples.Graffiti
 
             Debug.Assert(_canvas != null);
 
-            _cross ??= _host.AddChild(new WallCross());
+            _cross ??= _host.AddChild(new HitCross());
 
             if (_isPlaced)
             {

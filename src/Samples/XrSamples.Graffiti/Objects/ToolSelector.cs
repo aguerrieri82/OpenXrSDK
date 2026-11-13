@@ -24,7 +24,8 @@ namespace XrSamples.Graffiti
             CapRing = AddChild(new CapSelector());
 
             Preview = AddChild(new CapPreview());
-            Preview.Transform.Position = new Vector3(0, 0.055f, CapRing.Radius);
+            Preview.Transform.Position = new Vector3(0, 0.08f, CapRing.Radius + 0.035f);
+            Preview.Transform.Orientation *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 6);
 
             Mode = ToolSelectorMode.Color;
             LayoutRings();

@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework.Oculus;
+﻿using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
@@ -38,11 +39,13 @@ namespace XrSamples.Graffiti
             forward = Vector3.Normalize(forward);
 
             _paintSelector!.Forward = -forward;
-            _paintSelector.WorldPosition = camera.WorldPosition + forward * 0.3f - new Vector3(0, 0.2f, 0);
+            _paintSelector.WorldPosition = camera.WorldPosition + forward * 0.15f - new Vector3(0, 0.2f, 0);
         }
 
         protected override void Update(RenderContext ctx)
         {
+            
+
             Debug.Assert(_inputs?.Right?.Button?.AClick != null);
             Debug.Assert(_inputs?.Right?.Button?.BClick != null);
             Debug.Assert(_inputs?.Right?.ThumbstickClick != null);
@@ -176,7 +179,9 @@ namespace XrSamples.Graffiti
 
             var isPointerMode = isWebMode || _host.ActiveTool == GraffitiTool.CanvasPlace;
 
-            _can.IsVisible = !isPointerMode;
+            var isHands = XrApp.Current!.RightIntProfile?.Contains("hand") == true;
+
+            _can.IsVisible = !isPointerMode && !isHands;
             _rayCollider.IsEnabled = isPointerMode;
             _rayCollider.RayView.IsVisible = isPointerMode;
             _xrRoot.RightControllerMode = isPointerMode ? XrControllerMode.Auto : XrControllerMode.Hidden;

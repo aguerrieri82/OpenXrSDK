@@ -24,7 +24,7 @@ namespace XrSamples.Graffiti
             var side = AddChild(new TriangleMesh(new Quad3D(new Vector2(0.08f, 0.04f)), _side));
             side.Transform.Position = new Vector3(-0.055f, -0.01f, 0);
 
-            _label = AddChild(new CapLabel { Size = new Size2(0.18f, 0.02f) });
+            _label = AddChild(new CapLabel { Size = new Size2(0.30f, 0.02f) });
             _label.Transform.Position = new Vector3(-0.005f, 0.045f, 0);
 
             Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI);

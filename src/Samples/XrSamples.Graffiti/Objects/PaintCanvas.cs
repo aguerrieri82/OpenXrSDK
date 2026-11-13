@@ -69,7 +69,8 @@ namespace XrSamples.Graffiti
                 ColorMap = _colorTexture,
                 NormalMap = _normalTexture,
                 MetallicRoughnessMap = _roughnessTexture,
-                Alpha = AlphaMode.Blend
+                Alpha = AlphaMode.Blend,
+                WriteDepth= false
             });
 
             _canvas.Materials.Add(new DebugMaterial()
